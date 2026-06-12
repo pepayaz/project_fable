@@ -26,6 +26,16 @@ export async function listStaff() {
   });
 }
 
+export async function listStaffOptions() {
+  return db.staff.findMany({
+    orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+}
+
 export async function getStaffById(id: string) {
   return db.staff.findUnique({
     where: { id },
