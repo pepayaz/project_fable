@@ -19,9 +19,9 @@ Project ini dibuat sebagai project mandiri dan portfolio project berbasis pengal
 
 Current status:
 
-- Documentation foundation in progress
-- App scaffold not started yet
-- MVP planning completed through docs
+- Documentation foundation completed (Milestone 0)
+- App scaffold completed (Milestone 1): Next.js + TypeScript + Tailwind + Prisma + SQLite
+- Next: Staff and department management (Milestone 2)
 
 ## Vision
 
@@ -116,15 +116,34 @@ before reading many files.
 
 ## Local Development
 
-Development setup will be added after the app scaffold is created.
+Requirements:
 
-Expected future commands:
+- Node.js 20 or newer
+- npm
+
+Setup:
 
 ```bash
 npm install
+cp .env.example .env
+npx prisma migrate dev
 npm run dev
+```
+
+The app runs at `http://localhost:3000` and uses a local SQLite database at `prisma/dev.db`.
+
+Other commands:
+
+```bash
 npm run build
 npm run lint
+npx prisma studio
+```
+
+On Windows PowerShell, replace `cp .env.example .env` with:
+
+```powershell
+Copy-Item .env.example .env
 ```
 
 If the project needs to run in WSL from Windows PowerShell:

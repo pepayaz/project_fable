@@ -1,0 +1,101 @@
+// Project Fable database schema.
+// Enum-like values are stored as String because SQLite has no native enum (see docs/ADR.md ADR-012).
+// Valid values are documented in docs/DATA_MODEL.md and will be validated with Zod in lib/validations/.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  staff Staff[]
+  tasks Task[]
+}
+
+model Staff {
+  id           String  @id @default(cuid())
+  name         String
+  email        String?
+  phone        String?
+  position     String?
+  status       String  @default("ACTIVE")
+  batch        String?
+  notes        String?
+  departmentId String?
+
+  department       Department?       @relation(fields: [departmentId], references: [id])
+  tasks            Task[]
+  attendances      Attendance[]
+  availabilities   Availability[]
+  performanceNotes PerformanceNote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id                String    @id @default(cuid())
+  title             String
+  description       String?
+  status            String    @default("TODO")
+  priority          String    @default("MEDIUM")
+  deadline          DateTime?
+  assignedToStaffId String?
+  departmentId      String?
+
+  assignedToStaff Staff?      @relation(fields: [assignedToStaffId], references: [id])
+  department      Department? @relation(fields: [departmentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  staffId   String
+  eventName String
+  date      DateTime
+  status    String
+  notes     String?
+
+  staff Staff @relation(fields: [staffId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Availability {
+  id        String  @id @default(cuid())
+  staffId   String
+  dayOfWeek String
+  startTime String
+  endTime   String
+  notes     String?
+
+  staff Staff @relation(fields: [staffId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PerformanceNote {
+  id       String @id @default(cuid())
+  staffId  String
+  category String @default("GENERAL")
+  note     String
+
+  staff Staff @relation(fields: [staffId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
