@@ -63,7 +63,8 @@ Project documentation:
 - `docs/PROJECT_CHARTER.md`
 - `docs/PRD.md`
 - `docs/SRS.md`
-- `docs/DESIGN.md`
+- `docs/ARCHITECTURE.md` (arsitektur sistem)
+- `DESIGN.md` (design system UI/UX, di root)
 - `docs/ROADMAP.md`
 - `docs/TEST_PLAN.md`
 - `docs/USER_STORIES.md`
@@ -89,10 +90,11 @@ Agents must follow:
 
 - `AGENTS.md`
 - `CLAUDE.md`
+- `DESIGN.md`
 - `docs/PROJECT_CHARTER.md`
 - `docs/PRD.md`
 - `docs/SRS.md`
-- `docs/DESIGN.md`
+- `docs/ARCHITECTURE.md`
 
 Recommended agent workflow:
 

@@ -19,6 +19,8 @@ The application focuses on:
 
 This is a portfolio project based on real Human Capital / People Management workflows.
 
+The MVP is defined as Milestone 1 through Milestone 6 in `docs/ROADMAP.md`. Performance notes are part of the MVP as a secondary (P2) feature. Authentication, AI features, and deployment are outside the MVP.
+
 ## Token-Efficient Workflow
 
 Always use a token-efficient workflow.
@@ -146,7 +148,7 @@ The agent should:
 
 ## Design System
 
-Before creating or modifying UI, read `DESIGN.md`.
+Before creating or modifying UI, read `DESIGN.md` in the repository root (the UI/UX design system). System architecture lives in `docs/ARCHITECTURE.md`.
 
 All UI work must follow the design system defined in `DESIGN.md`, including:
 

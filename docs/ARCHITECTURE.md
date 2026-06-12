@@ -1,4 +1,8 @@
-# System Design Document — Project Fable
+# Architecture Document — Project Fable
+
+Dokumen ini menjelaskan arsitektur sistem Project Fable (struktur teknis, data model, dan strategi implementasi).
+
+Untuk design system UI/UX (warna, typography, komponen, page patterns), lihat `DESIGN.md` di root repository.
 
 ## Design Goals
 
@@ -259,10 +263,11 @@ Agent harus mengikuti:
 
 - AGENTS.md
 - CLAUDE.md
+- DESIGN.md (design system UI/UX)
 - docs/PROJECT_CHARTER.md
 - docs/PRD.md
 - docs/SRS.md
-- docs/DESIGN.md
+- docs/ARCHITECTURE.md
 
 Agent harus menggunakan RTK untuk command terminal. Jika Graphify output tersedia, agent harus membaca `graphify-out/GRAPH_REPORT.md`.
 

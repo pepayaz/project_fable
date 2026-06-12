@@ -1,5 +1,7 @@
 # DESIGN.md — Project Fable Design System
 
+Dokumen ini adalah design system UI/UX (warna, typography, komponen, page patterns). Untuk arsitektur sistem dan data model, lihat `docs/ARCHITECTURE.md`.
+
 ## 1. Design Direction
 
 Project Fable is a people management application for student organizations, committees, communities, and small teams.

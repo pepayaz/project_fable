@@ -2,9 +2,11 @@
 
 ## Purpose
 
-Dokumen ini menjelaskan rancangan API atau server actions untuk Project Fable. Karena tech stack yang direkomendasikan adalah Next.js, implementasi dapat menggunakan Server Actions atau API Routes.
+Dokumen ini adalah operation contract untuk Project Fable: daftar operasi, input, output, dan aturan validasi yang harus disediakan sistem.
 
-Dokumen ini bersifat desain awal. Detail endpoint dapat berubah saat implementasi.
+Sesuai ADR-011, implementasi utama MVP menggunakan Next.js Server Actions dengan service layer (`lib/services/` dan `lib/validations/`). API Routes ditunda kecuali ada kebutuhan nyata. Notasi endpoint HTTP di dokumen ini menjelaskan operasi dan parameternya, bukan endpoint literal yang wajib dibuat.
+
+Dokumen ini bersifat desain awal. Detail operasi dapat berubah saat implementasi.
 
 ## API Design Principles
 
@@ -243,7 +245,7 @@ Response includes:
 
 ## Implementation Note
 
-For MVP, API Routes are optional. If using Next.js Server Actions, keep equivalent operations in:
+Sesuai ADR-011, MVP menggunakan Server Actions, bukan API Routes. Keep equivalent operations in:
 
 - `lib/services/`
 - `lib/validations/`

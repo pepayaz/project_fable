@@ -53,13 +53,17 @@ Pada versi awal, Project Fable tidak bertujuan untuk:
 
 ## MVP Scope
 
-MVP awal mencakup:
+MVP didefinisikan sebagai Milestone 1 sampai Milestone 6 pada `docs/ROADMAP.md`.
+
+MVP mencakup:
 
 - Staff management.
 - Department/division management.
 - Role and status management.
 - Task assignment.
 - Attendance sederhana.
+- Availability tracking.
+- Performance notes sederhana (fitur sekunder, P2).
 - Dashboard ringkas.
 - Basic search and filter.
 - Dokumentasi project yang rapi.

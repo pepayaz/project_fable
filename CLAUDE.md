@@ -19,10 +19,12 @@ Before starting major implementation work, read documents in this order:
 1. `docs/PROJECT_CHARTER.md`
 2. `docs/PRD.md`
 3. `docs/SRS.md`
-4. `docs/DESIGN.md`
+4. `docs/ARCHITECTURE.md`
 5. `docs/ROADMAP.md`
 6. `docs/TEST_PLAN.md`
 7. `AGENTS.md`
+
+Untuk pekerjaan UI, baca juga `DESIGN.md` di root (design system UI/UX).
 
 If some documents do not exist yet, help create them before implementing major features.
 
@@ -60,13 +62,17 @@ Wait for user approval unless the user explicitly requests immediate implementat
 
 ## Project Direction
 
-The first MVP should focus on:
+The MVP is defined as Milestone 1 through Milestone 6 in `docs/ROADMAP.md`.
+
+The MVP should focus on:
 
 - Staff CRUD
 - Department/division CRUD
 - Assigning staff to departments
 - Task assignment
 - Simple attendance tracking
+- Availability tracking
+- Simple performance notes (secondary, P2)
 - Basic dashboard
 
 Avoid the following until later milestones:
@@ -103,6 +109,6 @@ rtk git diff
 
 ## UI Design Rule
 
-For any UI implementation task, read `DESIGN.md` first.
+For any UI implementation task, read `DESIGN.md` (root, design system UI/UX) first. System architecture lives in `docs/ARCHITECTURE.md`.
 
 Before coding a UI page, briefly explain how the planned UI follows the design system.

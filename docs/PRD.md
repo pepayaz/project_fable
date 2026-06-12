@@ -52,6 +52,8 @@ Secondary users:
 
 ## MVP Scope
 
+MVP didefinisikan sebagai Milestone 1 sampai Milestone 6 pada `docs/ROADMAP.md`. Authentication, AI features, dan deployment berada di luar MVP.
+
 ### Staff Management
 
 User dapat:
@@ -112,7 +114,7 @@ Priority awal:
 User dapat:
 
 - Membuat catatan kehadiran.
-- Mencatat staff hadir, izin, sakit, atau absen.
+- Mencatat staff hadir, izin, sakit, terlambat, atau absen.
 - Melihat riwayat kehadiran staff.
 - Melihat rekap sederhana kehadiran.
 
@@ -123,6 +125,15 @@ User dapat:
 - Mencatat availability staff.
 - Melihat staff yang available pada hari tertentu.
 - Membantu memilih staff untuk event atau task tertentu.
+
+### Performance Notes
+
+Fitur sekunder (P2) dalam MVP.
+
+User dapat:
+
+- Menambah catatan performa untuk staff.
+- Melihat catatan performa per staff.
 
 ### Dashboard
 

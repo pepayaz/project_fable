@@ -14,6 +14,8 @@ Project Fable adalah aplikasi people management untuk organisasi, kepanitiaan, k
 
 ## System Scope
 
+MVP didefinisikan sebagai Milestone 1 sampai Milestone 6 pada `docs/ROADMAP.md`.
+
 Sistem akan menyediakan fitur utama:
 
 - Staff management
@@ -21,6 +23,7 @@ Sistem akan menyediakan fitur utama:
 - Task management
 - Attendance management
 - Availability management
+- Performance notes sederhana (fitur sekunder, P2)
 - Dashboard
 - Basic search and filter
 
@@ -220,15 +223,18 @@ Repository harus memiliki:
 
 ## Data Requirements
 
-Entity utama:
+Entity utama MVP:
 
-- User
 - Staff
 - Department
 - Task
 - Attendance
 - Availability
 - PerformanceNote
+
+Entity yang ditunda:
+
+- User (Milestone 7 — Authentication; tidak termasuk dalam Prisma schema MVP)
 
 ## Error Handling Requirements
 

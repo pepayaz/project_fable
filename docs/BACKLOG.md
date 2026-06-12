@@ -60,6 +60,9 @@ Backlog ini menyimpan daftar pekerjaan Project Fable. Backlog membantu menjaga p
 - P1 — Create Availability Model
 - P1 — Create Availability Page
 - P1 — Create Availability Form
+- P2 — Create PerformanceNote Model
+- P2 — Create Performance Notes Page
+- P2 — Create Performance Note Form
 
 ## Milestone 5 — Dashboard
 

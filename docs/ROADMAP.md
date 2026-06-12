@@ -6,6 +6,12 @@ Project Fable harus dibangun secara bertahap. Tujuan utama bukan membuat aplikas
 
 Setiap milestone harus menghasilkan aplikasi yang tetap bisa dijalankan.
 
+## MVP Definition
+
+MVP didefinisikan sebagai Milestone 1 sampai Milestone 6.
+
+MVP mencakup staff management, department management, task management, attendance, availability, dashboard, dan polish dasar. Performance notes termasuk dalam MVP sebagai fitur sekunder (P2). Authentication (Milestone 7), AI features (Milestone 8), dan deployment (Milestone 9) berada di luar MVP.
+
 ## Milestone 0 — Project Foundation
 
 Goal: mempersiapkan repository agar siap dikembangkan secara profesional.
@@ -15,7 +21,8 @@ Deliverables:
 - PROJECT_CHARTER.md
 - PRD.md
 - SRS.md
-- DESIGN.md
+- DESIGN.md (design system UI/UX di root)
+- ARCHITECTURE.md (arsitektur sistem)
 - ROADMAP.md
 - TEST_PLAN.md
 - README.md
@@ -51,7 +58,7 @@ Acceptance criteria:
 
 - App dapat dijalankan lokal.
 - Homepage/dashboard muncul.
-- Struktur folder sesuai DESIGN.md.
+- Struktur folder sesuai docs/ARCHITECTURE.md.
 - No major runtime error.
 
 ## Milestone 2 — Staff and Department Management
@@ -116,6 +123,9 @@ Deliverables:
 - Availability page
 - Availability create form
 - Staff availability summary
+- PerformanceNote model (P2, fitur sekunder)
+- Performance notes page (P2)
+- Performance note create form (P2)
 
 Acceptance criteria:
 
@@ -123,6 +133,7 @@ Acceptance criteria:
 - User dapat melihat attendance history.
 - User dapat mencatat availability.
 - User dapat melihat availability staff.
+- User dapat menambah dan melihat performance notes (P2, boleh digeser ke Milestone 5 jika perlu).
 
 ## Milestone 5 — Dashboard and Reporting
 

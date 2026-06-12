@@ -6,15 +6,18 @@ Dokumen ini menjelaskan rancangan data model Project Fable. Data model digunakan
 
 ## Entity Overview
 
-Entity utama:
+Entity utama MVP:
 
-- User
 - Staff
 - Department
 - Task
 - Attendance
 - Availability
 - PerformanceNote
+
+Entity yang ditunda sampai Milestone 7 (Authentication):
+
+- User
 
 Entity tambahan yang dapat ditambahkan nanti:
 
@@ -180,7 +183,9 @@ Possible categories:
 
 ## User
 
-User merepresentasikan akun yang dapat login ke aplikasi. Untuk MVP awal, authentication dapat ditunda.
+User merepresentasikan akun yang dapat login ke aplikasi.
+
+User adalah bagian dari Milestone 7 (Authentication) dan tidak termasuk dalam Prisma schema MVP. Jangan membuat model User sebelum Milestone 7.
 
 Fields:
 

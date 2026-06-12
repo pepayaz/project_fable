@@ -212,6 +212,8 @@ For MVP, test with seed data:
 - 500 tasks
 - 1.000 attendance records
 
+Catatan: seed data ini adalah data praktis untuk testing lokal, bukan target kapasitas sistem. Target kapasitas yang lebih besar (500 staff, 50 department, 5.000 task, 10.000 attendance records) didefinisikan di SRS.md sebagai batas desain, dan tidak perlu di-seed penuh saat development.
+
 Expected result:
 
 - Pages remain usable.

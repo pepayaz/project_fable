@@ -6,7 +6,7 @@ Dokumen ini mencatat keputusan arsitektur penting untuk Project Fable. Architect
 
 ## ADR-001 Use Next.js for MVP
 
-Status: Proposed
+Status: Accepted
 
 ### Context
 
@@ -33,7 +33,7 @@ Negative:
 
 ## ADR-002 Use TypeScript
 
-Status: Proposed
+Status: Accepted
 
 ### Decision
 
@@ -54,7 +54,7 @@ Negative:
 
 ## ADR-003 Use Prisma ORM
 
-Status: Proposed
+Status: Accepted
 
 ### Decision
 
@@ -75,7 +75,7 @@ Negative:
 
 ## ADR-004 Use SQLite for MVP
 
-Status: Proposed
+Status: Accepted
 
 ### Decision
 
@@ -97,7 +97,7 @@ Negative:
 
 ## ADR-005 Delay Authentication Until Core Workflow Works
 
-Status: Proposed
+Status: Accepted
 
 ### Decision
 
@@ -220,3 +220,53 @@ feat: add staff list page
 feat: add task assignment
 test: add staff validation tests
 ```
+
+## ADR-011 Use Server Actions with Service Layer for MVP
+
+Status: Accepted
+
+### Context
+
+API_SPEC.md membuka dua opsi implementasi: Next.js Server Actions atau API Routes. Membangun keduanya sekaligus menambah kompleksitas tanpa manfaat untuk MVP.
+
+### Decision
+
+Gunakan Next.js Server Actions sebagai mekanisme mutasi dan data access untuk MVP. Business logic ditempatkan di `lib/services/` dan validasi di `lib/validations/` agar terpisah dari UI. API Routes ditunda sampai ada kebutuhan nyata (misalnya integrasi eksternal atau mobile client).
+
+### Consequences
+
+Positive:
+
+- Lebih sedikit boilerplate dibanding API Routes.
+- Validasi dan business logic tetap di server.
+- Service layer dapat dipakai ulang jika API Routes dibutuhkan nanti.
+
+Negative:
+
+- Endpoint HTTP publik tidak tersedia sampai API Routes dibuat.
+- API_SPEC.md berfungsi sebagai kontrak operasi, bukan dokumentasi endpoint literal.
+
+## ADR-012 Store Enum-Like Values as String in SQLite
+
+Status: Accepted
+
+### Context
+
+Data model menggunakan banyak enum (StaffStatus, TaskStatus, TaskPriority, AttendanceStatus, DayOfWeek, PerformanceNoteCategory), tetapi Prisma tidak mendukung native enum pada provider SQLite.
+
+### Decision
+
+Simpan nilai enum-like sebagai `String` di Prisma schema selama MVP menggunakan SQLite. Validasi nilai dilakukan dengan Zod menggunakan daftar konstanta yang didefinisikan satu kali di `lib/validations/`. Native enum dapat dipertimbangkan saat migrasi ke PostgreSQL.
+
+### Consequences
+
+Positive:
+
+- Schema tetap berjalan di SQLite tanpa workaround.
+- Satu sumber kebenaran nilai enum di Zod schema.
+- Migrasi ke PostgreSQL enum tetap terbuka.
+
+Negative:
+
+- Database tidak memvalidasi nilai pada level kolom.
+- Semua tulisan ke database harus melalui validasi Zod agar data konsisten.
