@@ -50,7 +50,7 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
           description="Add your first staff member to start organizing your team."
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-card">
+        <div className="overflow-x-auto rounded-lg border border-border bg-surface shadow-card">
           <table className="w-full border-collapse text-left text-sm">
             <thead className="border-b border-border bg-surface-muted text-xs uppercase text-text-muted">
               <tr>

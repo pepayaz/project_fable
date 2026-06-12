@@ -1,185 +1,166 @@
 # Project Fable
 
-Project Fable adalah aplikasi people management untuk organisasi, kepanitiaan, komunitas, dan tim mahasiswa.
+Project Fable adalah aplikasi people management ringan untuk organisasi, kepanitiaan, komunitas, dan tim kampus. Aplikasi ini membantu pengelola tim mencatat staff, department, task, attendance, availability, performance notes, dan ringkasan dashboard dalam satu workspace sederhana.
 
-Aplikasi ini membantu pengelola Human Capital, HR, People Management, kepala divisi, dan project lead untuk mengelola:
-
-- Staff
-- Divisi/departemen
-- Role dan status staff
-- Task assignment
-- Attendance
-- Availability
-- Performance notes
-- Dashboard people management
-
-Project ini dibuat sebagai project mandiri dan portfolio project berbasis pengalaman nyata dalam aktivitas human capital dan people management.
-
-## Project Status
-
-Current status:
-
-- Documentation foundation completed (Milestone 0)
-- App scaffold completed (Milestone 1): Next.js + TypeScript + Tailwind + Prisma + SQLite
-- Next: Staff and department management (Milestone 2)
-
-## Vision
-
-Project Fable bertujuan menjadi aplikasi people management yang ringan, rapi, dan praktis untuk organisasi non-enterprise.
-
-Aplikasi ini tidak berusaha menjadi HRIS enterprise penuh pada tahap awal. Fokus awal adalah membuat sistem yang benar-benar dapat digunakan untuk mengelola orang dan task dalam organisasi kecil sampai menengah.
+Project ini dibuat sebagai portfolio project berbasis workflow Human Capital / People Management non-enterprise.
 
 ## MVP Features
 
-MVP awal akan mencakup:
+Fitur MVP yang tersedia saat ini:
 
-- Staff management
-- Department management
-- Staff role and status tracking
-- Task assignment
-- Attendance tracking
-- Availability tracking
-- Basic dashboard
-- Search and filter
+- Dashboard summary dari data nyata
+- Staff CRUD
+- Department CRUD
+- Staff assignment ke department
+- Task CRUD
+- Task assignment ke staff dan department
+- Attendance CRUD
+- Availability CRUD
+- Performance Notes CRUD
+- Seed data demo untuk staff dan department
 
-## Planned Tech Stack
+Belum termasuk MVP saat ini:
 
-Recommended stack:
+- Authentication
+- User model
+- Role-based access control
+- Dashboard chart library
+- Export/import
+- Deployment production
 
-- Next.js
+## Tech Stack
+
+- Next.js App Router
 - TypeScript
 - Tailwind CSS
-- Prisma
-- SQLite for MVP
-- PostgreSQL for future deployment
-- Git
-- RTK AI
-- Graphify
-
-## Documentation
-
-Project documentation:
-
-- `docs/PROJECT_CHARTER.md`
-- `docs/PRD.md`
-- `docs/SRS.md`
-- `docs/ARCHITECTURE.md` (arsitektur sistem)
-- `DESIGN.md` (design system UI/UX, di root)
-- `docs/ROADMAP.md`
-- `docs/TEST_PLAN.md`
-- `docs/USER_STORIES.md`
-- `docs/DATA_MODEL.md`
-- `docs/API_SPEC.md`
-- `docs/UI_UX.md`
-- `docs/BACKLOG.md`
-- `docs/RISK_REGISTER.md`
-- `docs/ADR.md`
-- `AGENTS.md`
-- `CLAUDE.md`
-
-## AI Agent Workflow
-
-This project is designed to work with AI coding agents such as:
-
-- Claude Code CLI
-- Codex CLI
-- Gemini CLI
-- Antigravity CLI
-
-Agents must follow:
-
-- `AGENTS.md`
-- `CLAUDE.md`
-- `DESIGN.md`
-- `docs/PROJECT_CHARTER.md`
-- `docs/PRD.md`
-- `docs/SRS.md`
-- `docs/ARCHITECTURE.md`
-
-Recommended agent workflow:
-
-```bash
-rtk git status
-rtk find .
-rtk grep "keyword" .
-rtk git diff
-rtk test <command>
-```
-
-If Graphify output exists, agents should inspect:
-
-```text
-graphify-out/GRAPH_REPORT.md
-```
-
-before reading many files.
-
-## Local Development
-
-Requirements:
-
-- Node.js 20 or newer
+- Prisma ORM
+- SQLite
+- Zod
+- Server Actions
 - npm
 
-Setup:
+## Requirements
+
+- Node.js 20 atau lebih baru
+- npm
+
+## Install
 
 ```bash
 npm install
-cp .env.example .env
-npx prisma migrate dev
-npm run dev
 ```
 
-The app runs at `http://localhost:3000` and uses a local SQLite database at `prisma/dev.db`.
+## Environment Setup
 
-Other commands:
+Copy file environment example:
 
 ```bash
-npm run build
-npm run lint
-npx prisma studio
+cp .env.example .env
 ```
 
-On Windows PowerShell, replace `cp .env.example .env` with:
+Untuk Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-If the project needs to run in WSL from Windows PowerShell:
+Default database lokal:
 
-```bash
-wsl bash -lc "cd /mnt/c/Users/user/Documents/'project fable' && npm install"
-wsl bash -lc "cd /mnt/c/Users/user/Documents/'project fable' && npm run dev"
+```env
+DATABASE_URL="file:./prisma/dev.db"
 ```
 
-## Roadmap Summary
+## Prisma Setup
 
-1. Documentation foundation
-2. App scaffold
-3. Staff and department management
-4. Task management
-5. Attendance and availability
-6. Dashboard and reporting
-7. Polish and stability
-8. Authentication and basic roles
-9. AI-assisted features
-10. Deployment
+Generate Prisma Client:
 
-See `docs/ROADMAP.md` for detailed roadmap.
+```bash
+npx prisma generate
+```
 
-## Project Principles
+Jalankan migration lokal:
 
-- Build small but real.
-- Avoid over-engineering.
-- Prioritize usable workflow.
-- Keep code readable.
-- Keep documentation updated.
-- Use Git frequently.
-- Use RTK for terminal output.
-- Use Graphify when the codebase grows.
-- Let AI agents assist, but keep human control over product decisions.
+```bash
+npx prisma migrate dev
+```
 
-## License
+Seed data demo:
 
-License will be decided later.
+```bash
+npx prisma db seed
+```
+
+Seed saat ini menambahkan department dan staff demo. Data lain dapat dibuat lewat UI.
+
+## Development
+
+Jalankan dev server:
+
+```bash
+npm run dev
+```
+
+App berjalan di:
+
+```text
+http://localhost:3000
+```
+
+## Quality Checks
+
+Lint:
+
+```bash
+npm run lint
+```
+
+Build:
+
+```bash
+npm run build
+```
+
+## Feature Status
+
+| Area | Status |
+| --- | --- |
+| Documentation foundation | Done |
+| App scaffold | Done |
+| Staff management | Done |
+| Department management | Done |
+| Task management | Done |
+| Attendance tracking | Done |
+| Availability tracking | Done |
+| Performance notes | Done |
+| Dashboard summary | Done |
+| Polish and demo readiness | In progress |
+| Authentication/User/Roles | Not included yet |
+| Deployment | Not included yet |
+
+## Project Documents
+
+- `AGENTS.md`
+- `CLAUDE.md`
+- `DESIGN.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DATA_MODEL.md`
+- `docs/ROADMAP.md`
+- `docs/ADR.md`
+
+## Agent Workflow
+
+This project is designed to work with AI coding agents. Agents should follow `AGENTS.md`, use RTK for terminal output where possible, and inspect `graphify-out/GRAPH_REPORT.md` if available before reading many files.
+
+Recommended commands:
+
+```bash
+rtk git status
+rtk find .
+rtk git diff
+rtk test npm run lint
+rtk test npm run build
+```
+
+## Scope Notes
+
+Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, multi-tenancy, and authentication are deferred until the core workflow is stable.

@@ -156,7 +156,7 @@ export default async function DashboardPage() {
                     <div>
                       <p className="text-sm font-medium text-text-primary">{record.staff.name}</p>
                       <p className="mt-1 text-xs text-text-muted">
-                        {record.eventName} · {formatDate(record.date)}
+                        {record.eventName} - {formatDate(record.date)}
                       </p>
                     </div>
                     <Badge className={attendanceBadgeClass(record.status)}>{record.status}</Badge>

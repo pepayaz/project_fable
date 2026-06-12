@@ -60,7 +60,7 @@ export default async function AttendancePage({ searchParams }: AttendancePagePro
           description="Record attendance for meetings and events."
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-card">
+        <div className="overflow-x-auto rounded-lg border border-border bg-surface shadow-card">
           <table className="w-full border-collapse text-left text-sm">
             <thead className="border-b border-border bg-surface-muted text-xs uppercase text-text-muted">
               <tr>
