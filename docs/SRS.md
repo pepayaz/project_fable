@@ -200,18 +200,24 @@ Sistem harus menyediakan fitur pencatatan availability.
 
 ### FR-012 Dashboard
 
-Sistem harus menyediakan dashboard ringkas.
+Sistem harus menyediakan dashboard sebagai management overview.
 
 Dashboard menampilkan:
 
-- Total staff.
-- Active staff.
-- Total department.
-- Total task.
-- Task by status.
-- Overdue task.
-- Attendance summary.
-- Staff workload summary.
+- Metric cards: total staff, active staff, departments, open tasks, overdue tasks, completion rate, unassigned open tasks, performance notes.
+- Tasks: breakdown by status dan by priority (completed, blocked, cancelled, total ikut diperhitungkan).
+- People: staff by status, staff by department, top workload by open tasks.
+- Attendance & Performance: attendance by status, performance notes by category.
+- Recent activity: recent tasks, attendance, performance notes.
+- Audit (ADMIN-only): recent audit logs dan activity by action.
+
+Acceptance criteria:
+
+- Task completion rate = `completed / (total non-deleted − cancelled) × 100`; 0% bila denominator 0.
+- Semua metrik non-audit menghormati soft delete (`deletedAt: null`).
+- Section audit hanya di-fetch dan dirender bila user punya `auditLogs:read` (ADMIN); MANAGER tidak menerima data audit.
+- AuditLog tidak di-soft-delete, sehingga query audit tidak memakai filter `deletedAt`.
+- Visualisasi memakai badge/list/progress bar sederhana (CSS/Tailwind), tanpa chart library.
 
 ## Non-Functional Requirements
 

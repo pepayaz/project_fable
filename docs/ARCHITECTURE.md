@@ -327,6 +327,16 @@ List page utama (Staff, Departments, Tasks, Attendance, Availability, Performanc
 - RBAC tidak berubah: tiap page tetap memakai read permission yang sama.
 - Known limitations: belum ada pagination (semua hasil dirender), `contains` di SQLite case-insensitive terutama untuk ASCII, term pencarian tampil di URL, dan sort task priority masih urutan alfabet kolom (bukan severity). Belum ada export, saved filter, atau advanced query builder.
 
+## Dashboard Reporting Strategy
+
+Dashboard adalah management overview yang dihitung dari data existing, tanpa schema atau dependency baru.
+
+- `getDashboardSummary()` menghitung metric cards, breakdown (`groupBy`), top workload (relation `_count`), dan recent activity dalam satu `Promise.all`. Semua query non-audit memakai `deletedAt: null`. Breakdown dinormalisasi terhadap daftar enum di `lib/validations/*` agar nilai 0 tetap tampil.
+- **Task completion rate** = `completed / (total non-deleted − cancelled) × 100`, dibulatkan; 0% bila denominator 0.
+- **Audit summary dipisah** ke `getAuditActivitySummary()` dan hanya dipanggil/dirender bila `can(user, "auditLogs:read")` (ADMIN). MANAGER memiliki `dashboard:read` tetapi tidak menerima data audit. RBAC tidak diubah.
+- AuditLog tidak di-soft-delete, sehingga query audit tidak memakai filter `deletedAt`.
+- Visualisasi memakai badge/list/progress bar CSS sederhana, tanpa chart library. Known limitation: query agregasi belum ber-index (full scan), diterima pada skala MVP.
+
 ## Error Handling Strategy
 
 Error handling harus:

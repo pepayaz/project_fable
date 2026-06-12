@@ -8,7 +8,7 @@ Project ini dibuat sebagai portfolio project berbasis workflow Human Capital / P
 
 Fitur MVP yang tersedia saat ini:
 
-- Dashboard summary dari data nyata
+- Dashboard management overview dengan metric cards, breakdown (status/priority/kategori), top workload, dan recent activity (tanpa chart library)
 - Staff CRUD
 - Staff detail 360 read-only (profil + task, attendance, availability, performance notes)
 - Search, filter, dan sort server-side di semua list page utama (via query params)
@@ -153,6 +153,7 @@ npm run build
 | Availability tracking | Done |
 | Performance notes | Done |
 | Dashboard summary | Done |
+| Reporting & dashboard upgrade | Done |
 | Polish and demo readiness | Done |
 | Auth foundation | Done |
 | Protected routes | Done |
@@ -193,3 +194,5 @@ rtk test npm run build
 Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, and multi-tenancy are deferred until the core workflow is stable. Auth foundation, coarse RBAC, an audit log foundation, and soft delete for primary entities are available, but MEMBER self-service ownership rules, audit log filter/search/export, tamper-proofing, restore/trash/permanent delete, and production security hardening remain future work.
 
 List search/filter/sort known limitations: belum ada pagination (semua hasil dirender), pencarian `contains` di SQLite case-insensitive terutama untuk ASCII, term pencarian muncul di URL (shareable), dan sort task priority masih urutan alfabet kolom (bukan severity).
+
+Dashboard reporting: task completion rate = `completed / (total non-deleted − cancelled) × 100`, 0% bila denominator 0. Semua metrik non-audit menghormati soft delete (`deletedAt: null`). Section Audit hanya tampil untuk ADMIN (`auditLogs:read`); AuditLog tidak di-soft-delete sehingga query audit tidak memakai filter `deletedAt`.
