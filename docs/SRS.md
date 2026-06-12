@@ -116,6 +116,20 @@ Acceptance criteria:
 - Data historis dan relasi terkait tetap utuh karena row tidak dihapus permanen.
 - Restore, trash page, dan permanent delete belum termasuk pada tahap ini.
 
+### FR-004a Staff Detail 360
+
+Sistem harus menyediakan halaman detail staff read-only di `/staff/[id]`.
+
+Acceptance criteria:
+
+- Menampilkan profil staff (name, email, phone, position, status, department, batch, created/updated).
+- Menampilkan data terkait staff: assigned tasks, attendance, availability, dan performance notes.
+- Hanya menampilkan record terkait yang belum dihapus (`deletedAt: null`).
+- Staff yang sudah dihapus atau tidak ditemukan menampilkan not found.
+- Memerlukan permission `staff:read` (ADMIN dan MANAGER); MEMBER belum diizinkan.
+- Tombol Edit hanya muncul jika user punya `staff:update`.
+- Belum termasuk: inline edit, create related records dari halaman ini, pagination/filter, dan chart/export.
+
 ### FR-005 Department List
 
 Sistem harus menyediakan halaman daftar department.

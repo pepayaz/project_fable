@@ -1,0 +1,261 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import PageHeader from "@/components/ui/PageHeader";
+import { can } from "@/lib/auth/permissions";
+import { requirePermission } from "@/lib/auth/guards";
+import { getStaffDetailById } from "@/lib/services/staff";
+
+type StaffDetailPageProps = {
+  params: Promise<{ id: string }>;
+};
+
+function statusBadgeClass(status: string) {
+  switch (status) {
+    case "ACTIVE":
+      return "bg-success-soft text-success";
+    case "PROBATION":
+      return "bg-warning-soft text-warning";
+    case "RESIGNED":
+      return "bg-danger-soft text-danger";
+    default:
+      return "bg-surface-muted text-text-muted";
+  }
+}
+
+function taskStatusBadgeClass(status: string) {
+  switch (status) {
+    case "DONE":
+      return "bg-success-soft text-success";
+    case "IN_PROGRESS":
+      return "bg-info-soft text-info";
+    case "BLOCKED":
+      return "bg-warning-soft text-warning";
+    case "CANCELLED":
+      return "bg-surface-muted text-text-muted";
+    default:
+      return "bg-primary-soft text-primary";
+  }
+}
+
+function priorityBadgeClass(priority: string) {
+  switch (priority) {
+    case "LOW":
+      return "bg-surface-muted text-text-muted";
+    case "HIGH":
+      return "bg-warning-soft text-warning";
+    case "URGENT":
+      return "bg-danger-soft text-danger";
+    default:
+      return "bg-info-soft text-info";
+  }
+}
+
+function attendanceBadgeClass(status: string) {
+  switch (status) {
+    case "PRESENT":
+      return "bg-success-soft text-success";
+    case "ABSENT":
+      return "bg-danger-soft text-danger";
+    case "EXCUSED":
+      return "bg-info-soft text-info";
+    case "SICK":
+      return "bg-warning-soft text-warning";
+    default:
+      return "bg-primary-soft text-primary";
+  }
+}
+
+function categoryBadgeClass(category: string) {
+  switch (category) {
+    case "POSITIVE":
+      return "bg-success-soft text-success";
+    case "IMPROVEMENT":
+      return "bg-info-soft text-info";
+    case "WARNING":
+      return "bg-warning-soft text-warning";
+    default:
+      return "bg-surface-muted text-text-muted";
+  }
+}
+
+function formatDate(date: Date | null) {
+  if (!date) {
+    return "No date";
+  }
+
+  return new Intl.DateTimeFormat("en", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+function Badge({ className, children }: { className: string; children: React.ReactNode }) {
+  return (
+    <span className={`inline-flex rounded-md px-2 py-1 text-xs font-medium ${className}`}>
+      {children}
+    </span>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-lg border border-border bg-surface p-5 shadow-card">
+      <h2 className="text-sm font-semibold text-text-primary">{title}</h2>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+function Field({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-wide text-text-muted">{label}</p>
+      <p className="mt-1 text-sm text-text-primary">{value}</p>
+    </div>
+  );
+}
+
+export default async function StaffDetailPage({ params }: StaffDetailPageProps) {
+  const user = await requirePermission("staff:read");
+  const { id } = await params;
+  const staff = await getStaffDetailById(id);
+
+  if (!staff) {
+    notFound();
+  }
+
+  const canUpdate = can(user, "staff:update");
+
+  return (
+    <div>
+      <PageHeader
+        title={staff.name}
+        description={[staff.position, staff.department?.name].filter(Boolean).join(" · ") || undefined}
+        actions={
+          <div className="flex gap-2">
+            <Link
+              href="/staff"
+              className="rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-muted hover:text-text-primary"
+            >
+              Back to Staff
+            </Link>
+            {canUpdate && (
+              <Link
+                href={`/staff/${staff.id}/edit`}
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover"
+              >
+                Edit
+              </Link>
+            )}
+          </div>
+        }
+      />
+
+      <section className="rounded-lg border border-border bg-surface p-5 shadow-card">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-text-primary">Profile</h2>
+          <Badge className={statusBadgeClass(staff.status)}>{staff.status}</Badge>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-3">
+          <Field label="Email" value={staff.email ?? "No email"} />
+          <Field label="Phone" value={staff.phone ?? "No phone"} />
+          <Field label="Position" value={staff.position ?? "No position"} />
+          <Field label="Department" value={staff.department?.name ?? "Unassigned"} />
+          <Field label="Batch" value={staff.batch ?? "No batch"} />
+          <Field label="Created" value={formatDate(staff.createdAt)} />
+          <Field label="Updated" value={formatDate(staff.updatedAt)} />
+        </div>
+        {staff.notes && (
+          <div className="mt-4 border-t border-border pt-4">
+            <p className="text-xs uppercase tracking-wide text-text-muted">Notes</p>
+            <p className="mt-1 text-sm text-text-secondary">{staff.notes}</p>
+          </div>
+        )}
+      </section>
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <Section title="Assigned Tasks">
+          {staff.tasks.length === 0 ? (
+            <p className="text-sm text-text-muted">No assigned tasks.</p>
+          ) : (
+            <div className="space-y-3">
+              {staff.tasks.map((task) => (
+                <div key={task.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-text-primary">{task.title}</p>
+                      <p className="mt-1 text-xs text-text-muted">
+                        Deadline: {formatDate(task.deadline)}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 gap-2">
+                      <Badge className={taskStatusBadgeClass(task.status)}>{task.status}</Badge>
+                      <Badge className={priorityBadgeClass(task.priority)}>{task.priority}</Badge>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        <Section title="Attendance">
+          {staff.attendances.length === 0 ? (
+            <p className="text-sm text-text-muted">No attendance records.</p>
+          ) : (
+            <div className="space-y-3">
+              {staff.attendances.map((record) => (
+                <div key={record.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-text-primary">{record.eventName}</p>
+                      <p className="mt-1 text-xs text-text-muted">{formatDate(record.date)}</p>
+                    </div>
+                    <Badge className={attendanceBadgeClass(record.status)}>{record.status}</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        <Section title="Availability">
+          {staff.availabilities.length === 0 ? (
+            <p className="text-sm text-text-muted">No availability records.</p>
+          ) : (
+            <div className="space-y-3">
+              {staff.availabilities.map((slot) => (
+                <div key={slot.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
+                  <p className="text-sm font-medium text-text-primary">{slot.dayOfWeek}</p>
+                  <p className="mt-1 text-xs text-text-muted">
+                    {slot.startTime}–{slot.endTime}
+                    {slot.notes ? ` · ${slot.notes}` : ""}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        <Section title="Performance Notes">
+          {staff.performanceNotes.length === 0 ? (
+            <p className="text-sm text-text-muted">No performance notes.</p>
+          ) : (
+            <div className="space-y-3">
+              {staff.performanceNotes.map((note) => (
+                <div key={note.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-sm text-text-secondary">{note.note}</p>
+                    <Badge className={categoryBadgeClass(note.category)}>{note.category}</Badge>
+                  </div>
+                  <p className="mt-1 text-xs text-text-muted">{formatDate(note.createdAt)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      </div>
+    </div>
+  );
+}

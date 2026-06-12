@@ -74,7 +74,12 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
                 <tr key={member.id} className="hover:bg-surface-muted">
                   <td className="px-4 py-4">
                     <div>
-                      <p className="font-medium text-text-primary">{member.name}</p>
+                      <Link
+                        href={`/staff/${member.id}`}
+                        className="font-medium text-text-primary hover:text-primary"
+                      >
+                        {member.name}
+                      </Link>
                       <p className="text-xs text-text-muted">{member.email ?? "No email"}</p>
                     </div>
                   </td>

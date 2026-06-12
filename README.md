@@ -10,6 +10,7 @@ Fitur MVP yang tersedia saat ini:
 
 - Dashboard summary dari data nyata
 - Staff CRUD
+- Staff detail 360 read-only (profil + task, attendance, availability, performance notes)
 - Department CRUD
 - Staff assignment ke department
 - Task CRUD
@@ -143,6 +144,7 @@ npm run build
 | Documentation foundation | Done |
 | App scaffold | Done |
 | Staff management | Done |
+| Staff detail 360 | Done |
 | Department management | Done |
 | Task management | Done |
 | Attendance tracking | Done |

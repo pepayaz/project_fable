@@ -52,6 +52,62 @@ export async function getStaffById(id: string) {
   });
 }
 
+export async function getStaffDetailById(id: string) {
+  return db.staff.findFirst({
+    where: { id, deletedAt: null },
+    include: {
+      department: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      tasks: {
+        where: { deletedAt: null },
+        orderBy: [{ deadline: "asc" }, { createdAt: "desc" }],
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          priority: true,
+          deadline: true,
+        },
+      },
+      attendances: {
+        where: { deletedAt: null },
+        orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+        select: {
+          id: true,
+          eventName: true,
+          date: true,
+          status: true,
+        },
+      },
+      availabilities: {
+        where: { deletedAt: null },
+        orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+        select: {
+          id: true,
+          dayOfWeek: true,
+          startTime: true,
+          endTime: true,
+          notes: true,
+        },
+      },
+      performanceNotes: {
+        where: { deletedAt: null },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          category: true,
+          note: true,
+          createdAt: true,
+        },
+      },
+    },
+  });
+}
+
 export async function createStaff(input: unknown) {
   const data = parseStaffInput(input);
 
