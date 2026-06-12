@@ -20,21 +20,23 @@ export async function getDashboardSummary() {
     staffByDepartment,
     unassignedStaff,
   ] = await Promise.all([
-    db.staff.count(),
-    db.staff.count({ where: { status: "ACTIVE" } }),
-    db.department.count(),
-    db.task.count({ where: { status: { notIn: CLOSED_TASK_STATUSES } } }),
+    db.staff.count({ where: { deletedAt: null } }),
+    db.staff.count({ where: { status: "ACTIVE", deletedAt: null } }),
+    db.department.count({ where: { deletedAt: null } }),
+    db.task.count({ where: { status: { notIn: CLOSED_TASK_STATUSES }, deletedAt: null } }),
     db.task.count({
       where: {
         deadline: { lt: now },
         status: { notIn: CLOSED_TASK_STATUSES },
+        deletedAt: null,
       },
     }),
-    db.attendance.count(),
-    db.availability.count(),
-    db.performanceNote.count(),
+    db.attendance.count({ where: { deletedAt: null } }),
+    db.availability.count({ where: { deletedAt: null } }),
+    db.performanceNote.count({ where: { deletedAt: null } }),
     db.task.findMany({
       take: 5,
+      where: { deletedAt: null },
       orderBy: { createdAt: "desc" },
       include: {
         assignedToStaff: {
@@ -53,6 +55,7 @@ export async function getDashboardSummary() {
     }),
     db.attendance.findMany({
       take: 5,
+      where: { deletedAt: null },
       orderBy: [{ date: "desc" }, { createdAt: "desc" }],
       include: {
         staff: {
@@ -65,6 +68,7 @@ export async function getDashboardSummary() {
     }),
     db.performanceNote.findMany({
       take: 5,
+      where: { deletedAt: null },
       orderBy: { createdAt: "desc" },
       include: {
         staff: {
@@ -76,15 +80,16 @@ export async function getDashboardSummary() {
       },
     }),
     db.department.findMany({
+      where: { deletedAt: null },
       orderBy: { name: "asc" },
       include: {
         _count: {
-          select: { staff: true },
+          select: { staff: { where: { deletedAt: null } } },
         },
       },
     }),
     db.staff.count({
-      where: { departmentId: null },
+      where: { departmentId: null, deletedAt: null },
     }),
   ]);
 

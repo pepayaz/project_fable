@@ -23,6 +23,7 @@ Fitur MVP yang tersedia saat ini:
 - Admin user seed via environment variable
 - Coarse role-based access control untuk ADMIN, MANAGER, dan MEMBER
 - Audit log foundation untuk create/update/delete entity utama (viewer ADMIN-only)
+- Soft delete untuk entity utama (data historis tidak hilang permanen)
 
 Belum termasuk MVP saat ini:
 
@@ -31,6 +32,7 @@ Belum termasuk MVP saat ini:
 - Deployment production
 - Fine-grained ownership/self-service rules
 - Audit log export, filter, search, dan tamper-proofing
+- Restore, trash page, dan permanent delete untuk soft delete
 - Password reset, email verification, MFA, OAuth/SSO
 - Production security hardening penuh
 
@@ -152,8 +154,10 @@ npm run build
 | Protected routes | Done |
 | Coarse RBAC | Done |
 | Audit log foundation | Done |
+| Soft delete & data safety | Done |
 | Fine-grained ownership rules | Future sprint |
 | Audit log filter/search/export | Future sprint |
+| Restore / trash / permanent delete | Future sprint |
 | Deployment | Not included yet |
 
 ## Project Documents
@@ -182,4 +186,4 @@ rtk test npm run build
 
 ## Scope Notes
 
-Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, and multi-tenancy are deferred until the core workflow is stable. Auth foundation, coarse RBAC, and an audit log foundation are available, but MEMBER self-service ownership rules, audit log filter/search/export, tamper-proofing, and production security hardening remain future work.
+Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, and multi-tenancy are deferred until the core workflow is stable. Auth foundation, coarse RBAC, an audit log foundation, and soft delete for primary entities are available, but MEMBER self-service ownership rules, audit log filter/search/export, tamper-proofing, restore/trash/permanent delete, and production security hardening remain future work.

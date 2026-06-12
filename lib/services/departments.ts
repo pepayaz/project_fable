@@ -18,10 +18,11 @@ function isUniqueConstraintError(error: unknown) {
 
 export async function listDepartments() {
   return db.department.findMany({
+    where: { deletedAt: null },
     orderBy: { name: "asc" },
     include: {
       _count: {
-        select: { staff: true },
+        select: { staff: { where: { deletedAt: null } } },
       },
     },
   });
@@ -29,6 +30,7 @@ export async function listDepartments() {
 
 export async function listDepartmentOptions() {
   return db.department.findMany({
+    where: { deletedAt: null },
     orderBy: { name: "asc" },
     select: {
       id: true,
@@ -38,8 +40,8 @@ export async function listDepartmentOptions() {
 }
 
 export async function getDepartmentById(id: string) {
-  return db.department.findUnique({
-    where: { id },
+  return db.department.findFirst({
+    where: { id, deletedAt: null },
   });
 }
 
@@ -76,14 +78,15 @@ export async function updateDepartment(id: string, input: unknown) {
 
 export async function deleteDepartment(id: string) {
   const staffCount = await db.staff.count({
-    where: { departmentId: id },
+    where: { departmentId: id, deletedAt: null },
   });
 
   if (staffCount > 0) {
     throw new ServiceError("Reassign or remove staff before deleting this department.");
   }
 
-  return db.department.delete({
+  return db.department.update({
     where: { id },
+    data: { deletedAt: new Date() },
   });
 }

@@ -13,8 +13,8 @@ function parseAvailabilityInput(input: unknown): AvailabilityInput {
 }
 
 async function ensureStaffExists(staffId: string) {
-  const staff = await db.staff.findUnique({
-    where: { id: staffId },
+  const staff = await db.staff.findFirst({
+    where: { id: staffId, deletedAt: null },
     select: { id: true },
   });
 
@@ -25,6 +25,7 @@ async function ensureStaffExists(staffId: string) {
 
 export async function listAvailabilityRecords() {
   return db.availability.findMany({
+    where: { deletedAt: null },
     orderBy: [{ staff: { name: "asc" } }, { dayOfWeek: "asc" }, { startTime: "asc" }],
     include: {
       staff: {
@@ -38,8 +39,8 @@ export async function listAvailabilityRecords() {
 }
 
 export async function getAvailabilityById(id: string) {
-  return db.availability.findUnique({
-    where: { id },
+  return db.availability.findFirst({
+    where: { id, deletedAt: null },
   });
 }
 
@@ -61,7 +62,8 @@ export async function updateAvailability(id: string, input: unknown) {
 }
 
 export async function deleteAvailability(id: string) {
-  return db.availability.delete({
+  return db.availability.update({
     where: { id },
+    data: { deletedAt: new Date() },
   });
 }

@@ -12,11 +12,12 @@ datasource db {
 }
 
 model Department {
-  id          String   @id @default(cuid())
-  name        String   @unique
+  id          String    @id @default(cuid())
+  name        String    @unique
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   staff Staff[]
   tasks Task[]
@@ -28,10 +29,11 @@ model Staff {
   email        String?
   phone        String?
   position     String?
-  status       String  @default("ACTIVE")
+  status       String    @default("ACTIVE")
   batch        String?
   notes        String?
   departmentId String?
+  deletedAt    DateTime?
 
   department       Department?       @relation(fields: [departmentId], references: [id])
   tasks            Task[]
@@ -52,6 +54,7 @@ model Task {
   deadline          DateTime?
   assignedToStaffId String?
   departmentId      String?
+  deletedAt         DateTime?
 
   assignedToStaff Staff?      @relation(fields: [assignedToStaffId], references: [id])
   department      Department? @relation(fields: [departmentId], references: [id])
@@ -61,12 +64,13 @@ model Task {
 }
 
 model Attendance {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   staffId   String
   eventName String
   date      DateTime
   status    String
   notes     String?
+  deletedAt DateTime?
 
   staff Staff @relation(fields: [staffId], references: [id])
 
@@ -75,12 +79,13 @@ model Attendance {
 }
 
 model Availability {
-  id        String  @id @default(cuid())
+  id        String    @id @default(cuid())
   staffId   String
   dayOfWeek String
   startTime String
   endTime   String
   notes     String?
+  deletedAt DateTime?
 
   staff Staff @relation(fields: [staffId], references: [id])
 
@@ -89,10 +94,11 @@ model Availability {
 }
 
 model PerformanceNote {
-  id       String @id @default(cuid())
-  staffId  String
-  category String @default("GENERAL")
-  note     String
+  id        String    @id @default(cuid())
+  staffId   String
+  category  String    @default("GENERAL")
+  note      String
+  deletedAt DateTime?
 
   staff Staff @relation(fields: [staffId], references: [id])
 

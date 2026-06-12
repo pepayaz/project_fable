@@ -14,8 +14,8 @@ function parseTaskInput(input: unknown): TaskInput {
 
 async function ensureTaskRelations(input: TaskInput) {
   if (input.assignedToStaffId) {
-    const staffExists = await db.staff.findUnique({
-      where: { id: input.assignedToStaffId },
+    const staffExists = await db.staff.findFirst({
+      where: { id: input.assignedToStaffId, deletedAt: null },
       select: { id: true },
     });
 
@@ -25,8 +25,8 @@ async function ensureTaskRelations(input: TaskInput) {
   }
 
   if (input.departmentId) {
-    const departmentExists = await db.department.findUnique({
-      where: { id: input.departmentId },
+    const departmentExists = await db.department.findFirst({
+      where: { id: input.departmentId, deletedAt: null },
       select: { id: true },
     });
 
@@ -38,6 +38,7 @@ async function ensureTaskRelations(input: TaskInput) {
 
 export async function listTasks() {
   return db.task.findMany({
+    where: { deletedAt: null },
     orderBy: [{ deadline: "asc" }, { createdAt: "desc" }],
     include: {
       assignedToStaff: {
@@ -57,8 +58,8 @@ export async function listTasks() {
 }
 
 export async function getTaskById(id: string) {
-  return db.task.findUnique({
-    where: { id },
+  return db.task.findFirst({
+    where: { id, deletedAt: null },
   });
 }
 
@@ -80,7 +81,8 @@ export async function updateTask(id: string, input: unknown) {
 }
 
 export async function deleteTask(id: string) {
-  return db.task.delete({
+  return db.task.update({
     where: { id },
+    data: { deletedAt: new Date() },
   });
 }

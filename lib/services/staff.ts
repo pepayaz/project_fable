@@ -14,6 +14,7 @@ function parseStaffInput(input: unknown): StaffInput {
 
 export async function listStaff() {
   return db.staff.findMany({
+    where: { deletedAt: null },
     orderBy: { name: "asc" },
     include: {
       department: {
@@ -28,6 +29,7 @@ export async function listStaff() {
 
 export async function listStaffOptions() {
   return db.staff.findMany({
+    where: { deletedAt: null },
     orderBy: { name: "asc" },
     select: {
       id: true,
@@ -37,8 +39,8 @@ export async function listStaffOptions() {
 }
 
 export async function getStaffById(id: string) {
-  return db.staff.findUnique({
-    where: { id },
+  return db.staff.findFirst({
+    where: { id, deletedAt: null },
     include: {
       department: {
         select: {
@@ -68,7 +70,8 @@ export async function updateStaff(id: string, input: unknown) {
 }
 
 export async function deleteStaff(id: string) {
-  return db.staff.delete({
+  return db.staff.update({
     where: { id },
+    data: { deletedAt: new Date() },
   });
 }

@@ -13,8 +13,8 @@ function parseAttendanceInput(input: unknown): AttendanceInput {
 }
 
 async function ensureStaffExists(staffId: string) {
-  const staff = await db.staff.findUnique({
-    where: { id: staffId },
+  const staff = await db.staff.findFirst({
+    where: { id: staffId, deletedAt: null },
     select: { id: true },
   });
 
@@ -25,6 +25,7 @@ async function ensureStaffExists(staffId: string) {
 
 export async function listAttendanceRecords() {
   return db.attendance.findMany({
+    where: { deletedAt: null },
     orderBy: [{ date: "desc" }, { createdAt: "desc" }],
     include: {
       staff: {
@@ -38,8 +39,8 @@ export async function listAttendanceRecords() {
 }
 
 export async function getAttendanceById(id: string) {
-  return db.attendance.findUnique({
-    where: { id },
+  return db.attendance.findFirst({
+    where: { id, deletedAt: null },
   });
 }
 
@@ -61,7 +62,8 @@ export async function updateAttendance(id: string, input: unknown) {
 }
 
 export async function deleteAttendance(id: string) {
-  return db.attendance.delete({
+  return db.attendance.update({
     where: { id },
+    data: { deletedAt: new Date() },
   });
 }

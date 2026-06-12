@@ -111,9 +111,10 @@ Sistem harus memungkinkan user menghapus atau menonaktifkan staff.
 
 Acceptance criteria:
 
-- Pada MVP, prefer soft delete melalui status inactive/resigned.
-- Hard delete hanya digunakan jika aman.
-- Data task/attendance terkait tidak rusak.
+- Penghapusan memakai soft delete (`deletedAt`) untuk semua entity utama, bukan hard delete.
+- Record yang sudah dihapus tidak muncul di list, dropdown, dashboard, dan halaman edit/detail (not found).
+- Data historis dan relasi terkait tetap utuh karena row tidak dihapus permanen.
+- Restore, trash page, dan permanent delete belum termasuk pada tahap ini.
 
 ### FR-005 Department List
 
@@ -204,7 +205,7 @@ Kode harus modular, readable, dan mudah dikembangkan.
 
 ### Reliability
 
-Operasi CRUD tidak boleh merusak relasi data.
+Operasi CRUD tidak boleh merusak relasi data. Penghapusan memakai soft delete agar data historis tidak hilang permanen.
 
 ### Portability
 

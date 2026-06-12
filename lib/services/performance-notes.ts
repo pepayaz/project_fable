@@ -18,8 +18,8 @@ function parsePerformanceNoteInput(input: unknown): PerformanceNoteInput {
 }
 
 async function ensureStaffExists(staffId: string) {
-  const staff = await db.staff.findUnique({
-    where: { id: staffId },
+  const staff = await db.staff.findFirst({
+    where: { id: staffId, deletedAt: null },
     select: { id: true },
   });
 
@@ -30,6 +30,7 @@ async function ensureStaffExists(staffId: string) {
 
 export async function listPerformanceNotes() {
   return db.performanceNote.findMany({
+    where: { deletedAt: null },
     orderBy: { createdAt: "desc" },
     include: {
       staff: {
@@ -43,8 +44,8 @@ export async function listPerformanceNotes() {
 }
 
 export async function getPerformanceNoteById(id: string) {
-  return db.performanceNote.findUnique({
-    where: { id },
+  return db.performanceNote.findFirst({
+    where: { id, deletedAt: null },
   });
 }
 
@@ -70,8 +71,9 @@ export async function updatePerformanceNote(id: string, input: unknown) {
 }
 
 export async function deletePerformanceNote(id: string) {
-  return db.performanceNote.delete({
+  return db.performanceNote.update({
     where: { id },
+    data: { deletedAt: new Date() },
     include: { staff: { select: { name: true } } },
   });
 }

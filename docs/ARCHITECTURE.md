@@ -305,6 +305,17 @@ Audit log foundation mencatat aksi penting pada entity utama untuk akuntabilitas
 - Viewer `/audit-logs` read-only dan ADMIN-only lewat permission `auditLogs:read`.
 - Foundation ini belum tamper-proof, belum mencatat aksi gagal/auth, dan belum punya filter, search, export, atau pagination.
 
+## Soft Delete Strategy
+
+Entity utama (Staff, Department, Task, Attendance, Availability, PerformanceNote) memakai soft delete melalui kolom `deletedAt DateTime?`.
+
+- `delete*` service men-set `deletedAt` alih-alih menghapus row, sehingga data historis dan audit trail tetap utuh.
+- Semua read normal (list, dropdown options, getById, validasi relasi di service) memfilter `deletedAt: null`. `getById` memakai `findFirst` agar record yang sudah dihapus mengembalikan null dan halaman edit menampilkan not found.
+- Dashboard mengabaikan record yang sudah dihapus.
+- Department hanya boleh dihapus jika tidak punya staff aktif (non-deleted).
+- Audit log tetap mencatat action DELETE.
+- Known limitation: child records milik staff yang sudah dihapus tetap tampil (tidak difilter `staff.deletedAt`), nama Department soft-deleted tetap menempati unique constraint, dan belum ada restore/trash/permanent delete.
+
 ## Error Handling Strategy
 
 Error handling harus:

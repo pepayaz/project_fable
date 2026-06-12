@@ -29,6 +29,8 @@ Entity tambahan yang dapat ditambahkan nanti:
 
 AuditLog sudah diimplementasikan sebagai foundation (lihat bagian AuditLog di bawah).
 
+Semua entity utama (Staff, Department, Task, Attendance, Availability, PerformanceNote) memakai soft delete melalui kolom `deletedAt`. Lihat bagian Soft Delete di bawah.
+
 ## Department
 
 Fields:
@@ -36,6 +38,7 @@ Fields:
 - id
 - name
 - description
+- deletedAt
 - createdAt
 - updatedAt
 
@@ -63,6 +66,7 @@ Fields:
 - batch
 - notes
 - departmentId
+- deletedAt
 - createdAt
 - updatedAt
 
@@ -94,6 +98,7 @@ Fields:
 - deadline
 - assignedToStaffId
 - departmentId
+- deletedAt
 - createdAt
 - updatedAt
 
@@ -120,6 +125,7 @@ Fields:
 - date
 - status
 - notes
+- deletedAt
 - createdAt
 - updatedAt
 
@@ -144,6 +150,7 @@ Fields:
 - startTime
 - endTime
 - notes
+- deletedAt
 - createdAt
 - updatedAt
 
@@ -166,6 +173,7 @@ Fields:
 - staffId
 - category
 - note
+- deletedAt
 - createdAt
 - updatedAt
 
@@ -264,6 +272,25 @@ Possible action values:
 - CREATE
 - UPDATE
 - DELETE
+
+## Soft Delete
+
+Entity utama tidak dihapus permanen. Penghapusan men-set `deletedAt` ke timestamp saat ini.
+
+Rules:
+
+- `deletedAt` null berarti record aktif; berisi nilai berarti sudah dihapus.
+- Semua read normal (list, dropdown options, getById, validasi relasi) memfilter `deletedAt: null`.
+- Halaman edit/detail untuk record yang sudah dihapus menampilkan not found.
+- Dashboard mengabaikan record yang sudah dihapus.
+- Department hanya boleh dihapus jika tidak punya staff aktif (non-deleted).
+- Audit log tetap mencatat action DELETE.
+
+Known limitations (tahap ini):
+
+- Child records (Attendance/Availability/PerformanceNote) tidak ikut dihapus saat Staff dihapus, dan tidak difilter berdasarkan `staff.deletedAt`, sehingga tetap muncul di list-nya. Ini menjaga histori tetap utuh.
+- Nama Department yang sudah soft-deleted tetap menempati unique constraint, sehingga nama itu belum bisa dipakai ulang sampai ada permanent delete/restore.
+- Belum ada restore, trash page, atau permanent delete.
 
 ## Enum Definitions
 

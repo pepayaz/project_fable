@@ -372,3 +372,38 @@ Negative:
 - Belum mencatat aksi yang gagal atau aksi auth (login/logout).
 - Belum ada filter, search, export, atau pagination.
 - Pencatatan tidak transaksional dengan mutasi, sehingga ada celah kecil log hilang jika audit gagal.
+
+## ADR-016 Use Soft Delete for Primary Entities
+
+Status: Accepted
+
+### Context
+
+Project Fable menyimpan data operasional yang bernilai historis (staff, task, attendance, dll). Hard delete menghapus data permanen dan merusak jejak histori serta audit. Sistem membutuhkan penghapusan yang aman tanpa langsung membawa kompleksitas restore, trash, atau permanent delete.
+
+### Decision
+
+Gunakan soft delete dengan kolom `deletedAt DateTime?` pada Staff, Department, Task, Attendance, Availability, dan PerformanceNote.
+
+- `delete*` service men-set `deletedAt` alih-alih menghapus row.
+- Semua read normal (list, options, getById, validasi relasi) memakai filter `deletedAt: null`.
+- `getById` memakai `findFirst` karena `deletedAt` bukan kolom unik; record yang sudah deleted mengembalikan null sehingga halaman edit menampilkan 404.
+- Dashboard mengabaikan record yang sudah deleted.
+- Department hanya boleh dihapus jika tidak punya staff aktif (non-deleted).
+- Audit log tetap mencatat action DELETE seperti sebelumnya.
+- Child records (Attendance/Availability/PerformanceNote) tidak ikut ter-soft-delete saat Staff dihapus, agar histori tetap utuh.
+
+### Consequences
+
+Positive:
+
+- Data historis tidak hilang permanen.
+- Audit trail tetap konsisten.
+- Tidak menambah dependency baru.
+
+Negative:
+
+- Belum ada restore, trash page, atau permanent delete.
+- Child records milik staff yang sudah dihapus tetap muncul di list-nya (tidak difilter berdasarkan `staff.deletedAt`).
+- Nama Department yang sudah soft-deleted tetap menempati unique constraint, sehingga nama itu belum bisa dipakai ulang sampai ada permanent delete/restore.
+- Ukuran database tumbuh karena row tidak benar-benar dihapus.
