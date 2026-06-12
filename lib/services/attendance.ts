@@ -61,7 +61,7 @@ export async function updateAttendance(id: string, input: unknown) {
 }
 
 export async function deleteAttendance(id: string) {
-  await db.attendance.delete({
+  return db.attendance.delete({
     where: { id },
   });
 }

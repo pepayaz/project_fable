@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createTask, deleteTask, updateTask } from "@/lib/services/tasks";
 import { getServiceErrorMessage } from "@/lib/services/errors";
+import { recordAuditLog, summarizeTask } from "@/lib/services/audit-log";
 import { requirePermission } from "@/lib/auth/guards";
 
 function taskDataFromForm(formData: FormData) {
@@ -23,10 +24,17 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createTaskAction(formData: FormData) {
-  await requirePermission("tasks:create");
+  const actor = await requirePermission("tasks:create");
 
   try {
-    await createTask(taskDataFromForm(formData));
+    const task = await createTask(taskDataFromForm(formData));
+    await recordAuditLog({
+      action: "CREATE",
+      entityType: "Task",
+      entityId: task.id,
+      summary: summarizeTask(task),
+      actor,
+    });
   } catch (error) {
     redirectWithError("/tasks/new", getServiceErrorMessage(error, "Task could not be created."));
   }
@@ -36,12 +44,19 @@ export async function createTaskAction(formData: FormData) {
 }
 
 export async function updateTaskAction(formData: FormData) {
-  await requirePermission("tasks:update");
+  const actor = await requirePermission("tasks:update");
 
   const id = String(formData.get("id") ?? "");
 
   try {
-    await updateTask(id, taskDataFromForm(formData));
+    const task = await updateTask(id, taskDataFromForm(formData));
+    await recordAuditLog({
+      action: "UPDATE",
+      entityType: "Task",
+      entityId: task.id,
+      summary: summarizeTask(task),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       `/tasks/${id}/edit`,
@@ -54,12 +69,19 @@ export async function updateTaskAction(formData: FormData) {
 }
 
 export async function deleteTaskAction(formData: FormData) {
-  await requirePermission("tasks:delete");
+  const actor = await requirePermission("tasks:delete");
 
   const id = String(formData.get("id") ?? "");
 
   try {
-    await deleteTask(id);
+    const task = await deleteTask(id);
+    await recordAuditLog({
+      action: "DELETE",
+      entityType: "Task",
+      entityId: task.id,
+      summary: summarizeTask(task),
+      actor,
+    });
   } catch (error) {
     redirectWithError("/tasks", getServiceErrorMessage(error, "Task could not be deleted."));
   }

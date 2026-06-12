@@ -8,6 +8,7 @@ import {
   deletePerformanceNote,
   updatePerformanceNote,
 } from "@/lib/services/performance-notes";
+import { recordAuditLog, summarizePerformanceNote } from "@/lib/services/audit-log";
 import { requirePermission } from "@/lib/auth/guards";
 
 function performanceNoteDataFromForm(formData: FormData) {
@@ -23,10 +24,17 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createPerformanceNoteAction(formData: FormData) {
-  await requirePermission("performanceNotes:create");
+  const actor = await requirePermission("performanceNotes:create");
 
   try {
-    await createPerformanceNote(performanceNoteDataFromForm(formData));
+    const note = await createPerformanceNote(performanceNoteDataFromForm(formData));
+    await recordAuditLog({
+      action: "CREATE",
+      entityType: "PerformanceNote",
+      entityId: note.id,
+      summary: summarizePerformanceNote(note),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       "/performance-notes/new",
@@ -39,12 +47,19 @@ export async function createPerformanceNoteAction(formData: FormData) {
 }
 
 export async function updatePerformanceNoteAction(formData: FormData) {
-  await requirePermission("performanceNotes:update");
+  const actor = await requirePermission("performanceNotes:update");
 
   const id = String(formData.get("id") ?? "");
 
   try {
-    await updatePerformanceNote(id, performanceNoteDataFromForm(formData));
+    const note = await updatePerformanceNote(id, performanceNoteDataFromForm(formData));
+    await recordAuditLog({
+      action: "UPDATE",
+      entityType: "PerformanceNote",
+      entityId: note.id,
+      summary: summarizePerformanceNote(note),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       `/performance-notes/${id}/edit`,
@@ -57,12 +72,19 @@ export async function updatePerformanceNoteAction(formData: FormData) {
 }
 
 export async function deletePerformanceNoteAction(formData: FormData) {
-  await requirePermission("performanceNotes:delete");
+  const actor = await requirePermission("performanceNotes:delete");
 
   const id = String(formData.get("id") ?? "");
 
   try {
-    await deletePerformanceNote(id);
+    const note = await deletePerformanceNote(id);
+    await recordAuditLog({
+      action: "DELETE",
+      entityType: "PerformanceNote",
+      entityId: note.id,
+      summary: summarizePerformanceNote(note),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       "/performance-notes",

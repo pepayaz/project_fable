@@ -68,7 +68,7 @@ export async function updateStaff(id: string, input: unknown) {
 }
 
 export async function deleteStaff(id: string) {
-  await db.staff.delete({
+  return db.staff.delete({
     where: { id },
   });
 }

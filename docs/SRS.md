@@ -214,7 +214,9 @@ Aplikasi harus dapat dijalankan lokal dengan instruksi yang jelas.
 
 Aplikasi harus menghindari exposure data sensitif. Auth foundation tersedia dengan password hashing, database session, httpOnly cookie, protected routes, dan logout.
 
-Security hardening lanjutan masih future sprint, termasuk fine-grained ownership rules, audit log, rate limiting penuh, password reset, email verification, MFA, OAuth/SSO, dan deployment security headers.
+Audit log foundation mencatat create/update/delete pada entity utama (siapa, kapan, terhadap apa) dengan summary aman, tanpa menyimpan passwordHash, session token, raw cookie, atau dump objek. Viewer audit log read-only dan hanya untuk ADMIN.
+
+Security hardening lanjutan masih future sprint, termasuk fine-grained ownership rules, audit log tamper-proofing/filter/search/export, pencatatan aksi gagal, rate limiting penuh, password reset, email verification, MFA, OAuth/SSO, dan deployment security headers.
 
 ### AI-Agent Compatibility
 
@@ -239,6 +241,7 @@ Entity utama MVP:
 - PerformanceNote
 - User
 - Session
+- AuditLog
 
 
 ## Error Handling Requirements

@@ -125,3 +125,20 @@ model Session {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model AuditLog {
+  id         String @id @default(cuid())
+  action     String
+  entityType String
+  entityId   String
+  summary    String
+
+  actorId   String
+  actorName String
+  actorRole String
+
+  createdAt DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

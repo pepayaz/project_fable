@@ -8,6 +8,7 @@ import {
   updateAvailability,
 } from "@/lib/services/availability";
 import { getServiceErrorMessage } from "@/lib/services/errors";
+import { recordAuditLog, summarizeAvailability } from "@/lib/services/audit-log";
 import { requirePermission } from "@/lib/auth/guards";
 
 function availabilityDataFromForm(formData: FormData) {
@@ -25,10 +26,17 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createAvailabilityAction(formData: FormData) {
-  await requirePermission("availability:create");
+  const actor = await requirePermission("availability:create");
 
   try {
-    await createAvailability(availabilityDataFromForm(formData));
+    const availability = await createAvailability(availabilityDataFromForm(formData));
+    await recordAuditLog({
+      action: "CREATE",
+      entityType: "Availability",
+      entityId: availability.id,
+      summary: summarizeAvailability(availability),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       "/availability/new",
@@ -41,12 +49,19 @@ export async function createAvailabilityAction(formData: FormData) {
 }
 
 export async function updateAvailabilityAction(formData: FormData) {
-  await requirePermission("availability:update");
+  const actor = await requirePermission("availability:update");
 
   const id = String(formData.get("id") ?? "");
 
   try {
-    await updateAvailability(id, availabilityDataFromForm(formData));
+    const availability = await updateAvailability(id, availabilityDataFromForm(formData));
+    await recordAuditLog({
+      action: "UPDATE",
+      entityType: "Availability",
+      entityId: availability.id,
+      summary: summarizeAvailability(availability),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       `/availability/${id}/edit`,
@@ -59,12 +74,19 @@ export async function updateAvailabilityAction(formData: FormData) {
 }
 
 export async function deleteAvailabilityAction(formData: FormData) {
-  await requirePermission("availability:delete");
+  const actor = await requirePermission("availability:delete");
 
   const id = String(formData.get("id") ?? "");
 
   try {
-    await deleteAvailability(id);
+    const availability = await deleteAvailability(id);
+    await recordAuditLog({
+      action: "DELETE",
+      entityType: "Availability",
+      entityId: availability.id,
+      summary: summarizeAvailability(availability),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       "/availability",

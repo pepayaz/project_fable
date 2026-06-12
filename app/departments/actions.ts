@@ -8,6 +8,7 @@ import {
   updateDepartment,
 } from "@/lib/services/departments";
 import { getServiceErrorMessage } from "@/lib/services/errors";
+import { recordAuditLog, summarizeDepartment } from "@/lib/services/audit-log";
 import { requirePermission } from "@/lib/auth/guards";
 
 function departmentDataFromForm(formData: FormData) {
@@ -22,10 +23,17 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createDepartmentAction(formData: FormData) {
-  await requirePermission("departments:create");
+  const actor = await requirePermission("departments:create");
 
   try {
-    await createDepartment(departmentDataFromForm(formData));
+    const department = await createDepartment(departmentDataFromForm(formData));
+    await recordAuditLog({
+      action: "CREATE",
+      entityType: "Department",
+      entityId: department.id,
+      summary: summarizeDepartment(department),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       "/departments/new",
@@ -38,12 +46,19 @@ export async function createDepartmentAction(formData: FormData) {
 }
 
 export async function updateDepartmentAction(formData: FormData) {
-  await requirePermission("departments:update");
+  const actor = await requirePermission("departments:update");
 
   const id = String(formData.get("id") ?? "");
 
   try {
-    await updateDepartment(id, departmentDataFromForm(formData));
+    const department = await updateDepartment(id, departmentDataFromForm(formData));
+    await recordAuditLog({
+      action: "UPDATE",
+      entityType: "Department",
+      entityId: department.id,
+      summary: summarizeDepartment(department),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       `/departments/${id}/edit`,
@@ -56,12 +71,19 @@ export async function updateDepartmentAction(formData: FormData) {
 }
 
 export async function deleteDepartmentAction(formData: FormData) {
-  await requirePermission("departments:delete");
+  const actor = await requirePermission("departments:delete");
 
   const id = String(formData.get("id") ?? "");
 
   try {
-    await deleteDepartment(id);
+    const department = await deleteDepartment(id);
+    await recordAuditLog({
+      action: "DELETE",
+      entityType: "Department",
+      entityId: department.id,
+      summary: summarizeDepartment(department),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       "/departments",

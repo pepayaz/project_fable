@@ -83,7 +83,7 @@ export async function deleteDepartment(id: string) {
     throw new ServiceError("Reassign or remove staff before deleting this department.");
   }
 
-  await db.department.delete({
+  return db.department.delete({
     where: { id },
   });
 }

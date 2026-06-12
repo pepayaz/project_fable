@@ -80,7 +80,7 @@ export async function updateTask(id: string, input: unknown) {
 }
 
 export async function deleteTask(id: string) {
-  await db.task.delete({
+  return db.task.delete({
     where: { id },
   });
 }

@@ -25,8 +25,9 @@ Entity tambahan yang dapat ditambahkan nanti:
 - EvaluationCycle
 - FeedbackForm
 - Notification
-- AuditLog
 - Attachment
+
+AuditLog sudah diimplementasikan sebagai foundation (lihat bagian AuditLog di bawah).
 
 ## Department
 
@@ -232,6 +233,37 @@ Rules:
 - Session harus memiliki expiry.
 - Logout harus menghapus session dari database.
 - Expired atau inactive user session harus ditolak.
+
+## AuditLog
+
+AuditLog mencatat aksi penting (create/update/delete) pada entity utama untuk akuntabilitas dasar.
+
+Fields:
+
+- id
+- action
+- entityType
+- entityId
+- summary
+- actorId
+- actorName
+- actorRole
+- createdAt
+
+Rules:
+
+- Dicatat untuk Staff, Department, Task, Attendance, Availability, dan PerformanceNote.
+- Actor disimpan sebagai snapshot (`actorId`, `actorName`, `actorRole`), tanpa relasi foreign key ke User, agar log immutable.
+- `summary` hanya memakai field aman. Untuk PerformanceNote hanya kategori dan nama staff, tidak pernah isi note.
+- Tidak pernah menyimpan passwordHash, session token, raw cookie, atau dump objek lama/baru.
+- Index pada `entityType, entityId` dan `createdAt`.
+- Hanya ADMIN yang dapat membaca audit log lewat permission `auditLogs:read`.
+
+Possible action values:
+
+- CREATE
+- UPDATE
+- DELETE
 
 ## Enum Definitions
 

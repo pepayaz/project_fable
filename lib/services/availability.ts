@@ -61,7 +61,7 @@ export async function updateAvailability(id: string, input: unknown) {
 }
 
 export async function deleteAvailability(id: string) {
-  await db.availability.delete({
+  return db.availability.delete({
     where: { id },
   });
 }

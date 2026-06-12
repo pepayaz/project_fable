@@ -26,6 +26,7 @@ export const permissions = [
   "performanceNotes:create",
   "performanceNotes:update",
   "performanceNotes:delete",
+  "auditLogs:read",
   "settings:read",
 ] as const;
 

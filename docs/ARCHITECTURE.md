@@ -294,6 +294,17 @@ Coarse RBAC uses explicit permission strings such as `staff:create`, `tasks:upda
 
 All protected pages use read permissions. All mutating Server Actions use create/update/delete permissions. UI actions are hidden when permission is missing, but server-side permission checks remain the source of truth.
 
+## Audit Log Strategy
+
+Audit log foundation mencatat aksi penting pada entity utama untuk akuntabilitas dasar.
+
+- Model `AuditLog` menyimpan `action`, `entityType`, `entityId`, `summary`, dan snapshot actor (`actorId`, `actorName`, `actorRole`).
+- `recordAuditLog` dipanggil di action layer setelah service berhasil dan sebelum redirect, untuk create/update/delete pada Staff, Department, Task, Attendance, Availability, dan PerformanceNote.
+- Pencatatan bersifat best-effort: kegagalan audit tidak menggagalkan aksi user.
+- `summary` memakai whitelist field aman dan tidak menyimpan passwordHash, session token, raw cookie, atau dump objek. Untuk PerformanceNote hanya kategori dan nama staff.
+- Viewer `/audit-logs` read-only dan ADMIN-only lewat permission `auditLogs:read`.
+- Foundation ini belum tamper-proof, belum mencatat aksi gagal/auth, dan belum punya filter, search, export, atau pagination.
+
 ## Error Handling Strategy
 
 Error handling harus:
@@ -334,7 +345,6 @@ Setelah MVP stabil, sistem dapat dikembangkan ke:
 - PostgreSQL.
 - Role-based access control.
 - Fine-grained ownership rules.
-- Audit log.
 - Advanced security hardening.
 - Deployment to Vercel.
 - CSV import/export.

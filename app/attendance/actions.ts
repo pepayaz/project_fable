@@ -8,6 +8,7 @@ import {
   updateAttendance,
 } from "@/lib/services/attendance";
 import { getServiceErrorMessage } from "@/lib/services/errors";
+import { recordAuditLog, summarizeAttendance } from "@/lib/services/audit-log";
 import { requirePermission } from "@/lib/auth/guards";
 
 function attendanceDataFromForm(formData: FormData) {
@@ -25,10 +26,17 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createAttendanceAction(formData: FormData) {
-  await requirePermission("attendance:create");
+  const actor = await requirePermission("attendance:create");
 
   try {
-    await createAttendance(attendanceDataFromForm(formData));
+    const attendance = await createAttendance(attendanceDataFromForm(formData));
+    await recordAuditLog({
+      action: "CREATE",
+      entityType: "Attendance",
+      entityId: attendance.id,
+      summary: summarizeAttendance(attendance),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       "/attendance/new",
@@ -41,12 +49,19 @@ export async function createAttendanceAction(formData: FormData) {
 }
 
 export async function updateAttendanceAction(formData: FormData) {
-  await requirePermission("attendance:update");
+  const actor = await requirePermission("attendance:update");
 
   const id = String(formData.get("id") ?? "");
 
   try {
-    await updateAttendance(id, attendanceDataFromForm(formData));
+    const attendance = await updateAttendance(id, attendanceDataFromForm(formData));
+    await recordAuditLog({
+      action: "UPDATE",
+      entityType: "Attendance",
+      entityId: attendance.id,
+      summary: summarizeAttendance(attendance),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       `/attendance/${id}/edit`,
@@ -59,12 +74,19 @@ export async function updateAttendanceAction(formData: FormData) {
 }
 
 export async function deleteAttendanceAction(formData: FormData) {
-  await requirePermission("attendance:delete");
+  const actor = await requirePermission("attendance:delete");
 
   const id = String(formData.get("id") ?? "");
 
   try {
-    await deleteAttendance(id);
+    const attendance = await deleteAttendance(id);
+    await recordAuditLog({
+      action: "DELETE",
+      entityType: "Attendance",
+      entityId: attendance.id,
+      summary: summarizeAttendance(attendance),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       "/attendance",

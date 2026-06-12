@@ -339,3 +339,36 @@ Negative:
 - No fine-grained ownership checks yet.
 - No audit log yet.
 - Department mutation is ADMIN-only for now.
+
+## ADR-015 Add Audit Log Foundation for Primary Entities
+
+Status: Accepted
+
+### Context
+
+Setelah auth dan RBAC, Project Fable membutuhkan jejak siapa mengubah apa pada data internal. Kebutuhan ini cukup untuk akuntabilitas dasar, belum untuk kepatuhan formal atau tamper-proofing.
+
+### Decision
+
+Tambahkan model `AuditLog` dan helper `recordAuditLog` yang dipanggil di action layer setelah service berhasil dan sebelum redirect.
+
+- Dicatat untuk create/update/delete pada Staff, Department, Task, Attendance, Availability, dan PerformanceNote.
+- `AuditLog` menyimpan snapshot actor (`actorId`, `actorName`, `actorRole`) tanpa relasi foreign key ke User, agar log immutable dan independen dari lifecycle User.
+- `summary` memakai whitelist field aman. PerformanceNote hanya menyimpan kategori dan nama staff, bukan isi note.
+- `recordAuditLog` bersifat best-effort: kegagalan audit tidak menggagalkan aksi user.
+- Viewer `/audit-logs` read-only dan hanya untuk ADMIN lewat permission `auditLogs:read`.
+
+### Consequences
+
+Positive:
+
+- Akuntabilitas dasar tersedia tanpa dependency baru.
+- Tidak menyimpan passwordHash, session token, raw cookie, atau dump objek lama/baru.
+- Pola pencatatan terpusat dan mudah ditinjau.
+
+Negative:
+
+- Belum tamper-proof (log bisa diubah langsung di database).
+- Belum mencatat aksi yang gagal atau aksi auth (login/logout).
+- Belum ada filter, search, export, atau pagination.
+- Pencatatan tidak transaksional dengan mutasi, sehingga ada celah kecil log hilang jika audit gagal.

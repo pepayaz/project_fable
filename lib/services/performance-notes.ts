@@ -52,7 +52,10 @@ export async function createPerformanceNote(input: unknown) {
   const data = parsePerformanceNoteInput(input);
   await ensureStaffExists(data.staffId);
 
-  return db.performanceNote.create({ data });
+  return db.performanceNote.create({
+    data,
+    include: { staff: { select: { name: true } } },
+  });
 }
 
 export async function updatePerformanceNote(id: string, input: unknown) {
@@ -62,11 +65,13 @@ export async function updatePerformanceNote(id: string, input: unknown) {
   return db.performanceNote.update({
     where: { id },
     data,
+    include: { staff: { select: { name: true } } },
   });
 }
 
 export async function deletePerformanceNote(id: string) {
-  await db.performanceNote.delete({
+  return db.performanceNote.delete({
     where: { id },
+    include: { staff: { select: { name: true } } },
   });
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createStaff, deleteStaff, updateStaff } from "@/lib/services/staff";
 import { getServiceErrorMessage } from "@/lib/services/errors";
+import { recordAuditLog, summarizeStaff } from "@/lib/services/audit-log";
 import { requirePermission } from "@/lib/auth/guards";
 
 function staffDataFromForm(formData: FormData) {
@@ -24,10 +25,17 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createStaffAction(formData: FormData) {
-  await requirePermission("staff:create");
+  const actor = await requirePermission("staff:create");
 
   try {
-    await createStaff(staffDataFromForm(formData));
+    const staff = await createStaff(staffDataFromForm(formData));
+    await recordAuditLog({
+      action: "CREATE",
+      entityType: "Staff",
+      entityId: staff.id,
+      summary: summarizeStaff(staff),
+      actor,
+    });
   } catch (error) {
     redirectWithError("/staff/new", getServiceErrorMessage(error, "Staff could not be created."));
   }
@@ -37,12 +45,19 @@ export async function createStaffAction(formData: FormData) {
 }
 
 export async function updateStaffAction(formData: FormData) {
-  await requirePermission("staff:update");
+  const actor = await requirePermission("staff:update");
 
   const id = String(formData.get("id") ?? "");
 
   try {
-    await updateStaff(id, staffDataFromForm(formData));
+    const staff = await updateStaff(id, staffDataFromForm(formData));
+    await recordAuditLog({
+      action: "UPDATE",
+      entityType: "Staff",
+      entityId: staff.id,
+      summary: summarizeStaff(staff),
+      actor,
+    });
   } catch (error) {
     redirectWithError(
       `/staff/${id}/edit`,
@@ -55,12 +70,19 @@ export async function updateStaffAction(formData: FormData) {
 }
 
 export async function deleteStaffAction(formData: FormData) {
-  await requirePermission("staff:delete");
+  const actor = await requirePermission("staff:delete");
 
   const id = String(formData.get("id") ?? "");
 
   try {
-    await deleteStaff(id);
+    const staff = await deleteStaff(id);
+    await recordAuditLog({
+      action: "DELETE",
+      entityType: "Staff",
+      entityId: staff.id,
+      summary: summarizeStaff(staff),
+      actor,
+    });
   } catch (error) {
     redirectWithError("/staff", getServiceErrorMessage(error, "Staff could not be deleted."));
   }
