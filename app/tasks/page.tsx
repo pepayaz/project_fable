@@ -2,6 +2,7 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import { deleteTaskAction } from "@/app/tasks/actions";
+import { requireUser } from "@/lib/auth/session";
 import { listTasks } from "@/lib/services/tasks";
 
 type TasksPageProps = {
@@ -49,6 +50,7 @@ function formatDeadline(deadline: Date | null) {
 }
 
 export default async function TasksPage({ searchParams }: TasksPageProps) {
+  await requireUser();
   const tasks = await listTasks();
   const params = searchParams ? await searchParams : {};
 

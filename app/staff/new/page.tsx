@@ -1,6 +1,7 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { createStaffAction } from "@/app/staff/actions";
 import StaffForm from "@/app/staff/StaffForm";
+import { requireUser } from "@/lib/auth/session";
 import { listDepartmentOptions } from "@/lib/services/departments";
 
 type NewStaffPageProps = {
@@ -8,6 +9,8 @@ type NewStaffPageProps = {
 };
 
 export default async function NewStaffPage({ searchParams }: NewStaffPageProps) {
+  await requireUser();
+
   const params = searchParams ? await searchParams : {};
   const departments = await listDepartmentOptions();
 

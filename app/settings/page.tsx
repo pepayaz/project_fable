@@ -1,7 +1,10 @@
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+import { requireUser } from "@/lib/auth/session";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  await requireUser();
+
   return (
     <div>
       <PageHeader

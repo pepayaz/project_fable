@@ -270,3 +270,39 @@ Negative:
 
 - Database tidak memvalidasi nilai pada level kolom.
 - Semua tulisan ke database harus melalui validasi Zod agar data konsisten.
+
+## ADR-013 Use First-Party Database Sessions for Auth Foundation
+
+Status: Accepted
+
+### Context
+
+Project Fable sudah melewati MVP demo dan mulai diarahkan menjadi internal people operations platform. Sistem membutuhkan login/logout, protected routes, dan akun admin seed tanpa langsung membawa kompleksitas RBAC detail, OAuth/SSO, MFA, atau audit log.
+
+### Decision
+
+Gunakan auth foundation first-party dengan model `User` dan `Session`.
+
+- User dan Staff tetap entity terpisah.
+- Role disimpan sebagai String: `ADMIN`, `MANAGER`, `MEMBER`.
+- Password di-hash dengan Node built-in `crypto.scrypt` dan random salt.
+- Verifikasi password memakai `timingSafeEqual`.
+- Session token dibuat dengan random bytes, plaintext token disimpan hanya di cookie, dan database menyimpan hash token.
+- Protected routes memakai `proxy.ts` untuk redirect awal.
+- Server Actions yang mengubah data tetap memanggil guard server-side.
+
+### Consequences
+
+Positive:
+
+- Tidak menambah dependency auth baru.
+- Session dapat dicabut lewat database.
+- Password plaintext tidak pernah disimpan.
+- Pola auth tetap sederhana dan cocok untuk platform internal tahap awal.
+
+Negative:
+
+- Belum ada RBAC detail.
+- Belum ada audit log.
+- Belum ada rate limiting penuh, password reset, email verification, MFA, atau OAuth/SSO.
+- Perlu security hardening lanjutan sebelum production publik.

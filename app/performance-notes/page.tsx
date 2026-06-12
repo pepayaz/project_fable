@@ -2,6 +2,7 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import { deletePerformanceNoteAction } from "@/app/performance-notes/actions";
+import { requireUser } from "@/lib/auth/session";
 import { listPerformanceNotes } from "@/lib/services/performance-notes";
 
 type PerformanceNotesPageProps = {
@@ -30,6 +31,7 @@ function formatDate(date: Date) {
 }
 
 export default async function PerformanceNotesPage({ searchParams }: PerformanceNotesPageProps) {
+  await requireUser();
   const notes = await listPerformanceNotes();
   const params = searchParams ? await searchParams : {};
 

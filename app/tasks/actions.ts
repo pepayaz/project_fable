@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createTask, deleteTask, updateTask } from "@/lib/services/tasks";
 import { getServiceErrorMessage } from "@/lib/services/errors";
+import { requireUser } from "@/lib/auth/session";
 
 function taskDataFromForm(formData: FormData) {
   return {
@@ -22,6 +23,8 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createTaskAction(formData: FormData) {
+  await requireUser();
+
   try {
     await createTask(taskDataFromForm(formData));
   } catch (error) {
@@ -33,6 +36,8 @@ export async function createTaskAction(formData: FormData) {
 }
 
 export async function updateTaskAction(formData: FormData) {
+  await requireUser();
+
   const id = String(formData.get("id") ?? "");
 
   try {
@@ -49,6 +54,8 @@ export async function updateTaskAction(formData: FormData) {
 }
 
 export async function deleteTaskAction(formData: FormData) {
+  await requireUser();
+
   const id = String(formData.get("id") ?? "");
 
   try {

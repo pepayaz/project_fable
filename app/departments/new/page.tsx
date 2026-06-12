@@ -1,12 +1,15 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { createDepartmentAction } from "@/app/departments/actions";
 import DepartmentForm from "@/app/departments/DepartmentForm";
+import { requireUser } from "@/lib/auth/session";
 
 type NewDepartmentPageProps = {
   searchParams?: Promise<{ error?: string }>;
 };
 
 export default async function NewDepartmentPage({ searchParams }: NewDepartmentPageProps) {
+  await requireUser();
+
   const params = searchParams ? await searchParams : {};
 
   return (

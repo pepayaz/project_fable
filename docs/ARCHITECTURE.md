@@ -26,6 +26,8 @@ Client Browser
     |
 Next.js App Router
     |
+Proxy + Route Guards
+    |
 Server Actions / API Routes
     |
 Service Layer
@@ -36,6 +38,8 @@ SQLite Database
 ```
 
 Untuk MVP, monolith Next.js sudah cukup. Tidak perlu memisahkan backend dan frontend ke repository berbeda.
+
+Auth foundation menggunakan first-party database session. Protected route handling dilakukan di `proxy.ts` untuk redirect awal, lalu Server Components dan Server Actions tetap memanggil guard server-side agar mutasi data tidak hanya bergantung pada proxy.
 
 ## Recommended Stack
 
@@ -167,6 +171,34 @@ Fields:
 - createdAt
 - updatedAt
 
+### User
+
+Fields:
+
+- id
+- name
+- email
+- passwordHash
+- role
+- isActive
+- createdAt
+- updatedAt
+
+User is the login account entity and remains separate from Staff.
+
+### Session
+
+Fields:
+
+- id
+- userId
+- tokenHash
+- expiresAt
+- createdAt
+- updatedAt
+
+Session stores only hashed tokens in the database. The plaintext token lives only in an httpOnly cookie.
+
 ## Enum Design
 
 ### StaffStatus
@@ -238,6 +270,20 @@ Rekomendasi:
 - Prisma untuk database constraint.
 - UI form validation untuk feedback user.
 
+## Authentication Strategy
+
+Auth foundation uses:
+
+- Node `crypto.scrypt` for password hashing.
+- Random salt per password.
+- `timingSafeEqual` for password verification.
+- Random opaque session token in an httpOnly cookie.
+- SHA-256 session token hash in the database.
+- Session expiry via `expiresAt`.
+- `requireUser()` for protected Server Components and mutating Server Actions.
+
+Role values are stored on User as String: `ADMIN`, `MANAGER`, and `MEMBER`. Detailed RBAC rules are intentionally deferred.
+
 ## Error Handling Strategy
 
 Error handling harus:
@@ -276,8 +322,9 @@ Agent harus menggunakan RTK untuk command terminal. Jika Graphify output tersedi
 Setelah MVP stabil, sistem dapat dikembangkan ke:
 
 - PostgreSQL.
-- Authentication.
 - Role-based access control.
+- Audit log.
+- Advanced security hardening.
 - Deployment to Vercel.
 - CSV import/export.
 - AI summary.

@@ -8,6 +8,7 @@ import {
   updateAvailability,
 } from "@/lib/services/availability";
 import { getServiceErrorMessage } from "@/lib/services/errors";
+import { requireUser } from "@/lib/auth/session";
 
 function availabilityDataFromForm(formData: FormData) {
   return {
@@ -24,6 +25,8 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createAvailabilityAction(formData: FormData) {
+  await requireUser();
+
   try {
     await createAvailability(availabilityDataFromForm(formData));
   } catch (error) {
@@ -38,6 +41,8 @@ export async function createAvailabilityAction(formData: FormData) {
 }
 
 export async function updateAvailabilityAction(formData: FormData) {
+  await requireUser();
+
   const id = String(formData.get("id") ?? "");
 
   try {
@@ -54,6 +59,8 @@ export async function updateAvailabilityAction(formData: FormData) {
 }
 
 export async function deleteAvailabilityAction(formData: FormData) {
+  await requireUser();
+
   const id = String(formData.get("id") ?? "");
 
   try {

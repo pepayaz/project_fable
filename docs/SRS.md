@@ -44,17 +44,21 @@ Sistem pada MVP akan berjalan sebagai web application.
 
 ## User Roles
 
+Role akun login dasar:
+
+- ADMIN
+- MANAGER
+- MEMBER
+
+Pada auth foundation, role disimpan di User tetapi belum dipakai untuk permission detail. Semua user aktif yang berhasil login dapat mengakses halaman utama.
+
 ### Admin
 
-Admin dapat mengelola staff, department, task, attendance, availability, dan dashboard.
+Admin dapat mengelola staff, department, task, attendance, availability, performance notes, dan dashboard.
 
-### Human Capital Staff
+### Manager dan Member
 
-Pada MVP, Human Capital Staff dapat memiliki akses yang sama dengan Admin. Role separation yang kompleks ditunda ke milestone berikutnya.
-
-### Division Lead
-
-Pada MVP, Division Lead belum menjadi role teknis terpisah. Sistem dapat menyimpan position atau role text untuk staff.
+Role Manager dan Member disiapkan untuk RBAC sprint berikutnya. Pada tahap ini, permission detail belum dibedakan.
 
 ## Functional Requirements
 
@@ -208,7 +212,9 @@ Aplikasi harus dapat dijalankan lokal dengan instruksi yang jelas.
 
 ### Security
 
-MVP harus menghindari exposure data sensitif. Authentication dapat ditambahkan pada milestone berikutnya jika belum ada di awal.
+Aplikasi harus menghindari exposure data sensitif. Auth foundation tersedia dengan password hashing, database session, httpOnly cookie, protected routes, dan logout.
+
+Security hardening lanjutan masih future sprint, termasuk RBAC detail, audit log, rate limiting penuh, password reset, email verification, MFA, OAuth/SSO, dan deployment security headers.
 
 ### AI-Agent Compatibility
 
@@ -231,10 +237,9 @@ Entity utama MVP:
 - Attendance
 - Availability
 - PerformanceNote
+- User
+- Session
 
-Entity yang ditunda:
-
-- User (Milestone 7 — Authentication; tidak termasuk dalam Prisma schema MVP)
 
 ## Error Handling Requirements
 

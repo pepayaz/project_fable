@@ -2,6 +2,7 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import { deleteAttendanceAction } from "@/app/attendance/actions";
+import { requireUser } from "@/lib/auth/session";
 import { listAttendanceRecords } from "@/lib/services/attendance";
 
 type AttendancePageProps = {
@@ -32,6 +33,7 @@ function formatDate(date: Date) {
 }
 
 export default async function AttendancePage({ searchParams }: AttendancePageProps) {
+  await requireUser();
   const records = await listAttendanceRecords();
   const params = searchParams ? await searchParams : {};
 

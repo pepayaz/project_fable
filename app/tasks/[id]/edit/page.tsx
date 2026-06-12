@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import PageHeader from "@/components/ui/PageHeader";
 import { updateTaskAction } from "@/app/tasks/actions";
 import TaskForm from "@/app/tasks/TaskForm";
+import { requireUser } from "@/lib/auth/session";
 import { listDepartmentOptions } from "@/lib/services/departments";
 import { listStaffOptions } from "@/lib/services/staff";
 import { getTaskById } from "@/lib/services/tasks";
@@ -12,6 +13,8 @@ type EditTaskPageProps = {
 };
 
 export default async function EditTaskPage({ params, searchParams }: EditTaskPageProps) {
+  await requireUser();
+
   const { id } = await params;
   const query = searchParams ? await searchParams : {};
   const [task, staff, departments] = await Promise.all([

@@ -14,10 +14,8 @@ Entity utama MVP:
 - Attendance
 - Availability
 - PerformanceNote
-
-Entity yang ditunda sampai Milestone 7 (Authentication):
-
 - User
+- Session
 
 Entity tambahan yang dapat ditambahkan nanti:
 
@@ -185,7 +183,7 @@ Possible categories:
 
 User merepresentasikan akun yang dapat login ke aplikasi.
 
-User adalah bagian dari Milestone 7 (Authentication) dan tidak termasuk dalam Prisma schema MVP. Jangan membuat model User sebelum Milestone 7.
+User adalah akun login aplikasi dan harus tetap terpisah dari Staff. Staff merepresentasikan personel organisasi, sedangkan User merepresentasikan kredensial dan sesi akses aplikasi.
 
 Fields:
 
@@ -194,15 +192,46 @@ Fields:
 - email
 - passwordHash
 - role
+- isActive
 - createdAt
 - updatedAt
 
 Possible roles:
 
 - ADMIN
-- HUMAN_CAPITAL
-- DIVISION_LEAD
-- VIEWER
+- MANAGER
+- MEMBER
+
+Rules:
+
+- Email harus unique.
+- Password tidak pernah disimpan plaintext.
+- Role disimpan sebagai String sesuai ADR-012.
+- RBAC detail belum diimplementasikan pada auth foundation.
+
+## Session
+
+Session merepresentasikan login session yang tersimpan di database.
+
+Fields:
+
+- id
+- userId
+- tokenHash
+- expiresAt
+- createdAt
+- updatedAt
+
+Relationships:
+
+- Session belongs to User.
+
+Rules:
+
+- Cookie menyimpan plaintext token, database hanya menyimpan hash token.
+- Session harus memiliki expiry.
+- Logout harus menghapus session dari database.
+- Expired atau inactive user session harus ditolak.
 
 ## Enum Definitions
 
@@ -261,6 +290,8 @@ Possible roles:
 - Attendance must always reference a valid staff.
 - Availability must always reference a valid staff.
 - PerformanceNote must always reference a valid staff.
+- User and Staff must remain separate entities.
+- Session token hash must be unique and should not expose plaintext token.
 
 ## Future Data Model Enhancements
 

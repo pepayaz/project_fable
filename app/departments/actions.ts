@@ -8,6 +8,7 @@ import {
   updateDepartment,
 } from "@/lib/services/departments";
 import { getServiceErrorMessage } from "@/lib/services/errors";
+import { requireUser } from "@/lib/auth/session";
 
 function departmentDataFromForm(formData: FormData) {
   return {
@@ -21,6 +22,8 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createDepartmentAction(formData: FormData) {
+  await requireUser();
+
   try {
     await createDepartment(departmentDataFromForm(formData));
   } catch (error) {
@@ -35,6 +38,8 @@ export async function createDepartmentAction(formData: FormData) {
 }
 
 export async function updateDepartmentAction(formData: FormData) {
+  await requireUser();
+
   const id = String(formData.get("id") ?? "");
 
   try {
@@ -51,6 +56,8 @@ export async function updateDepartmentAction(formData: FormData) {
 }
 
 export async function deleteDepartmentAction(formData: FormData) {
+  await requireUser();
+
   const id = String(formData.get("id") ?? "");
 
   try {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import { deleteAvailabilityAction } from "@/app/availability/actions";
+import { requireUser } from "@/lib/auth/session";
 import { listAvailabilityRecords } from "@/lib/services/availability";
 
 type AvailabilityPageProps = {
@@ -9,6 +10,7 @@ type AvailabilityPageProps = {
 };
 
 export default async function AvailabilityPage({ searchParams }: AvailabilityPageProps) {
+  await requireUser();
   const records = await listAvailabilityRecords();
   const params = searchParams ? await searchParams : {};
 

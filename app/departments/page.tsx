@@ -2,6 +2,7 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import { deleteDepartmentAction } from "@/app/departments/actions";
+import { requireUser } from "@/lib/auth/session";
 import { listDepartments } from "@/lib/services/departments";
 
 type DepartmentsPageProps = {
@@ -9,6 +10,7 @@ type DepartmentsPageProps = {
 };
 
 export default async function DepartmentsPage({ searchParams }: DepartmentsPageProps) {
+  await requireUser();
   const departments = await listDepartments();
   const params = searchParams ? await searchParams : {};
 

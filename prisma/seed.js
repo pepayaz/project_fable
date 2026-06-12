@@ -2,8 +2,25 @@
 
 require("dotenv/config");
 
+const { randomBytes, scryptSync } = require("node:crypto");
 const path = require("node:path");
 const Database = require("better-sqlite3");
+
+const SCRYPT_KEY_LENGTH = 64;
+const SCRYPT_N = 16384;
+const SCRYPT_R = 8;
+const SCRYPT_P = 1;
+
+function hashPassword(password) {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, SCRYPT_KEY_LENGTH, {
+    N: SCRYPT_N,
+    r: SCRYPT_R,
+    p: SCRYPT_P,
+  }).toString("hex");
+
+  return `scrypt$${SCRYPT_N}$${SCRYPT_R}$${SCRYPT_P}$${salt}$${hash}`;
+}
 
 function resolveDatabasePath() {
   const databaseUrl = process.env.DATABASE_URL ?? "file:./prisma/dev.db";
@@ -205,6 +222,35 @@ const upsertStaff = db.prepare(`
     updatedAt = excluded.updatedAt
 `);
 
+const upsertAdminUser = db.prepare(`
+  INSERT INTO User (
+    id,
+    name,
+    email,
+    passwordHash,
+    role,
+    isActive,
+    createdAt,
+    updatedAt
+  )
+  VALUES (
+    @id,
+    @name,
+    @email,
+    @passwordHash,
+    @role,
+    @isActive,
+    @createdAt,
+    @updatedAt
+  )
+  ON CONFLICT(email) DO UPDATE SET
+    name = excluded.name,
+    passwordHash = excluded.passwordHash,
+    role = excluded.role,
+    isActive = excluded.isActive,
+    updatedAt = excluded.updatedAt
+`);
+
 const seed = db.transaction(() => {
   for (const department of departments) {
     upsertDepartment.run({
@@ -221,9 +267,33 @@ const seed = db.transaction(() => {
       updatedAt: now,
     });
   }
+
+  const adminEmail = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+
+  if (adminEmail && adminPassword) {
+    upsertAdminUser.run({
+      id: "user-admin",
+      name: process.env.SEED_ADMIN_NAME?.trim() || "Project Fable Admin",
+      email: adminEmail,
+      passwordHash: hashPassword(adminPassword),
+      role: "ADMIN",
+      isActive: 1,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
 });
 
 seed();
 db.close();
 
 console.log(`Seeded ${departments.length} departments and ${staff.length} staff.`);
+
+if (process.env.SEED_ADMIN_EMAIL?.trim() && process.env.SEED_ADMIN_PASSWORD) {
+  console.log(`Seeded admin user ${process.env.SEED_ADMIN_EMAIL.trim().toLowerCase()}.`);
+} else {
+  console.log(
+    "Skipped admin user seed. Set SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD to create one.",
+  );
+}

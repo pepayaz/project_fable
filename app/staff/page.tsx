@@ -2,6 +2,7 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import { deleteStaffAction } from "@/app/staff/actions";
+import { requireUser } from "@/lib/auth/session";
 import { listStaff } from "@/lib/services/staff";
 
 type StaffPageProps = {
@@ -22,6 +23,7 @@ function statusBadgeClass(status: string) {
 }
 
 export default async function StaffPage({ searchParams }: StaffPageProps) {
+  await requireUser();
   const staff = await listStaff();
   const params = searchParams ? await searchParams : {};
 

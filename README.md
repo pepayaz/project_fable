@@ -2,7 +2,7 @@
 
 Project Fable adalah aplikasi people management ringan untuk organisasi, kepanitiaan, komunitas, dan tim kampus. Aplikasi ini membantu pengelola tim mencatat staff, department, task, attendance, availability, performance notes, dan ringkasan dashboard dalam satu workspace sederhana.
 
-Project ini dibuat sebagai portfolio project berbasis workflow Human Capital / People Management non-enterprise.
+Project ini dibuat sebagai portfolio project berbasis workflow Human Capital / People Management non-enterprise, lalu dikembangkan menuju internal people operations platform yang lebih aman.
 
 ## MVP Features
 
@@ -18,15 +18,19 @@ Fitur MVP yang tersedia saat ini:
 - Availability CRUD
 - Performance Notes CRUD
 - Seed data demo untuk staff dan department
+- Auth foundation dengan login/logout
+- Protected routes untuk halaman utama
+- Admin user seed via environment variable
 
 Belum termasuk MVP saat ini:
 
-- Authentication
-- User model
-- Role-based access control
 - Dashboard chart library
 - Export/import
 - Deployment production
+- Role-based access control detail
+- Audit log
+- Password reset, email verification, MFA, OAuth/SSO
+- Production security hardening penuh
 
 ## Tech Stack
 
@@ -70,6 +74,14 @@ Default database lokal:
 DATABASE_URL="file:./prisma/dev.db"
 ```
 
+Admin seed tidak memakai password default. Isi env ini hanya di `.env` lokal:
+
+```env
+SEED_ADMIN_NAME="Project Fable Admin"
+SEED_ADMIN_EMAIL="admin@fable.local"
+SEED_ADMIN_PASSWORD="change-this-local-password"
+```
+
 ## Prisma Setup
 
 Generate Prisma Client:
@@ -90,7 +102,7 @@ Seed data demo:
 npx prisma db seed
 ```
 
-Seed saat ini menambahkan department dan staff demo. Data lain dapat dibuat lewat UI.
+Seed saat ini menambahkan department dan staff demo. Jika `SEED_ADMIN_EMAIL` dan `SEED_ADMIN_PASSWORD` diisi, seed juga membuat atau memperbarui admin user.
 
 ## Development
 
@@ -133,8 +145,11 @@ npm run build
 | Availability tracking | Done |
 | Performance notes | Done |
 | Dashboard summary | Done |
-| Polish and demo readiness | In progress |
-| Authentication/User/Roles | Not included yet |
+| Polish and demo readiness | Done |
+| Auth foundation | Done |
+| Protected routes | Done |
+| RBAC detail | Future sprint |
+| Audit log | Future sprint |
 | Deployment | Not included yet |
 
 ## Project Documents
@@ -163,4 +178,4 @@ rtk test npm run build
 
 ## Scope Notes
 
-Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, multi-tenancy, and authentication are deferred until the core workflow is stable.
+Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, and multi-tenancy are deferred until the core workflow is stable. Auth foundation is available, but detailed RBAC, audit log, and production security hardening remain future work.

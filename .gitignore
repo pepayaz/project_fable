@@ -51,3 +51,7 @@ graphify-out/
 .claude/
 
 graphify-out/
+
+.env
+
+.env.local

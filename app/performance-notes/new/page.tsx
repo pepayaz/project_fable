@@ -1,6 +1,7 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { createPerformanceNoteAction } from "@/app/performance-notes/actions";
 import PerformanceNoteForm from "@/app/performance-notes/PerformanceNoteForm";
+import { requireUser } from "@/lib/auth/session";
 import { listStaffOptions } from "@/lib/services/staff";
 
 type NewPerformanceNotePageProps = {
@@ -10,6 +11,8 @@ type NewPerformanceNotePageProps = {
 export default async function NewPerformanceNotePage({
   searchParams,
 }: NewPerformanceNotePageProps) {
+  await requireUser();
+
   const params = searchParams ? await searchParams : {};
   const staff = await listStaffOptions();
 
