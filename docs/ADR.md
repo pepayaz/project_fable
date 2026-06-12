@@ -306,3 +306,36 @@ Negative:
 - Belum ada audit log.
 - Belum ada rate limiting penuh, password reset, email verification, MFA, atau OAuth/SSO.
 - Perlu security hardening lanjutan sebelum production publik.
+
+## ADR-014 Use Coarse Role-Based Access Control Before Ownership Rules
+
+Status: Accepted
+
+### Context
+
+Project Fable needs server-side authorization after auth foundation. The app has roles (`ADMIN`, `MANAGER`, `MEMBER`) but User is not linked to Staff yet, so self-service ownership rules cannot be enforced safely.
+
+### Decision
+
+Implement coarse RBAC using explicit permission strings and a role-to-permission map.
+
+- `ADMIN` receives all permissions.
+- `MANAGER` can view dashboard, CRUD staff, tasks, attendance, availability, and performance notes, and view departments.
+- `MEMBER` can only access settings for now.
+- Server Components use read permissions.
+- Server Actions use create/update/delete permissions.
+- UI hides unavailable actions, but server-side guards remain authoritative.
+
+### Consequences
+
+Positive:
+
+- Authorization is enforced server-side.
+- Permission behavior is centralized and reviewable.
+- MEMBER access remains conservative until `linkedStaffId` or equivalent ownership mapping exists.
+
+Negative:
+
+- No fine-grained ownership checks yet.
+- No audit log yet.
+- Department mutation is ADMIN-only for now.

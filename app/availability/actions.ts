@@ -8,7 +8,7 @@ import {
   updateAvailability,
 } from "@/lib/services/availability";
 import { getServiceErrorMessage } from "@/lib/services/errors";
-import { requireUser } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/guards";
 
 function availabilityDataFromForm(formData: FormData) {
   return {
@@ -25,7 +25,7 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createAvailabilityAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("availability:create");
 
   try {
     await createAvailability(availabilityDataFromForm(formData));
@@ -41,7 +41,7 @@ export async function createAvailabilityAction(formData: FormData) {
 }
 
 export async function updateAvailabilityAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("availability:update");
 
   const id = String(formData.get("id") ?? "");
 
@@ -59,7 +59,7 @@ export async function updateAvailabilityAction(formData: FormData) {
 }
 
 export async function deleteAvailabilityAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("availability:delete");
 
   const id = String(formData.get("id") ?? "");
 

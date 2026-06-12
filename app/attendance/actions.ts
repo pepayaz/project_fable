@@ -8,7 +8,7 @@ import {
   updateAttendance,
 } from "@/lib/services/attendance";
 import { getServiceErrorMessage } from "@/lib/services/errors";
-import { requireUser } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/guards";
 
 function attendanceDataFromForm(formData: FormData) {
   return {
@@ -25,7 +25,7 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createAttendanceAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("attendance:create");
 
   try {
     await createAttendance(attendanceDataFromForm(formData));
@@ -41,7 +41,7 @@ export async function createAttendanceAction(formData: FormData) {
 }
 
 export async function updateAttendanceAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("attendance:update");
 
   const id = String(formData.get("id") ?? "");
 
@@ -59,7 +59,7 @@ export async function updateAttendanceAction(formData: FormData) {
 }
 
 export async function deleteAttendanceAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("attendance:delete");
 
   const id = String(formData.get("id") ?? "");
 

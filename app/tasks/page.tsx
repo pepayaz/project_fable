@@ -2,7 +2,8 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import { deleteTaskAction } from "@/app/tasks/actions";
-import { requireUser } from "@/lib/auth/session";
+import { can } from "@/lib/auth/permissions";
+import { requirePermission } from "@/lib/auth/guards";
 import { listTasks } from "@/lib/services/tasks";
 
 type TasksPageProps = {
@@ -50,7 +51,10 @@ function formatDeadline(deadline: Date | null) {
 }
 
 export default async function TasksPage({ searchParams }: TasksPageProps) {
-  await requireUser();
+  const user = await requirePermission("tasks:read");
+  const canCreate = can(user, "tasks:create");
+  const canUpdate = can(user, "tasks:update");
+  const canDelete = can(user, "tasks:delete");
   const tasks = await listTasks();
   const params = searchParams ? await searchParams : {};
 
@@ -60,12 +64,14 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
         title="Tasks"
         description="Assign and track work across your organization."
         actions={
+          canCreate ? (
           <Link
             href="/tasks/new"
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover"
           >
             Add Task
           </Link>
+          ) : null
         }
       />
       {params.error && (
@@ -129,23 +135,29 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
                   </td>
                   <td className="px-4 py-4 text-text-secondary">{formatDeadline(task.deadline)}</td>
                   <td className="px-4 py-4">
-                    <div className="flex justify-end gap-2">
-                      <Link
-                        href={`/tasks/${task.id}/edit`}
-                        className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-surface-muted hover:text-text-primary"
-                      >
-                        Edit
-                      </Link>
-                      <form action={deleteTaskAction}>
-                        <input type="hidden" name="id" value={task.id} />
-                        <button
-                          type="submit"
-                          className="rounded-md border border-danger-soft bg-danger-soft px-3 py-1.5 text-sm font-medium text-danger hover:border-danger"
-                        >
-                          Delete
-                        </button>
-                      </form>
-                    </div>
+                    {(canUpdate || canDelete) && (
+                      <div className="flex justify-end gap-2">
+                        {canUpdate && (
+                          <Link
+                            href={`/tasks/${task.id}/edit`}
+                            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-surface-muted hover:text-text-primary"
+                          >
+                            Edit
+                          </Link>
+                        )}
+                        {canDelete && (
+                          <form action={deleteTaskAction}>
+                            <input type="hidden" name="id" value={task.id} />
+                            <button
+                              type="submit"
+                              className="rounded-md border border-danger-soft bg-danger-soft px-3 py-1.5 text-sm font-medium text-danger hover:border-danger"
+                            >
+                              Delete
+                            </button>
+                          </form>
+                        )}
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

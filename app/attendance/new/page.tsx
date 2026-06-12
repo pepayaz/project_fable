@@ -1,7 +1,7 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { createAttendanceAction } from "@/app/attendance/actions";
 import AttendanceForm from "@/app/attendance/AttendanceForm";
-import { requireUser } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/guards";
 import { listStaffOptions } from "@/lib/services/staff";
 
 type NewAttendancePageProps = {
@@ -9,7 +9,7 @@ type NewAttendancePageProps = {
 };
 
 export default async function NewAttendancePage({ searchParams }: NewAttendancePageProps) {
-  await requireUser();
+  await requirePermission("attendance:create");
 
   const params = searchParams ? await searchParams : {};
   const staff = await listStaffOptions();

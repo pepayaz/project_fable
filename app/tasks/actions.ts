@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createTask, deleteTask, updateTask } from "@/lib/services/tasks";
 import { getServiceErrorMessage } from "@/lib/services/errors";
-import { requireUser } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/guards";
 
 function taskDataFromForm(formData: FormData) {
   return {
@@ -23,7 +23,7 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createTaskAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("tasks:create");
 
   try {
     await createTask(taskDataFromForm(formData));
@@ -36,7 +36,7 @@ export async function createTaskAction(formData: FormData) {
 }
 
 export async function updateTaskAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("tasks:update");
 
   const id = String(formData.get("id") ?? "");
 
@@ -54,7 +54,7 @@ export async function updateTaskAction(formData: FormData) {
 }
 
 export async function deleteTaskAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("tasks:delete");
 
   const id = String(formData.get("id") ?? "");
 

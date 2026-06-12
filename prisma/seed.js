@@ -10,6 +10,7 @@ const SCRYPT_KEY_LENGTH = 64;
 const SCRYPT_N = 16384;
 const SCRYPT_R = 8;
 const SCRYPT_P = 1;
+const LOCAL_QA_PASSWORD = "project-fable-local-rbac-password";
 
 function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
@@ -222,7 +223,7 @@ const upsertStaff = db.prepare(`
     updatedAt = excluded.updatedAt
 `);
 
-const upsertAdminUser = db.prepare(`
+const upsertUser = db.prepare(`
   INSERT INTO User (
     id,
     name,
@@ -268,20 +269,42 @@ const seed = db.transaction(() => {
     });
   }
 
-  const adminEmail = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+  const seedPassword =
+    process.env.SEED_ADMIN_PASSWORD ||
+    (process.env.NODE_ENV !== "production" ? LOCAL_QA_PASSWORD : "");
 
-  if (adminEmail && adminPassword) {
-    upsertAdminUser.run({
-      id: "user-admin",
-      name: process.env.SEED_ADMIN_NAME?.trim() || "Project Fable Admin",
-      email: adminEmail,
-      passwordHash: hashPassword(adminPassword),
-      role: "ADMIN",
-      isActive: 1,
-      createdAt: now,
-      updatedAt: now,
-    });
+  if (seedPassword) {
+    const qaUsers = [
+      {
+        id: "user-admin",
+        name: process.env.SEED_ADMIN_NAME?.trim() || "Project Fable Admin",
+        email: "admin@fable.local",
+        role: "ADMIN",
+      },
+      {
+        id: "user-manager",
+        name: "Project Fable Manager",
+        email: "manager@fable.local",
+        role: "MANAGER",
+      },
+      {
+        id: "user-member",
+        name: "Project Fable Member",
+        email: "member@fable.local",
+        role: "MEMBER",
+      },
+    ];
+
+    for (const user of qaUsers) {
+      upsertUser.run({
+        ...user,
+        email: user.email.toLowerCase(),
+        passwordHash: hashPassword(seedPassword),
+        isActive: 1,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
   }
 });
 
@@ -290,10 +313,14 @@ db.close();
 
 console.log(`Seeded ${departments.length} departments and ${staff.length} staff.`);
 
-if (process.env.SEED_ADMIN_EMAIL?.trim() && process.env.SEED_ADMIN_PASSWORD) {
-  console.log(`Seeded admin user ${process.env.SEED_ADMIN_EMAIL.trim().toLowerCase()}.`);
+if (process.env.SEED_ADMIN_PASSWORD) {
+  console.log("Seeded RBAC QA users with SEED_ADMIN_PASSWORD.");
+} else if (process.env.NODE_ENV !== "production") {
+  console.log(
+    `Seeded RBAC QA users with local-only fallback password: ${LOCAL_QA_PASSWORD}`,
+  );
 } else {
   console.log(
-    "Skipped admin user seed. Set SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD to create one.",
+    "Skipped RBAC QA user seed. Set SEED_ADMIN_PASSWORD to create local QA users.",
   );
 }

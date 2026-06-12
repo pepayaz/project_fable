@@ -21,13 +21,14 @@ Fitur MVP yang tersedia saat ini:
 - Auth foundation dengan login/logout
 - Protected routes untuk halaman utama
 - Admin user seed via environment variable
+- Coarse role-based access control untuk ADMIN, MANAGER, dan MEMBER
 
 Belum termasuk MVP saat ini:
 
 - Dashboard chart library
 - Export/import
 - Deployment production
-- Role-based access control detail
+- Fine-grained ownership/self-service rules
 - Audit log
 - Password reset, email verification, MFA, OAuth/SSO
 - Production security hardening penuh
@@ -148,7 +149,8 @@ npm run build
 | Polish and demo readiness | Done |
 | Auth foundation | Done |
 | Protected routes | Done |
-| RBAC detail | Future sprint |
+| Coarse RBAC | Done |
+| Fine-grained ownership rules | Future sprint |
 | Audit log | Future sprint |
 | Deployment | Not included yet |
 
@@ -178,4 +180,4 @@ rtk test npm run build
 
 ## Scope Notes
 
-Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, and multi-tenancy are deferred until the core workflow is stable. Auth foundation is available, but detailed RBAC, audit log, and production security hardening remain future work.
+Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, and multi-tenancy are deferred until the core workflow is stable. Auth foundation and coarse RBAC are available, but MEMBER self-service ownership rules, audit log, and production security hardening remain future work.

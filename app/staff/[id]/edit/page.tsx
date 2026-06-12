@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import PageHeader from "@/components/ui/PageHeader";
 import { updateStaffAction } from "@/app/staff/actions";
 import StaffForm from "@/app/staff/StaffForm";
-import { requireUser } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/guards";
 import { listDepartmentOptions } from "@/lib/services/departments";
 import { getStaffById } from "@/lib/services/staff";
 
@@ -12,7 +12,7 @@ type EditStaffPageProps = {
 };
 
 export default async function EditStaffPage({ params, searchParams }: EditStaffPageProps) {
-  await requireUser();
+  await requirePermission("staff:update");
 
   const { id } = await params;
   const query = searchParams ? await searchParams : {};

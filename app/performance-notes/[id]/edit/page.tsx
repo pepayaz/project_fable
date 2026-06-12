@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import PageHeader from "@/components/ui/PageHeader";
 import { updatePerformanceNoteAction } from "@/app/performance-notes/actions";
 import PerformanceNoteForm from "@/app/performance-notes/PerformanceNoteForm";
-import { requireUser } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/guards";
 import { getPerformanceNoteById } from "@/lib/services/performance-notes";
 import { listStaffOptions } from "@/lib/services/staff";
 
@@ -15,7 +15,7 @@ export default async function EditPerformanceNotePage({
   params,
   searchParams,
 }: EditPerformanceNotePageProps) {
-  await requireUser();
+  await requirePermission("performanceNotes:update");
 
   const { id } = await params;
   const query = searchParams ? await searchParams : {};

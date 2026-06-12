@@ -8,7 +8,7 @@ import {
   deletePerformanceNote,
   updatePerformanceNote,
 } from "@/lib/services/performance-notes";
-import { requireUser } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/guards";
 
 function performanceNoteDataFromForm(formData: FormData) {
   return {
@@ -23,7 +23,7 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createPerformanceNoteAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("performanceNotes:create");
 
   try {
     await createPerformanceNote(performanceNoteDataFromForm(formData));
@@ -39,7 +39,7 @@ export async function createPerformanceNoteAction(formData: FormData) {
 }
 
 export async function updatePerformanceNoteAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("performanceNotes:update");
 
   const id = String(formData.get("id") ?? "");
 
@@ -57,7 +57,7 @@ export async function updatePerformanceNoteAction(formData: FormData) {
 }
 
 export async function deletePerformanceNoteAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("performanceNotes:delete");
 
   const id = String(formData.get("id") ?? "");
 

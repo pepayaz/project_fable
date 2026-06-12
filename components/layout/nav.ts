@@ -1,10 +1,16 @@
+import type { Permission } from "@/lib/auth/permissions";
+
 export const navItems = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Staff", href: "/staff" },
-  { label: "Departments", href: "/departments" },
-  { label: "Tasks", href: "/tasks" },
-  { label: "Attendance", href: "/attendance" },
-  { label: "Availability", href: "/availability" },
-  { label: "Performance Notes", href: "/performance-notes" },
-  { label: "Settings", href: "/settings" },
-];
+  { label: "Dashboard", href: "/dashboard", permission: "dashboard:read" },
+  { label: "Staff", href: "/staff", permission: "staff:read" },
+  { label: "Departments", href: "/departments", permission: "departments:read" },
+  { label: "Tasks", href: "/tasks", permission: "tasks:read" },
+  { label: "Attendance", href: "/attendance", permission: "attendance:read" },
+  { label: "Availability", href: "/availability", permission: "availability:read" },
+  {
+    label: "Performance Notes",
+    href: "/performance-notes",
+    permission: "performanceNotes:read",
+  },
+  { label: "Settings", href: "/settings", permission: "settings:read" },
+] satisfies Array<{ label: string; href: string; permission: Permission }>;

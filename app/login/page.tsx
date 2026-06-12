@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getDefaultRedirectForRole } from "@/lib/auth/permissions";
 import { loginAction } from "@/app/login/actions";
 
 type LoginPageProps = {
@@ -10,7 +11,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const user = await getCurrentUser();
 
   if (user) {
-    redirect("/dashboard");
+    redirect(getDefaultRedirectForRole(user.role));
   }
 
   const params = searchParams ? await searchParams : {};

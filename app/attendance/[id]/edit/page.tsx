@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import PageHeader from "@/components/ui/PageHeader";
 import { updateAttendanceAction } from "@/app/attendance/actions";
 import AttendanceForm from "@/app/attendance/AttendanceForm";
-import { requireUser } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/guards";
 import { getAttendanceById } from "@/lib/services/attendance";
 import { listStaffOptions } from "@/lib/services/staff";
 
@@ -15,7 +15,7 @@ export default async function EditAttendancePage({
   params,
   searchParams,
 }: EditAttendancePageProps) {
-  await requireUser();
+  await requirePermission("attendance:update");
 
   const { id } = await params;
   const query = searchParams ? await searchParams : {};

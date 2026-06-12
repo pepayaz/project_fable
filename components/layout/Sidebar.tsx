@@ -3,9 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navItems } from "@/components/layout/nav";
+import { can } from "@/lib/auth/permissions";
+import type { AuthUser } from "@/lib/auth/session";
 
-export default function Sidebar() {
+export default function Sidebar({ user }: { user: AuthUser }) {
   const pathname = usePathname();
+  const allowedNavItems = navItems.filter((item) => can(user, item.permission));
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-sidebar">
@@ -14,7 +17,7 @@ export default function Sidebar() {
         <p className="text-xs text-text-muted">People management</p>
       </div>
       <nav className="flex flex-col gap-1 px-3 pb-6">
-        {navItems.map((item) => {
+        {allowedNavItems.map((item) => {
           const active = pathname.startsWith(item.href);
           return (
             <Link

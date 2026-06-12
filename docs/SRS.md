@@ -50,7 +50,7 @@ Role akun login dasar:
 - MANAGER
 - MEMBER
 
-Pada auth foundation, role disimpan di User tetapi belum dipakai untuk permission detail. Semua user aktif yang berhasil login dapat mengakses halaman utama.
+Permission dasar sudah diterapkan server-side. UI juga menyembunyikan action yang tidak tersedia, tetapi server-side permission checks tetap menjadi sumber kebenaran.
 
 ### Admin
 
@@ -58,7 +58,7 @@ Admin dapat mengelola staff, department, task, attendance, availability, perform
 
 ### Manager dan Member
 
-Role Manager dan Member disiapkan untuk RBAC sprint berikutnya. Pada tahap ini, permission detail belum dibedakan.
+Manager dapat mengelola operational data, sedangkan Member hanya dapat mengakses settings sampai User dapat dihubungkan ke Staff.
 
 ## Functional Requirements
 
@@ -214,7 +214,7 @@ Aplikasi harus dapat dijalankan lokal dengan instruksi yang jelas.
 
 Aplikasi harus menghindari exposure data sensitif. Auth foundation tersedia dengan password hashing, database session, httpOnly cookie, protected routes, dan logout.
 
-Security hardening lanjutan masih future sprint, termasuk RBAC detail, audit log, rate limiting penuh, password reset, email verification, MFA, OAuth/SSO, dan deployment security headers.
+Security hardening lanjutan masih future sprint, termasuk fine-grained ownership rules, audit log, rate limiting penuh, password reset, email verification, MFA, OAuth/SSO, dan deployment security headers.
 
 ### AI-Agent Compatibility
 

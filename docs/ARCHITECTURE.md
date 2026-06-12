@@ -284,6 +284,16 @@ Auth foundation uses:
 
 Role values are stored on User as String: `ADMIN`, `MANAGER`, and `MEMBER`. Detailed RBAC rules are intentionally deferred.
 
+## Authorization Strategy
+
+Coarse RBAC uses explicit permission strings such as `staff:create`, `tasks:update`, and `settings:read`.
+
+- `ADMIN` can access and mutate all primary resources.
+- `MANAGER` can view dashboard, CRUD staff, tasks, attendance, availability, and performance notes, and view departments.
+- `MEMBER` can only access settings until User-to-Staff linking and self-service ownership rules exist.
+
+All protected pages use read permissions. All mutating Server Actions use create/update/delete permissions. UI actions are hidden when permission is missing, but server-side permission checks remain the source of truth.
+
 ## Error Handling Strategy
 
 Error handling harus:
@@ -323,6 +333,7 @@ Setelah MVP stabil, sistem dapat dikembangkan ke:
 
 - PostgreSQL.
 - Role-based access control.
+- Fine-grained ownership rules.
 - Audit log.
 - Advanced security hardening.
 - Deployment to Vercel.

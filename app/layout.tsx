@@ -28,7 +28,7 @@ export default async function RootLayout({
       <body className="min-h-full font-sans">
         {user ? (
           <div className="flex min-h-screen">
-            <Sidebar />
+            <Sidebar user={user} />
             <div className="flex min-w-0 flex-1 flex-col">
               <Header user={user} />
               <main className="flex-1 px-8 py-8">

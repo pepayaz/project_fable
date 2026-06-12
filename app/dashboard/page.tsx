@@ -1,6 +1,6 @@
 import PageHeader from "@/components/ui/PageHeader";
 import MetricCard from "@/components/ui/MetricCard";
-import { requireUser } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/guards";
 import { getDashboardSummary } from "@/lib/services/dashboard";
 
 function statusBadgeClass(status: string) {
@@ -95,7 +95,7 @@ function Badge({ className, children }: { className: string; children: React.Rea
 }
 
 export default async function DashboardPage() {
-  await requireUser();
+  await requirePermission("dashboard:read");
   const summary = await getDashboardSummary();
   const { metrics } = summary;
 

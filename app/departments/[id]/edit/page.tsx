@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import PageHeader from "@/components/ui/PageHeader";
 import { updateDepartmentAction } from "@/app/departments/actions";
 import DepartmentForm from "@/app/departments/DepartmentForm";
-import { requireUser } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/guards";
 import { getDepartmentById } from "@/lib/services/departments";
 
 type EditDepartmentPageProps = {
@@ -14,7 +14,7 @@ export default async function EditDepartmentPage({
   params,
   searchParams,
 }: EditDepartmentPageProps) {
-  await requireUser();
+  await requirePermission("departments:update");
 
   const { id } = await params;
   const query = searchParams ? await searchParams : {};

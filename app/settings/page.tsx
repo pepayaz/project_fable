@@ -1,9 +1,9 @@
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
-import { requireUser } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/guards";
 
 export default async function SettingsPage() {
-  await requireUser();
+  await requirePermission("settings:read");
 
   return (
     <div>

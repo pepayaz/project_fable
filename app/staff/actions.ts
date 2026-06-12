@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createStaff, deleteStaff, updateStaff } from "@/lib/services/staff";
 import { getServiceErrorMessage } from "@/lib/services/errors";
-import { requireUser } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/guards";
 
 function staffDataFromForm(formData: FormData) {
   return {
@@ -24,7 +24,7 @@ function redirectWithError(path: string, message: string): never {
 }
 
 export async function createStaffAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("staff:create");
 
   try {
     await createStaff(staffDataFromForm(formData));
@@ -37,7 +37,7 @@ export async function createStaffAction(formData: FormData) {
 }
 
 export async function updateStaffAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("staff:update");
 
   const id = String(formData.get("id") ?? "");
 
@@ -55,7 +55,7 @@ export async function updateStaffAction(formData: FormData) {
 }
 
 export async function deleteStaffAction(formData: FormData) {
-  await requireUser();
+  await requirePermission("staff:delete");
 
   const id = String(formData.get("id") ?? "");
 

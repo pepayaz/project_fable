@@ -2,7 +2,8 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import { deletePerformanceNoteAction } from "@/app/performance-notes/actions";
-import { requireUser } from "@/lib/auth/session";
+import { can } from "@/lib/auth/permissions";
+import { requirePermission } from "@/lib/auth/guards";
 import { listPerformanceNotes } from "@/lib/services/performance-notes";
 
 type PerformanceNotesPageProps = {
@@ -31,7 +32,10 @@ function formatDate(date: Date) {
 }
 
 export default async function PerformanceNotesPage({ searchParams }: PerformanceNotesPageProps) {
-  await requireUser();
+  const user = await requirePermission("performanceNotes:read");
+  const canCreate = can(user, "performanceNotes:create");
+  const canUpdate = can(user, "performanceNotes:update");
+  const canDelete = can(user, "performanceNotes:delete");
   const notes = await listPerformanceNotes();
   const params = searchParams ? await searchParams : {};
 
@@ -41,12 +45,14 @@ export default async function PerformanceNotesPage({ searchParams }: Performance
         title="Performance Notes"
         description="Keep simple, documented notes on staff performance."
         actions={
+          canCreate ? (
           <Link
             href="/performance-notes/new"
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover"
           >
             Add Performance Note
           </Link>
+          ) : null
         }
       />
       {params.error && (
@@ -93,23 +99,29 @@ export default async function PerformanceNotesPage({ searchParams }: Performance
                     {formatDate(performanceNote.createdAt)}
                   </td>
                   <td className="px-4 py-4">
-                    <div className="flex justify-end gap-2">
-                      <Link
-                        href={`/performance-notes/${performanceNote.id}/edit`}
-                        className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-surface-muted hover:text-text-primary"
-                      >
-                        Edit
-                      </Link>
-                      <form action={deletePerformanceNoteAction}>
-                        <input type="hidden" name="id" value={performanceNote.id} />
-                        <button
-                          type="submit"
-                          className="rounded-md border border-danger-soft bg-danger-soft px-3 py-1.5 text-sm font-medium text-danger hover:border-danger"
-                        >
-                          Delete
-                        </button>
-                      </form>
-                    </div>
+                    {(canUpdate || canDelete) && (
+                      <div className="flex justify-end gap-2">
+                        {canUpdate && (
+                          <Link
+                            href={`/performance-notes/${performanceNote.id}/edit`}
+                            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-surface-muted hover:text-text-primary"
+                          >
+                            Edit
+                          </Link>
+                        )}
+                        {canDelete && (
+                          <form action={deletePerformanceNoteAction}>
+                            <input type="hidden" name="id" value={performanceNote.id} />
+                            <button
+                              type="submit"
+                              className="rounded-md border border-danger-soft bg-danger-soft px-3 py-1.5 text-sm font-medium text-danger hover:border-danger"
+                            >
+                              Delete
+                            </button>
+                          </form>
+                        )}
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

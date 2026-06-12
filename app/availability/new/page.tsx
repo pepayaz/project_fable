@@ -1,7 +1,7 @@
 import PageHeader from "@/components/ui/PageHeader";
 import { createAvailabilityAction } from "@/app/availability/actions";
 import AvailabilityForm from "@/app/availability/AvailabilityForm";
-import { requireUser } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/guards";
 import { listStaffOptions } from "@/lib/services/staff";
 
 type NewAvailabilityPageProps = {
@@ -9,7 +9,7 @@ type NewAvailabilityPageProps = {
 };
 
 export default async function NewAvailabilityPage({ searchParams }: NewAvailabilityPageProps) {
-  await requireUser();
+  await requirePermission("availability:create");
 
   const params = searchParams ? await searchParams : {};
   const staff = await listStaffOptions();
