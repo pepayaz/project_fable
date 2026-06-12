@@ -11,6 +11,7 @@ Fitur MVP yang tersedia saat ini:
 - Dashboard summary dari data nyata
 - Staff CRUD
 - Staff detail 360 read-only (profil + task, attendance, availability, performance notes)
+- Search, filter, dan sort server-side di semua list page utama (via query params)
 - Department CRUD
 - Staff assignment ke department
 - Task CRUD
@@ -145,6 +146,7 @@ npm run build
 | App scaffold | Done |
 | Staff management | Done |
 | Staff detail 360 | Done |
+| List search/filter/sort | Done |
 | Department management | Done |
 | Task management | Done |
 | Attendance tracking | Done |
@@ -189,3 +191,5 @@ rtk test npm run build
 ## Scope Notes
 
 Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, and multi-tenancy are deferred until the core workflow is stable. Auth foundation, coarse RBAC, an audit log foundation, and soft delete for primary entities are available, but MEMBER self-service ownership rules, audit log filter/search/export, tamper-proofing, restore/trash/permanent delete, and production security hardening remain future work.
+
+List search/filter/sort known limitations: belum ada pagination (semua hasil dirender), pencarian `contains` di SQLite case-insensitive terutama untuk ASCII, term pencarian muncul di URL (shareable), dan sort task priority masih urutan alfabet kolom (bukan severity).

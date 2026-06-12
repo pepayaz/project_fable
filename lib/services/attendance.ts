@@ -1,6 +1,16 @@
 import { db } from "@/lib/db";
 import { ServiceError } from "@/lib/services/errors";
 import { attendanceInputSchema, type AttendanceInput } from "@/lib/validations/attendance";
+import type { AttendanceListParams } from "@/lib/validations/list-filters";
+
+function attendanceOrderBy(sort: AttendanceListParams["sort"], dir: AttendanceListParams["dir"]) {
+  switch (sort) {
+    case "createdAt":
+      return { createdAt: dir };
+    default:
+      return [{ date: dir }, { createdAt: "desc" as const }];
+  }
+}
 
 function parseAttendanceInput(input: unknown): AttendanceInput {
   const parsed = attendanceInputSchema.safeParse(input);
@@ -23,10 +33,15 @@ async function ensureStaffExists(staffId: string) {
   }
 }
 
-export async function listAttendanceRecords() {
+export async function listAttendanceRecords(params?: AttendanceListParams) {
   return db.attendance.findMany({
-    where: { deletedAt: null },
-    orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+    where: {
+      deletedAt: null,
+      ...(params?.q ? { eventName: { contains: params.q } } : {}),
+      ...(params?.status ? { status: params.status } : {}),
+      ...(params?.staff ? { staffId: params.staff } : {}),
+    },
+    orderBy: attendanceOrderBy(params?.sort ?? "date", params?.dir ?? "desc"),
     include: {
       staff: {
         select: {

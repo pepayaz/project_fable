@@ -316,6 +316,17 @@ Entity utama (Staff, Department, Task, Attendance, Availability, PerformanceNote
 - Audit log tetap mencatat action DELETE.
 - Known limitation: child records milik staff yang sudah dihapus tetap tampil (tidak difilter `staff.deletedAt`), nama Department soft-deleted tetap menempati unique constraint, dan belum ada restore/trash/permanent delete.
 
+## List Filtering Strategy
+
+List page utama (Staff, Departments, Tasks, Attendance, Availability, Performance Notes) mendukung search, filter, dan sort server-side.
+
+- State filter disimpan di URL query params (GET form) agar bisa di-refresh dan di-share. Form memakai tombol Apply eksplisit dan link Reset, tanpa client component.
+- Query param divalidasi dengan zod schema di `lib/validations/list-filters.ts` memakai `.catch(default)`, sehingga nilai invalid otomatis jatuh ke default dan tidak pernah membuat halaman crash.
+- Filtering dibangun di service layer lewat Prisma `where`/`orderBy` (parameterized, aman dari injection). Base `where: { deletedAt: null }` selalu dipertahankan, dan default order lama dipertahankan saat tanpa filter.
+- Dropdown relasi (staff/department) memakai options yang sudah memfilter `deletedAt: null`.
+- RBAC tidak berubah: tiap page tetap memakai read permission yang sama.
+- Known limitations: belum ada pagination (semua hasil dirender), `contains` di SQLite case-insensitive terutama untuk ASCII, term pencarian tampil di URL, dan sort task priority masih urutan alfabet kolom (bukan severity). Belum ada export, saved filter, atau advanced query builder.
+
 ## Error Handling Strategy
 
 Error handling harus:

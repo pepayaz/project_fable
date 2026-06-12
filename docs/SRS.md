@@ -130,6 +130,23 @@ Acceptance criteria:
 - Tombol Edit hanya muncul jika user punya `staff:update`.
 - Belum termasuk: inline edit, create related records dari halaman ini, pagination/filter, dan chart/export.
 
+### FR-004b List Search, Filter, and Sort
+
+Sistem harus menyediakan search, filter, dan sort server-side pada list page utama.
+
+Acceptance criteria:
+
+- Staff: search name/email/position; filter status, department; sort name, createdAt, updatedAt.
+- Departments: search name; sort name, createdAt, updatedAt.
+- Tasks: search title/description; filter status, priority, assignee, department; sort deadline, priority, createdAt, updatedAt.
+- Attendance: search eventName; filter status, staff; sort date, createdAt.
+- Availability: filter staff, dayOfWeek; sort dayOfWeek, startTime, createdAt.
+- Performance Notes: search note; filter category, staff; sort createdAt, updatedAt.
+- State filter disimpan di URL query params (shareable, refreshable) dan dijaga setelah Apply.
+- Query param invalid diabaikan/di-default, bukan crash.
+- Semua query menghormati soft delete (`deletedAt: null`) dan RBAC read permission.
+- Known limitations: belum ada pagination, `contains` SQLite case-insensitive terutama ASCII, term pencarian tampil di URL, sort task priority masih alfabet (bukan severity); belum ada export, saved filter, atau advanced query builder.
+
 ### FR-005 Department List
 
 Sistem harus menyediakan halaman daftar department.

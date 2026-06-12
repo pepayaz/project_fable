@@ -1,13 +1,25 @@
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+import FilterBar, { FilterText, FilterSelect } from "@/components/ui/FilterBar";
 import { deletePerformanceNoteAction } from "@/app/performance-notes/actions";
 import { can } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/guards";
 import { listPerformanceNotes } from "@/lib/services/performance-notes";
+import { listStaffOptions } from "@/lib/services/staff";
+import { performanceNoteCategories } from "@/lib/validations/performance-notes";
+import {
+  performanceNoteListParamsSchema,
+  performanceNoteSortKeys,
+} from "@/lib/validations/list-filters";
 
 type PerformanceNotesPageProps = {
-  searchParams?: Promise<{ error?: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+const sortLabels: Record<(typeof performanceNoteSortKeys)[number], string> = {
+  createdAt: "Created",
+  updatedAt: "Updated",
 };
 
 function categoryBadgeClass(category: string) {
@@ -36,8 +48,14 @@ export default async function PerformanceNotesPage({ searchParams }: Performance
   const canCreate = can(user, "performanceNotes:create");
   const canUpdate = can(user, "performanceNotes:update");
   const canDelete = can(user, "performanceNotes:delete");
-  const notes = await listPerformanceNotes();
-  const params = searchParams ? await searchParams : {};
+  const raw = searchParams ? await searchParams : {};
+  const filters = performanceNoteListParamsSchema.parse(raw);
+  const error = typeof raw.error === "string" ? raw.error : undefined;
+  const [notes, staffOptions] = await Promise.all([
+    listPerformanceNotes(filters),
+    listStaffOptions(),
+  ]);
+  const hasFilters = Boolean(filters.q || filters.category || filters.staff);
 
   return (
     <div>
@@ -55,15 +73,51 @@ export default async function PerformanceNotesPage({ searchParams }: Performance
           ) : null
         }
       />
-      {params.error && (
+      {error && (
         <div className="mb-5 rounded-md border border-danger-soft bg-danger-soft px-4 py-3 text-sm text-danger">
-          {params.error}
+          {error}
         </div>
+      )}
+      {(notes.length > 0 || hasFilters) && (
+        <FilterBar basePath="/performance-notes">
+          <FilterText name="q" label="Search" defaultValue={filters.q} placeholder="Note text" />
+          <FilterSelect name="category" label="Category" defaultValue={filters.category ?? ""}>
+            <option value="">All</option>
+            {performanceNoteCategories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="staff" label="Staff" defaultValue={filters.staff}>
+            <option value="">All</option>
+            {staffOptions.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.name}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="sort" label="Sort by" defaultValue={filters.sort}>
+            {performanceNoteSortKeys.map((key) => (
+              <option key={key} value={key}>
+                {sortLabels[key]}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="dir" label="Direction" defaultValue={filters.dir}>
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </FilterSelect>
+        </FilterBar>
       )}
       {notes.length === 0 ? (
         <EmptyState
-          title="No performance notes yet"
-          description="Document staff performance to make evaluations fairer."
+          title={hasFilters ? "No matching performance notes" : "No performance notes yet"}
+          description={
+            hasFilters
+              ? "Try adjusting or clearing your filters."
+              : "Document staff performance to make evaluations fairer."
+          }
         />
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border bg-surface shadow-card">

@@ -1,6 +1,18 @@
 import { db } from "@/lib/db";
 import { ServiceError } from "@/lib/services/errors";
 import { staffInputSchema, type StaffInput } from "@/lib/validations/staff";
+import type { StaffListParams } from "@/lib/validations/list-filters";
+
+function staffOrderBy(sort: StaffListParams["sort"], dir: StaffListParams["dir"]) {
+  switch (sort) {
+    case "createdAt":
+      return { createdAt: dir };
+    case "updatedAt":
+      return { updatedAt: dir };
+    default:
+      return { name: dir };
+  }
+}
 
 function parseStaffInput(input: unknown): StaffInput {
   const parsed = staffInputSchema.safeParse(input);
@@ -12,10 +24,23 @@ function parseStaffInput(input: unknown): StaffInput {
   return parsed.data;
 }
 
-export async function listStaff() {
+export async function listStaff(params?: StaffListParams) {
   return db.staff.findMany({
-    where: { deletedAt: null },
-    orderBy: { name: "asc" },
+    where: {
+      deletedAt: null,
+      ...(params?.q
+        ? {
+            OR: [
+              { name: { contains: params.q } },
+              { email: { contains: params.q } },
+              { position: { contains: params.q } },
+            ],
+          }
+        : {}),
+      ...(params?.status ? { status: params.status } : {}),
+      ...(params?.department ? { departmentId: params.department } : {}),
+    },
+    orderBy: staffOrderBy(params?.sort ?? "name", params?.dir ?? "asc"),
     include: {
       department: {
         select: {

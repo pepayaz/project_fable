@@ -4,6 +4,19 @@ import {
   performanceNoteInputSchema,
   type PerformanceNoteInput,
 } from "@/lib/validations/performance-notes";
+import type { PerformanceNoteListParams } from "@/lib/validations/list-filters";
+
+function performanceNoteOrderBy(
+  sort: PerformanceNoteListParams["sort"],
+  dir: PerformanceNoteListParams["dir"],
+) {
+  switch (sort) {
+    case "updatedAt":
+      return { updatedAt: dir };
+    default:
+      return { createdAt: dir };
+  }
+}
 
 function parsePerformanceNoteInput(input: unknown): PerformanceNoteInput {
   const parsed = performanceNoteInputSchema.safeParse(input);
@@ -28,10 +41,15 @@ async function ensureStaffExists(staffId: string) {
   }
 }
 
-export async function listPerformanceNotes() {
+export async function listPerformanceNotes(params?: PerformanceNoteListParams) {
   return db.performanceNote.findMany({
-    where: { deletedAt: null },
-    orderBy: { createdAt: "desc" },
+    where: {
+      deletedAt: null,
+      ...(params?.q ? { note: { contains: params.q } } : {}),
+      ...(params?.category ? { category: params.category } : {}),
+      ...(params?.staff ? { staffId: params.staff } : {}),
+    },
+    orderBy: performanceNoteOrderBy(params?.sort ?? "createdAt", params?.dir ?? "desc"),
     include: {
       staff: {
         select: {

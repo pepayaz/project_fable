@@ -1,13 +1,22 @@
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+import FilterBar, { FilterText, FilterSelect } from "@/components/ui/FilterBar";
 import { deleteAttendanceAction } from "@/app/attendance/actions";
 import { can } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/guards";
 import { listAttendanceRecords } from "@/lib/services/attendance";
+import { listStaffOptions } from "@/lib/services/staff";
+import { attendanceStatuses } from "@/lib/validations/attendance";
+import { attendanceListParamsSchema, attendanceSortKeys } from "@/lib/validations/list-filters";
 
 type AttendancePageProps = {
-  searchParams?: Promise<{ error?: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+const sortLabels: Record<(typeof attendanceSortKeys)[number], string> = {
+  date: "Date",
+  createdAt: "Created",
 };
 
 function statusBadgeClass(status: string) {
@@ -38,8 +47,14 @@ export default async function AttendancePage({ searchParams }: AttendancePagePro
   const canCreate = can(user, "attendance:create");
   const canUpdate = can(user, "attendance:update");
   const canDelete = can(user, "attendance:delete");
-  const records = await listAttendanceRecords();
-  const params = searchParams ? await searchParams : {};
+  const raw = searchParams ? await searchParams : {};
+  const filters = attendanceListParamsSchema.parse(raw);
+  const error = typeof raw.error === "string" ? raw.error : undefined;
+  const [records, staffOptions] = await Promise.all([
+    listAttendanceRecords(filters),
+    listStaffOptions(),
+  ]);
+  const hasFilters = Boolean(filters.q || filters.status || filters.staff);
 
   return (
     <div>
@@ -57,15 +72,51 @@ export default async function AttendancePage({ searchParams }: AttendancePagePro
           ) : null
         }
       />
-      {params.error && (
+      {error && (
         <div className="mb-5 rounded-md border border-danger-soft bg-danger-soft px-4 py-3 text-sm text-danger">
-          {params.error}
+          {error}
         </div>
+      )}
+      {(records.length > 0 || hasFilters) && (
+        <FilterBar basePath="/attendance">
+          <FilterText name="q" label="Search" defaultValue={filters.q} placeholder="Event name" />
+          <FilterSelect name="status" label="Status" defaultValue={filters.status ?? ""}>
+            <option value="">All</option>
+            {attendanceStatuses.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="staff" label="Staff" defaultValue={filters.staff}>
+            <option value="">All</option>
+            {staffOptions.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.name}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="sort" label="Sort by" defaultValue={filters.sort}>
+            {attendanceSortKeys.map((key) => (
+              <option key={key} value={key}>
+                {sortLabels[key]}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="dir" label="Direction" defaultValue={filters.dir}>
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </FilterSelect>
+        </FilterBar>
       )}
       {records.length === 0 ? (
         <EmptyState
-          title="No attendance records yet"
-          description="Record attendance for meetings and events."
+          title={hasFilters ? "No matching attendance records" : "No attendance records yet"}
+          description={
+            hasFilters
+              ? "Try adjusting or clearing your filters."
+              : "Record attendance for meetings and events."
+          }
         />
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border bg-surface shadow-card">

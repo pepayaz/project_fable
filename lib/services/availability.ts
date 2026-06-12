@@ -1,6 +1,21 @@
 import { db } from "@/lib/db";
 import { ServiceError } from "@/lib/services/errors";
 import { availabilityInputSchema, type AvailabilityInput } from "@/lib/validations/availability";
+import type { AvailabilityListParams } from "@/lib/validations/list-filters";
+
+function availabilityOrderBy(
+  sort: AvailabilityListParams["sort"],
+  dir: AvailabilityListParams["dir"],
+) {
+  switch (sort) {
+    case "startTime":
+      return { startTime: dir };
+    case "createdAt":
+      return { createdAt: dir };
+    default:
+      return [{ dayOfWeek: dir }, { startTime: "asc" as const }];
+  }
+}
 
 function parseAvailabilityInput(input: unknown): AvailabilityInput {
   const parsed = availabilityInputSchema.safeParse(input);
@@ -23,10 +38,14 @@ async function ensureStaffExists(staffId: string) {
   }
 }
 
-export async function listAvailabilityRecords() {
+export async function listAvailabilityRecords(params?: AvailabilityListParams) {
   return db.availability.findMany({
-    where: { deletedAt: null },
-    orderBy: [{ staff: { name: "asc" } }, { dayOfWeek: "asc" }, { startTime: "asc" }],
+    where: {
+      deletedAt: null,
+      ...(params?.staff ? { staffId: params.staff } : {}),
+      ...(params?.day ? { dayOfWeek: params.day } : {}),
+    },
+    orderBy: availabilityOrderBy(params?.sort ?? "dayOfWeek", params?.dir ?? "asc"),
     include: {
       staff: {
         select: {

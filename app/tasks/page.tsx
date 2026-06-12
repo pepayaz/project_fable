@@ -1,13 +1,25 @@
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+import FilterBar, { FilterText, FilterSelect } from "@/components/ui/FilterBar";
 import { deleteTaskAction } from "@/app/tasks/actions";
 import { can } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/guards";
 import { listTasks } from "@/lib/services/tasks";
+import { listStaffOptions } from "@/lib/services/staff";
+import { listDepartmentOptions } from "@/lib/services/departments";
+import { taskStatuses, taskPriorities } from "@/lib/validations/task";
+import { taskListParamsSchema, taskSortKeys } from "@/lib/validations/list-filters";
 
 type TasksPageProps = {
-  searchParams?: Promise<{ error?: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+const sortLabels: Record<(typeof taskSortKeys)[number], string> = {
+  deadline: "Deadline",
+  priority: "Priority",
+  createdAt: "Created",
+  updatedAt: "Updated",
 };
 
 function statusBadgeClass(status: string) {
@@ -55,8 +67,17 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
   const canCreate = can(user, "tasks:create");
   const canUpdate = can(user, "tasks:update");
   const canDelete = can(user, "tasks:delete");
-  const tasks = await listTasks();
-  const params = searchParams ? await searchParams : {};
+  const raw = searchParams ? await searchParams : {};
+  const filters = taskListParamsSchema.parse(raw);
+  const error = typeof raw.error === "string" ? raw.error : undefined;
+  const [tasks, staffOptions, departments] = await Promise.all([
+    listTasks(filters),
+    listStaffOptions(),
+    listDepartmentOptions(),
+  ]);
+  const hasFilters = Boolean(
+    filters.q || filters.status || filters.priority || filters.staff || filters.department,
+  );
 
   return (
     <div>
@@ -74,15 +95,67 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
           ) : null
         }
       />
-      {params.error && (
+      {error && (
         <div className="mb-5 rounded-md border border-danger-soft bg-danger-soft px-4 py-3 text-sm text-danger">
-          {params.error}
+          {error}
         </div>
+      )}
+      {(tasks.length > 0 || hasFilters) && (
+        <FilterBar basePath="/tasks">
+          <FilterText name="q" label="Search" defaultValue={filters.q} placeholder="Title or description" />
+          <FilterSelect name="status" label="Status" defaultValue={filters.status ?? ""}>
+            <option value="">All</option>
+            {taskStatuses.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="priority" label="Priority" defaultValue={filters.priority ?? ""}>
+            <option value="">All</option>
+            {taskPriorities.map((priority) => (
+              <option key={priority} value={priority}>
+                {priority}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="staff" label="Assignee" defaultValue={filters.staff}>
+            <option value="">All</option>
+            {staffOptions.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.name}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="department" label="Department" defaultValue={filters.department}>
+            <option value="">All</option>
+            {departments.map((department) => (
+              <option key={department.id} value={department.id}>
+                {department.name}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="sort" label="Sort by" defaultValue={filters.sort}>
+            {taskSortKeys.map((key) => (
+              <option key={key} value={key}>
+                {sortLabels[key]}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="dir" label="Direction" defaultValue={filters.dir}>
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </FilterSelect>
+        </FilterBar>
       )}
       {tasks.length === 0 ? (
         <EmptyState
-          title="No tasks yet"
-          description="Create tasks and assign them to staff or departments."
+          title={hasFilters ? "No matching tasks" : "No tasks yet"}
+          description={
+            hasFilters
+              ? "Try adjusting or clearing your filters."
+              : "Create tasks and assign them to staff or departments."
+          }
         />
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border bg-surface shadow-card">

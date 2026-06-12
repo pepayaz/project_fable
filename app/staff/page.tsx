@@ -1,13 +1,23 @@
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+import FilterBar, { FilterText, FilterSelect } from "@/components/ui/FilterBar";
 import { deleteStaffAction } from "@/app/staff/actions";
 import { can } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/guards";
 import { listStaff } from "@/lib/services/staff";
+import { listDepartmentOptions } from "@/lib/services/departments";
+import { staffStatuses } from "@/lib/validations/staff";
+import { staffListParamsSchema, staffSortKeys } from "@/lib/validations/list-filters";
 
 type StaffPageProps = {
-  searchParams?: Promise<{ error?: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+const sortLabels: Record<(typeof staffSortKeys)[number], string> = {
+  name: "Name",
+  createdAt: "Created",
+  updatedAt: "Updated",
 };
 
 function statusBadgeClass(status: string) {
@@ -28,8 +38,11 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
   const canCreate = can(user, "staff:create");
   const canUpdate = can(user, "staff:update");
   const canDelete = can(user, "staff:delete");
-  const staff = await listStaff();
-  const params = searchParams ? await searchParams : {};
+  const raw = searchParams ? await searchParams : {};
+  const filters = staffListParamsSchema.parse(raw);
+  const error = typeof raw.error === "string" ? raw.error : undefined;
+  const [staff, departments] = await Promise.all([listStaff(filters), listDepartmentOptions()]);
+  const hasFilters = Boolean(filters.q || filters.status || filters.department);
 
   return (
     <div>
@@ -47,15 +60,51 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
           ) : null
         }
       />
-      {params.error && (
+      {error && (
         <div className="mb-5 rounded-md border border-danger-soft bg-danger-soft px-4 py-3 text-sm text-danger">
-          {params.error}
+          {error}
         </div>
+      )}
+      {(staff.length > 0 || hasFilters) && (
+        <FilterBar basePath="/staff">
+          <FilterText name="q" label="Search" defaultValue={filters.q} placeholder="Name, email, position" />
+          <FilterSelect name="status" label="Status" defaultValue={filters.status ?? ""}>
+            <option value="">All</option>
+            {staffStatuses.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="department" label="Department" defaultValue={filters.department}>
+            <option value="">All</option>
+            {departments.map((department) => (
+              <option key={department.id} value={department.id}>
+                {department.name}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="sort" label="Sort by" defaultValue={filters.sort}>
+            {staffSortKeys.map((key) => (
+              <option key={key} value={key}>
+                {sortLabels[key]}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="dir" label="Direction" defaultValue={filters.dir}>
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </FilterSelect>
+        </FilterBar>
       )}
       {staff.length === 0 ? (
         <EmptyState
-          title="No staff yet"
-          description="Add your first staff member to start organizing your team."
+          title={hasFilters ? "No matching staff" : "No staff yet"}
+          description={
+            hasFilters
+              ? "Try adjusting or clearing your filters."
+              : "Add your first staff member to start organizing your team."
+          }
         />
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border bg-surface shadow-card">

@@ -1,6 +1,18 @@
 import { db } from "@/lib/db";
 import { departmentInputSchema, type DepartmentInput } from "@/lib/validations/department";
 import { ServiceError } from "@/lib/services/errors";
+import type { DepartmentListParams } from "@/lib/validations/list-filters";
+
+function departmentOrderBy(sort: DepartmentListParams["sort"], dir: DepartmentListParams["dir"]) {
+  switch (sort) {
+    case "createdAt":
+      return { createdAt: dir };
+    case "updatedAt":
+      return { updatedAt: dir };
+    default:
+      return { name: dir };
+  }
+}
 
 function parseDepartmentInput(input: unknown): DepartmentInput {
   const parsed = departmentInputSchema.safeParse(input);
@@ -16,10 +28,13 @@ function isUniqueConstraintError(error: unknown) {
   return typeof error === "object" && error !== null && "code" in error && error.code === "P2002";
 }
 
-export async function listDepartments() {
+export async function listDepartments(params?: DepartmentListParams) {
   return db.department.findMany({
-    where: { deletedAt: null },
-    orderBy: { name: "asc" },
+    where: {
+      deletedAt: null,
+      ...(params?.q ? { name: { contains: params.q } } : {}),
+    },
+    orderBy: departmentOrderBy(params?.sort ?? "name", params?.dir ?? "asc"),
     include: {
       _count: {
         select: { staff: { where: { deletedAt: null } } },

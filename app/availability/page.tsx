@@ -1,13 +1,23 @@
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+import FilterBar, { FilterSelect } from "@/components/ui/FilterBar";
 import { deleteAvailabilityAction } from "@/app/availability/actions";
 import { can } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/guards";
 import { listAvailabilityRecords } from "@/lib/services/availability";
+import { listStaffOptions } from "@/lib/services/staff";
+import { daysOfWeek } from "@/lib/validations/availability";
+import { availabilityListParamsSchema, availabilitySortKeys } from "@/lib/validations/list-filters";
 
 type AvailabilityPageProps = {
-  searchParams?: Promise<{ error?: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+const sortLabels: Record<(typeof availabilitySortKeys)[number], string> = {
+  dayOfWeek: "Day",
+  startTime: "Start time",
+  createdAt: "Created",
 };
 
 export default async function AvailabilityPage({ searchParams }: AvailabilityPageProps) {
@@ -15,8 +25,14 @@ export default async function AvailabilityPage({ searchParams }: AvailabilityPag
   const canCreate = can(user, "availability:create");
   const canUpdate = can(user, "availability:update");
   const canDelete = can(user, "availability:delete");
-  const records = await listAvailabilityRecords();
-  const params = searchParams ? await searchParams : {};
+  const raw = searchParams ? await searchParams : {};
+  const filters = availabilityListParamsSchema.parse(raw);
+  const error = typeof raw.error === "string" ? raw.error : undefined;
+  const [records, staffOptions] = await Promise.all([
+    listAvailabilityRecords(filters),
+    listStaffOptions(),
+  ]);
+  const hasFilters = Boolean(filters.staff || filters.day);
 
   return (
     <div>
@@ -34,15 +50,50 @@ export default async function AvailabilityPage({ searchParams }: AvailabilityPag
           ) : null
         }
       />
-      {params.error && (
+      {error && (
         <div className="mb-5 rounded-md border border-danger-soft bg-danger-soft px-4 py-3 text-sm text-danger">
-          {params.error}
+          {error}
         </div>
+      )}
+      {(records.length > 0 || hasFilters) && (
+        <FilterBar basePath="/availability">
+          <FilterSelect name="staff" label="Staff" defaultValue={filters.staff}>
+            <option value="">All</option>
+            {staffOptions.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.name}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="day" label="Day" defaultValue={filters.day ?? ""}>
+            <option value="">All</option>
+            {daysOfWeek.map((day) => (
+              <option key={day} value={day}>
+                {day}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="sort" label="Sort by" defaultValue={filters.sort}>
+            {availabilitySortKeys.map((key) => (
+              <option key={key} value={key}>
+                {sortLabels[key]}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="dir" label="Direction" defaultValue={filters.dir}>
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </FilterSelect>
+        </FilterBar>
       )}
       {records.length === 0 ? (
         <EmptyState
-          title="No availability records yet"
-          description="Record staff availability to plan tasks and events fairly."
+          title={hasFilters ? "No matching availability records" : "No availability records yet"}
+          description={
+            hasFilters
+              ? "Try adjusting or clearing your filters."
+              : "Record staff availability to plan tasks and events fairly."
+          }
         />
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border bg-surface shadow-card">

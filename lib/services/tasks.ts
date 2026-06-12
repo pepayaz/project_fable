@@ -1,6 +1,20 @@
 import { db } from "@/lib/db";
 import { ServiceError } from "@/lib/services/errors";
 import { taskInputSchema, type TaskInput } from "@/lib/validations/task";
+import type { TaskListParams } from "@/lib/validations/list-filters";
+
+function taskOrderBy(sort: TaskListParams["sort"], dir: TaskListParams["dir"]) {
+  switch (sort) {
+    case "priority":
+      return { priority: dir };
+    case "createdAt":
+      return { createdAt: dir };
+    case "updatedAt":
+      return { updatedAt: dir };
+    default:
+      return [{ deadline: dir }, { createdAt: "desc" as const }];
+  }
+}
 
 function parseTaskInput(input: unknown): TaskInput {
   const parsed = taskInputSchema.safeParse(input);
@@ -36,10 +50,24 @@ async function ensureTaskRelations(input: TaskInput) {
   }
 }
 
-export async function listTasks() {
+export async function listTasks(params?: TaskListParams) {
   return db.task.findMany({
-    where: { deletedAt: null },
-    orderBy: [{ deadline: "asc" }, { createdAt: "desc" }],
+    where: {
+      deletedAt: null,
+      ...(params?.q
+        ? {
+            OR: [
+              { title: { contains: params.q } },
+              { description: { contains: params.q } },
+            ],
+          }
+        : {}),
+      ...(params?.status ? { status: params.status } : {}),
+      ...(params?.priority ? { priority: params.priority } : {}),
+      ...(params?.staff ? { assignedToStaffId: params.staff } : {}),
+      ...(params?.department ? { departmentId: params.department } : {}),
+    },
+    orderBy: taskOrderBy(params?.sort ?? "deadline", params?.dir ?? "asc"),
     include: {
       assignedToStaff: {
         select: {

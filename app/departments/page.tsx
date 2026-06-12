@@ -1,13 +1,21 @@
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+import FilterBar, { FilterText, FilterSelect } from "@/components/ui/FilterBar";
 import { deleteDepartmentAction } from "@/app/departments/actions";
 import { can } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/guards";
 import { listDepartments } from "@/lib/services/departments";
+import { departmentListParamsSchema, departmentSortKeys } from "@/lib/validations/list-filters";
 
 type DepartmentsPageProps = {
-  searchParams?: Promise<{ error?: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+const sortLabels: Record<(typeof departmentSortKeys)[number], string> = {
+  name: "Name",
+  createdAt: "Created",
+  updatedAt: "Updated",
 };
 
 export default async function DepartmentsPage({ searchParams }: DepartmentsPageProps) {
@@ -15,8 +23,11 @@ export default async function DepartmentsPage({ searchParams }: DepartmentsPageP
   const canCreate = can(user, "departments:create");
   const canUpdate = can(user, "departments:update");
   const canDelete = can(user, "departments:delete");
-  const departments = await listDepartments();
-  const params = searchParams ? await searchParams : {};
+  const raw = searchParams ? await searchParams : {};
+  const filters = departmentListParamsSchema.parse(raw);
+  const error = typeof raw.error === "string" ? raw.error : undefined;
+  const departments = await listDepartments(filters);
+  const hasFilters = Boolean(filters.q);
 
   return (
     <div>
@@ -34,15 +45,35 @@ export default async function DepartmentsPage({ searchParams }: DepartmentsPageP
           ) : null
         }
       />
-      {params.error && (
+      {error && (
         <div className="mb-5 rounded-md border border-danger-soft bg-danger-soft px-4 py-3 text-sm text-danger">
-          {params.error}
+          {error}
         </div>
+      )}
+      {(departments.length > 0 || hasFilters) && (
+        <FilterBar basePath="/departments">
+          <FilterText name="q" label="Search" defaultValue={filters.q} placeholder="Department name" />
+          <FilterSelect name="sort" label="Sort by" defaultValue={filters.sort}>
+            {departmentSortKeys.map((key) => (
+              <option key={key} value={key}>
+                {sortLabels[key]}
+              </option>
+            ))}
+          </FilterSelect>
+          <FilterSelect name="dir" label="Direction" defaultValue={filters.dir}>
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </FilterSelect>
+        </FilterBar>
       )}
       {departments.length === 0 ? (
         <EmptyState
-          title="No departments yet"
-          description="Create your first department to structure your organization."
+          title={hasFilters ? "No matching departments" : "No departments yet"}
+          description={
+            hasFilters
+              ? "Try adjusting or clearing your filters."
+              : "Create your first department to structure your organization."
+          }
         />
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border bg-surface shadow-card">
