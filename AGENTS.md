@@ -142,3 +142,27 @@ The agent should:
 - Prefer small incremental changes.
 - Keep the MVP realistic.
 - Use the project documents as the source of truth.
+
+
+## Design System
+
+Before creating or modifying UI, read `DESIGN.md`.
+
+All UI work must follow the design system defined in `DESIGN.md`, including:
+
+- colors
+- typography
+- spacing
+- radius
+- shadows
+- layout patterns
+- buttons
+- forms
+- tables
+- cards
+- badges
+- empty states
+- error states
+
+Do not create generic AI-looking UI.
+Do not introduce new colors or component styles unless explicitly approved.

@@ -99,3 +99,10 @@ rtk git diff
 ```
 
 3. Summarize what changed, why, how it was tested, and what remains to do.
+
+
+## UI Design Rule
+
+For any UI implementation task, read `DESIGN.md` first.
+
+Before coding a UI page, briefly explain how the planned UI follows the design system.
