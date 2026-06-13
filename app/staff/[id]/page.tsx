@@ -4,6 +4,13 @@ import PageHeader from "@/components/ui/PageHeader";
 import { can } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/guards";
 import { getStaffDetailById } from "@/lib/services/staff";
+import {
+  buildStaffSnapshot,
+  buildStaffTimeline,
+  getStaffAuditEvents,
+  type StaffSnapshot,
+  type TimelineEvent,
+} from "@/lib/services/staff-activity";
 
 type StaffDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -116,6 +123,62 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
+function actionBadgeClass(action: string) {
+  switch (action) {
+    case "CREATE":
+      return "bg-success-soft text-success";
+    case "UPDATE":
+      return "bg-info-soft text-info";
+    case "DELETE":
+      return "bg-danger-soft text-danger";
+    default:
+      return "bg-surface-muted text-text-muted";
+  }
+}
+
+function signalBadgeClass(signal: StaffSnapshot["signal"]) {
+  switch (signal) {
+    case "Needs attention":
+      return "bg-warning-soft text-warning";
+    case "Follow-up suggested":
+      return "bg-info-soft text-info";
+    default:
+      return "bg-success-soft text-success";
+  }
+}
+
+function timelineBadgeClass(event: TimelineEvent) {
+  switch (event.type) {
+    case "task":
+      return taskStatusBadgeClass(event.badge ?? "");
+    case "attendance":
+      return attendanceBadgeClass(event.badge ?? "");
+    case "note":
+      return categoryBadgeClass(event.badge ?? "");
+    case "audit":
+      return actionBadgeClass(event.badge ?? "");
+    default:
+      return "bg-surface-muted text-text-muted";
+  }
+}
+
+function GroupHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="mt-8 mb-3 text-xs font-semibold uppercase tracking-wide text-text-muted">
+      {children}
+    </h2>
+  );
+}
+
+function StatTile({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border border-border bg-surface-muted px-4 py-3">
+      <p className="text-xs text-text-muted">{label}</p>
+      <p className="mt-1 text-xl font-semibold text-text-primary">{value}</p>
+    </div>
+  );
+}
+
 export default async function StaffDetailPage({ params }: StaffDetailPageProps) {
   const user = await requirePermission("staff:read");
   const { id } = await params;
@@ -126,6 +189,9 @@ export default async function StaffDetailPage({ params }: StaffDetailPageProps) 
   }
 
   const canUpdate = can(user, "staff:update");
+  const auditEvents = can(user, "auditLogs:read") ? await getStaffAuditEvents(staff.id) : [];
+  const snapshot = buildStaffSnapshot(staff);
+  const timeline = buildStaffTimeline(staff, auditEvents);
 
   return (
     <div>
@@ -174,7 +240,64 @@ export default async function StaffDetailPage({ params }: StaffDetailPageProps) 
         )}
       </section>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+      <GroupHeading>Quick Insights</GroupHeading>
+      <section className="rounded-lg border border-border bg-surface p-5 shadow-card">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-text-primary">Signals</h2>
+          <Badge className={signalBadgeClass(snapshot.signal)}>{snapshot.signal}</Badge>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
+          <StatTile label="Open Tasks" value={snapshot.openTasks} />
+          <StatTile label="Overdue" value={snapshot.overdueTasks} />
+          <StatTile label="Attendance Issues" value={snapshot.attendanceIssues} />
+          <StatTile label="Availability" value={snapshot.availabilityCount} />
+          <StatTile label="Notes" value={snapshot.totalNotes} />
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {snapshot.notesByCategory
+            .filter((entry) => entry.count > 0)
+            .map((entry) => (
+              <Badge key={entry.category} className={categoryBadgeClass(entry.category)}>
+                {entry.category} · {entry.count}
+              </Badge>
+            ))}
+        </div>
+        <p className="mt-4 text-sm text-text-secondary">
+          {snapshot.reasons.length > 0
+            ? `Signals based on: ${snapshot.reasons.join(", ")}.`
+            : "No immediate signals from current activity."}
+        </p>
+      </section>
+
+      <GroupHeading>Activity Timeline</GroupHeading>
+      <section className="rounded-lg border border-border bg-surface p-5 shadow-card">
+        {timeline.length === 0 ? (
+          <p className="text-sm text-text-muted">No recent activity.</p>
+        ) : (
+          <div className="space-y-3">
+            {timeline.map((event) => (
+              <div
+                key={event.id}
+                className="flex items-start justify-between gap-3 border-b border-border pb-3 last:border-0 last:pb-0"
+              >
+                <div>
+                  <p className="text-sm font-medium text-text-primary">{event.title}</p>
+                  <p className="mt-1 text-xs text-text-muted">
+                    {formatDate(event.at)}
+                    {event.subtitle ? ` · ${event.subtitle}` : ""}
+                  </p>
+                </div>
+                {event.badge && (
+                  <Badge className={timelineBadgeClass(event)}>{event.badge}</Badge>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <GroupHeading>Details</GroupHeading>
+      <div className="grid gap-4 lg:grid-cols-2">
         <Section title="Assigned Tasks">
           {staff.tasks.length === 0 ? (
             <p className="text-sm text-text-muted">No assigned tasks.</p>

@@ -11,6 +11,7 @@ Fitur MVP yang tersedia saat ini:
 - Dashboard management overview dengan metric cards, breakdown (status/priority/kategori), top workload, dan recent activity (tanpa chart library)
 - Staff CRUD
 - Staff detail 360 read-only (profil + task, attendance, availability, performance notes)
+- Staff Quick Insights (snapshot rule-based netral) dan Activity Timeline gabungan di halaman detail
 - Search, filter, dan sort server-side di semua list page utama (via query params)
 - Department CRUD
 - Staff assignment ke department
@@ -146,6 +147,7 @@ npm run build
 | App scaffold | Done |
 | Staff management | Done |
 | Staff detail 360 | Done |
+| Staff insights & activity timeline | Done |
 | List search/filter/sort | Done |
 | Department management | Done |
 | Task management | Done |
@@ -197,5 +199,7 @@ Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll,
 List search/filter/sort known limitations: belum ada pagination (semua hasil dirender), pencarian `contains` di SQLite case-insensitive terutama untuk ASCII, term pencarian muncul di URL (shareable), dan sort task priority masih urutan alfabet kolom (bukan severity).
 
 Dashboard reporting: task completion rate = `completed / (total non-deleted − cancelled) × 100`, 0% bila denominator 0. Semua metrik non-audit menghormati soft delete (`deletedAt: null`). Section Audit hanya tampil untuk ADMIN (`auditLogs:read`); AuditLog tidak di-soft-delete sehingga query audit tidak memakai filter `deletedAt`.
+
+Staff insights & timeline: Quick Insights bersifat rule-based, netral, dan transparan (menampilkan angka + sinyal "Needs attention"/"Follow-up suggested"/"No immediate signals" beserta alasannya), bukan penilaian final terhadap staff. Activity Timeline menggabungkan task/attendance/availability/performance note (kategori + tanggal saja, tanpa isi note) terurut terbaru→lama (cap 20); entri audit hanya muncul untuk ADMIN. Struktur snapshot/timeline ini sengaja disiapkan sebagai input untuk fitur AI staff brief di sprint berikutnya — Sprint ini belum memakai AI.
 
 Security hardening (lihat ADR-017): security headers dasar (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`), timing login disamakan agar tidak bocor keberadaan email, proxy melindungi `/audit-logs`, `update*`/`delete*` menolak record yang sudah soft-deleted, dan seed production hanya membuat admin (`manager`/`member` hanya non-production). CSRF mengandalkan proteksi bawaan Next.js Server Actions. Accepted risks: tidak ada MFA/password reset/OAuth, session belum sliding/rotation, audit log belum tamper-proof, belum ada rate limiting penuh dan CSP.

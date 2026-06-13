@@ -96,6 +96,7 @@ export async function getStaffDetailById(id: string) {
           status: true,
           priority: true,
           deadline: true,
+          createdAt: true,
         },
       },
       attendances: {
@@ -117,6 +118,7 @@ export async function getStaffDetailById(id: string) {
           startTime: true,
           endTime: true,
           notes: true,
+          createdAt: true,
         },
       },
       performanceNotes: {

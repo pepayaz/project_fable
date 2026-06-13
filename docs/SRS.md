@@ -130,6 +130,20 @@ Acceptance criteria:
 - Tombol Edit hanya muncul jika user punya `staff:update`.
 - Belum termasuk: inline edit, create related records dari halaman ini, pagination/filter, dan chart/export.
 
+### FR-004c Staff Quick Insights and Activity Timeline
+
+Halaman detail staff menampilkan Quick Insights dan Activity Timeline read-only dari data existing.
+
+Acceptance criteria:
+
+- **Quick Insights** bersifat rule-based dan netral: open tasks, overdue tasks, attendance issues (ABSENT/LATE/SICK), availability count, notes by category, dan sinyal "Needs attention" / "Follow-up suggested" / "No immediate signals" disertai alasan transparan.
+- Tidak ada label ekstrem atau penilaian final terhadap staff; tidak ada AI/scoring.
+- **Activity Timeline** menggabungkan task/attendance/availability/performance note terurut terbaru→lama (cap 20).
+- Performance note di timeline hanya menampilkan kategori + tanggal, tidak menampilkan isi note.
+- Entri audit log di timeline hanya untuk ADMIN (`auditLogs:read`); MANAGER tidak melihatnya.
+- Semua sumber menghormati soft delete (`deletedAt: null`); staff yang dihapus tetap not found; MEMBER tidak boleh akses.
+- Struktur snapshot/timeline disiapkan sebagai fondasi untuk AI staff brief di masa depan (belum diimplementasikan).
+
 ### FR-004b List Search, Filter, and Sort
 
 Sistem harus menyediakan search, filter, dan sort server-side pada list page utama.

@@ -337,6 +337,16 @@ Dashboard adalah management overview yang dihitung dari data existing, tanpa sch
 - AuditLog tidak di-soft-delete, sehingga query audit tidak memakai filter `deletedAt`.
 - Visualisasi memakai badge/list/progress bar CSS sederhana, tanpa chart library. Known limitation: query agregasi belum ber-index (full scan), diterima pada skala MVP.
 
+## Staff Activity & Insights
+
+Halaman `/staff/[id]` diperkaya dengan Quick Insights dan Activity Timeline, dihitung dari data existing tanpa schema atau dependency baru.
+
+- `getStaffDetailById` memuat relasi (tasks/attendance/availability/performance notes) terfilter `deletedAt: null`. `buildStaffSnapshot` dan `buildStaffTimeline` di `lib/services/staff-activity.ts` adalah fungsi pure di atas data tersebut.
+- **Quick Insights (rule-based, netral):** open tasks, overdue tasks, attendance issues (ABSENT/LATE/SICK), availability count, notes by category, plus sinyal "Needs attention" / "Follow-up suggested" / "No immediate signals" disertai daftar alasan transparan. Tidak ada label ekstrem atau penilaian final terhadap orang.
+- **Activity Timeline:** feed gabungan task/attendance/availability/performance note, terurut terbaru→lama, cap 20. Performance note hanya tampil sebagai kategori + tanggal (tanpa isi note). Entri audit (`entityType="Staff"`) hanya dimasukkan bila `can(user, "auditLogs:read")` (ADMIN); MANAGER melihat timeline tanpa entri audit. AuditLog tidak di-soft-delete.
+- RBAC tidak berubah: page tetap `requirePermission("staff:read")`; MEMBER → `/unauthorized`.
+- **Fondasi AI:** struktur `StaffSnapshot` dan `TimelineEvent` sengaja disiapkan sebagai input untuk fitur AI staff brief di masa depan. Sprint ini belum memanggil AI, belum ada prompt, dan tidak ada scoring/penilaian otomatis.
+
 ## Security Hardening
 
 Hardening dasar setelah review keamanan berbasis kode (lihat ADR-017):
