@@ -82,9 +82,17 @@ export async function getStaffBriefPrompt(staffId: string) {
 export async function getWeeklyBriefPrompt() {
   const data = await getPeopleIntelligence();
   const { orgSummary, attentionCounts, attentionList, workload, weeklyOps } = data;
+  const hasNoStaffRecords = orgSummary.totalStaff === 0;
+  const hasNoActiveStaff = orgSummary.activeStaff === 0;
+  const zeroStaffGuidance = hasNoStaffRecords
+    ? "No staff records are currently available. No staff-level conclusion should be drawn until departments, staff, tasks, and availability data are added."
+    : hasNoActiveStaff
+      ? "No active staff records are currently available. No team-level conclusion should be drawn until active staff records are added or reactivated."
+      : null;
 
-  const attentionLines =
-    attentionList.length > 0
+  const attentionLines = zeroStaffGuidance
+    ? `- ${zeroStaffGuidance}`
+    : attentionList.length > 0
       ? attentionList
           .slice(0, 10)
           .map(
@@ -105,6 +113,7 @@ export async function getWeeklyBriefPrompt() {
     "Write a weekly people-operations briefing for a manager using ONLY the records below.",
     "",
     "Records:",
+    `- Staff records: ${orgSummary.totalStaff}`,
     `- Active staff: ${orgSummary.activeStaff}`,
     `- Open tasks: ${orgSummary.openTasks}`,
     `- Overdue tasks: ${orgSummary.overdueTasks}`,
@@ -117,6 +126,10 @@ export async function getWeeklyBriefPrompt() {
     `- Staff with no open task: ${orgSummary.staffNoOpenTask}`,
     `- Attention counts: ${attentionCounts.attention} need attention, ${attentionCounts.followUp} follow-up, ${attentionCounts.stable} stable`,
     `- Last ${weeklyOps.windowDays} days: ${weeklyOps.completedRecently} tasks completed, ${weeklyOps.currentlyOverdue} currently overdue, ${weeklyOps.attendanceIssuesRecently} attendance issues`,
+    `- Data boundary: ${
+      zeroStaffGuidance ??
+      "Staff-level conclusions must be based only on the active staff records listed in Project Fable."
+    }`,
     "",
     "Staff needing attention or follow-up:",
     attentionLines,
@@ -124,7 +137,7 @@ export async function getWeeklyBriefPrompt() {
     "Most open tasks:",
     topOpenLines,
     "",
-    "Rules: plain text only, no markdown, no #, no **bold**, no tables. Use simple hyphen bullets. No Date, no Subject, no Prepared For, no placeholders like [Insert Date]. Keep it under 350 words. Do not repeat metrics that are zero; focus on meaningful signals. Summarize groups and counts; do not list many names inline (mention at most 3 example names where useful). If all active staff lack availability records, summarize that clearly instead of listing names.",
+    "Rules: plain text only, no markdown, no #, no **bold**, no tables. Use simple hyphen bullets. No Date, no Subject, no Prepared For, no placeholders like [Insert Date]. Keep it under 350 words. Do not repeat metrics that are zero unless they explain missing staff data. Do not make universal staff claims when staff records or active staff are zero. If no staff records or no active staff are available, say that no staff-level or team-level conclusion should be drawn yet and suggest adding departments, staff, tasks, and availability data. Summarize groups and counts; do not list many names inline (mention at most 3 example names where useful). If all active staff lack availability records, summarize that clearly instead of listing names.",
     "",
     "Use EXACTLY this structure and these plain-text headings:",
     "",

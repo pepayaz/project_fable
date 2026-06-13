@@ -53,6 +53,7 @@ export async function getPeopleIntelligence() {
   const windowStart = new Date(now.getTime() - WEEKLY_WINDOW_DAYS * 24 * 60 * 60 * 1000);
 
   const [
+    totalStaff,
     activeStaff,
     openTasksTotal,
     overdueTasksTotal,
@@ -71,6 +72,7 @@ export async function getPeopleIntelligence() {
     attendanceIssuesRecently,
     recentNotesByCategoryRows,
   ] = await Promise.all([
+    db.staff.count({ where: { deletedAt: null } }),
     db.staff.findMany({
       where: { deletedAt: null, status: "ACTIVE" },
       orderBy: { name: "asc" },
@@ -219,6 +221,7 @@ export async function getPeopleIntelligence() {
 
   return {
     orgSummary: {
+      totalStaff,
       activeStaff: activeStaff.length,
       openTasks: openTasksTotal,
       overdueTasks: overdueTasksTotal,

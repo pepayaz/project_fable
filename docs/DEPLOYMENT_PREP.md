@@ -1,16 +1,16 @@
 # Deployment Prep
 
-Project Fable is not deployed from this repository yet. This document prepares the private GitHub and future staging deployment path for the PostgreSQL branch.
+Project Fable has a Vercel + Neon demo/staging deployment from the PostgreSQL branch. This document prepares future deployment work and keeps the operational rules explicit.
 
 ## Branch Strategy
 
 - `main`/`master`: stable SQLite-first baseline.
 - `deployment/postgres`: PostgreSQL deployment candidate branch.
-- Do not merge or deploy `deployment/postgres` until staging checks and manual review pass.
+- Do not merge or promote `deployment/postgres` to production until staging checks and manual review pass.
 
 ## Required Environment Variables
 
-- `DATABASE_URL`: managed PostgreSQL connection URL.
+- `DATABASE_URL`: managed PostgreSQL connection URL. On Vercel runtime, use the Neon pooled connection URL.
 - `NODE_ENV`: set by the runtime platform; use `production` for production.
 - `SEED_ADMIN_EMAIL`: first production admin email.
 - `SEED_ADMIN_PASSWORD`: strong temporary production admin password.
@@ -30,12 +30,15 @@ Project Fable is not deployed from this repository yet. This document prepares t
 
 1. Provision a managed PostgreSQL database.
 2. Set environment variables in the deployment platform.
-3. Run `npx prisma migrate deploy`.
-4. Run `npm run seed` once with production seed variables.
-5. Build the app.
-6. Deploy to staging.
-7. Run the smoke test checklist.
-8. Promote to production only after review and approval.
+3. Keep the Vercel Function region close to the Neon database region.
+4. Use the pooled Neon URL for Vercel runtime `DATABASE_URL`.
+5. Use a direct Neon URL for local Prisma migration work when needed.
+6. Run `npx prisma migrate deploy`.
+7. Run `npm run seed` once with production seed variables.
+8. Build the app.
+9. Deploy to staging.
+10. Run the smoke test checklist.
+11. Promote to production only after review and approval.
 
 ## Production Seed Expectations
 
@@ -63,3 +66,9 @@ Project Fable is not deployed from this repository yet. This document prepares t
 - Revert the app deployment if the release fails.
 - Do not run destructive migration commands in production.
 - Review migration SQL before applying it to a production database.
+
+## Vercel and Neon Notes
+
+- See `docs/VERCEL_NEON_DEPLOYMENT.md` for Vercel + Neon runtime notes.
+- Free or staging deployments may still have small cold-start/runtime latency.
+- The current deployment should be treated as demo/staging readiness, not enterprise production.

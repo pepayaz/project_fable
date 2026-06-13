@@ -115,6 +115,12 @@ export default async function InsightsPage() {
     tone: item.label === "No availability" ? ("warning" as const) : ("success" as const),
   }));
   const hasMissingAvailability = orgSummary.staffNoAvailability > 0;
+  const hasNoActiveStaff = orgSummary.activeStaff === 0;
+  const availabilityDescription = hasNoActiveStaff
+    ? "No active staff records are currently available."
+    : hasMissingAvailability
+      ? "Missing availability is an operational follow-up signal, not a positive coverage metric."
+      : "Active staff currently have availability records.";
 
   return (
     <div>
@@ -170,11 +176,7 @@ export default async function InsightsPage() {
         </ChartCard>
         <ChartCard
           title="Availability Coverage"
-          description={
-            hasMissingAvailability
-              ? "Missing availability is an operational follow-up signal, not a positive coverage metric."
-              : "Active staff currently have availability records."
-          }
+          description={availabilityDescription}
         >
           <StatusDistribution
             items={availabilityItems}
@@ -245,7 +247,11 @@ export default async function InsightsPage() {
       </p>
       <section className="rounded-lg border border-border bg-surface p-5 shadow-card">
         {attentionList.length === 0 ? (
-          <p className="text-sm text-text-muted">All active staff are stable right now.</p>
+          <p className="text-sm text-text-muted">
+            {hasNoActiveStaff
+              ? "No active staff records are currently available. Add staff before drawing team-level conclusions."
+              : "All active staff are stable right now."}
+          </p>
         ) : (
           <div className="space-y-3">
             {attentionList.map((entry) => (

@@ -190,17 +190,32 @@ export async function getAvailabilityReminderPrompt(staffId: string | null, inpu
   }
 
   const data = await getPeopleIntelligence();
+  const hasNoStaffRecords = data.orgSummary.totalStaff === 0;
+  const hasNoActiveStaff = data.orgSummary.activeStaff === 0;
+  const zeroStaffGuidance = hasNoStaffRecords
+    ? "No staff records are currently available. No staff-level conclusion should be drawn until departments, staff, tasks, and availability data are added."
+    : hasNoActiveStaff
+      ? "No active staff records are currently available. No team-level conclusion should be drawn until active staff records are added or reactivated."
+      : null;
+  const requestLine = zeroStaffGuidance
+    ? "Write a short, neutral setup note for a manager using ONLY the records below."
+    : "Write a short, polite team-wide reminder asking staff to update their weekly availability, using ONLY the records below.";
   const prompt = [
-    "Write a short, polite team-wide reminder asking staff to update their weekly availability, using ONLY the records below.",
+    requestLine,
     "",
     "Records:",
+    `- Staff records: ${data.orgSummary.totalStaff}`,
     `- Active staff: ${data.orgSummary.activeStaff}`,
     `- Staff with no availability records: ${data.orgSummary.staffNoAvailability}`,
+    `- Data boundary: ${
+      zeroStaffGuidance ??
+      "Staff-level conclusions must be based only on the active staff records listed in Project Fable."
+    }`,
     "",
     `Preferred tone: ${tone}.`,
     contextLine(context),
     "",
-    "Rules: plain text only, no markdown, no Date/Subject. Keep it under 130 words. Polite, neutral, and supportive. Address the team in general, do not name individuals. Explain briefly why availability helps operational planning.",
+    "Rules: plain text only, no markdown, no Date/Subject. Keep it under 130 words. Polite, neutral, and supportive. Address the team in general, do not name individuals. Explain briefly why availability helps operational planning. Do not make universal staff claims when staff records or active staff are zero. If no staff records or no active staff are available, write neutral setup guidance instead of implying staff availability status.",
     "",
     "Use EXACTLY this structure:",
     "",
