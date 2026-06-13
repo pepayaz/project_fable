@@ -1,8 +1,10 @@
+import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import MetricCard from "@/components/ui/MetricCard";
 import { can } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/guards";
 import { getAuditActivitySummary, getDashboardSummary } from "@/lib/services/dashboard";
+import { getPeopleIntelligence } from "@/lib/services/people-intelligence";
 
 function taskStatusBadgeClass(status: string) {
   switch (status) {
@@ -86,6 +88,28 @@ function actionBadgeClass(action: string) {
   }
 }
 
+function attentionLevelBadgeClass(level: string) {
+  switch (level) {
+    case "attention":
+      return "bg-warning-soft text-warning";
+    case "follow_up":
+      return "bg-info-soft text-info";
+    default:
+      return "bg-success-soft text-success";
+  }
+}
+
+function attentionLevelLabel(level: string) {
+  switch (level) {
+    case "attention":
+      return "Needs attention";
+    case "follow_up":
+      return "Follow-up suggested";
+    default:
+      return "Stable";
+  }
+}
+
 function formatDate(date: Date | null) {
   if (!date) {
     return "No date";
@@ -162,10 +186,11 @@ function Breakdown({
 
 export default async function DashboardPage() {
   const user = await requirePermission("dashboard:read");
-  const summary = await getDashboardSummary();
+  const [summary, people] = await Promise.all([getDashboardSummary(), getPeopleIntelligence()]);
   const { metrics } = summary;
   const showAudit = can(user, "auditLogs:read");
   const audit = showAudit ? await getAuditActivitySummary() : null;
+  const topAttention = people.attentionList.slice(0, 3);
 
   return (
     <div>
@@ -181,6 +206,49 @@ export default async function DashboardPage() {
         <MetricCard label="Unassigned Open Tasks" value={String(metrics.unassignedOpenTasks)} />
         <MetricCard label="Performance Notes" value={String(metrics.performanceNotes)} />
       </div>
+
+      <GroupHeading>People Intelligence</GroupHeading>
+      <section className="rounded-lg border border-border bg-surface p-5 shadow-card">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2">
+            <Badge className={attentionLevelBadgeClass("attention")}>
+              {people.attentionCounts.attention} need attention
+            </Badge>
+            <Badge className={attentionLevelBadgeClass("follow_up")}>
+              {people.attentionCounts.followUp} follow-up
+            </Badge>
+            <Badge className={attentionLevelBadgeClass("stable")}>
+              {people.attentionCounts.stable} stable
+            </Badge>
+          </div>
+          <Link href="/insights" className="text-sm font-medium text-primary hover:text-primary-hover">
+            View People Intelligence →
+          </Link>
+        </div>
+        {topAttention.length > 0 && (
+          <div className="mt-4 space-y-3">
+            {topAttention.map((entry) => (
+              <div
+                key={entry.id}
+                className="flex items-start justify-between gap-3 border-b border-border pb-3 last:border-0 last:pb-0"
+              >
+                <div>
+                  <Link
+                    href={`/staff/${entry.id}`}
+                    className="text-sm font-medium text-text-primary hover:text-primary"
+                  >
+                    {entry.name}
+                  </Link>
+                  <p className="mt-1 text-xs text-text-secondary">{entry.reasons.join(", ")}</p>
+                </div>
+                <Badge className={attentionLevelBadgeClass(entry.level)}>
+                  {attentionLevelLabel(entry.level)}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <GroupHeading>Tasks</GroupHeading>
       <div className="grid gap-4 lg:grid-cols-2">

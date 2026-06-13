@@ -44,8 +44,72 @@ export type TimelineEvent = {
   badge?: string;
 };
 
+export type StaffSignalLevel = "attention" | "follow_up" | "stable";
+
+export type StaffSignalMetrics = {
+  openTasks: number;
+  overdueTasks: number;
+  attendanceIssues: number;
+  warningNotes: number;
+  improvementNotes: number;
+  availabilityCount: number;
+};
+
+export const HIGH_OPEN_TASK_LOAD = 5;
+export const REPEATED_ATTENDANCE_ISSUES = 3;
+
+const SNAPSHOT_SIGNAL_LABEL: Record<StaffSignalLevel, StaffSnapshot["signal"]> = {
+  attention: "Needs attention",
+  follow_up: "Follow-up suggested",
+  stable: "No immediate signals",
+};
+
 function plural(count: number, word: string) {
   return `${count} ${word}${count > 1 ? "s" : ""}`;
+}
+
+export function evaluateStaffSignals(metrics: StaffSignalMetrics): {
+  level: StaffSignalLevel;
+  reasons: string[];
+} {
+  const {
+    openTasks,
+    overdueTasks,
+    attendanceIssues,
+    warningNotes,
+    improvementNotes,
+    availabilityCount,
+  } = metrics;
+
+  const reasons: string[] = [];
+  if (overdueTasks > 0) reasons.push(plural(overdueTasks, "overdue task"));
+  if (warningNotes > 0) reasons.push(plural(warningNotes, "warning note"));
+  if (attendanceIssues > 0) reasons.push(plural(attendanceIssues, "attendance issue"));
+  if (openTasks >= HIGH_OPEN_TASK_LOAD) reasons.push(`${openTasks} open tasks (high load)`);
+  else if (openTasks > 0) reasons.push(plural(openTasks, "open task"));
+  if (improvementNotes > 0) reasons.push(plural(improvementNotes, "improvement note"));
+  if (availabilityCount === 0) reasons.push("no availability records");
+
+  let level: StaffSignalLevel;
+  if (
+    overdueTasks > 0 ||
+    warningNotes > 0 ||
+    attendanceIssues >= REPEATED_ATTENDANCE_ISSUES ||
+    openTasks >= HIGH_OPEN_TASK_LOAD
+  ) {
+    level = "attention";
+  } else if (
+    openTasks > 0 ||
+    improvementNotes > 0 ||
+    attendanceIssues > 0 ||
+    availabilityCount === 0
+  ) {
+    level = "follow_up";
+  } else {
+    level = "stable";
+  }
+
+  return { level, reasons };
 }
 
 export function buildStaffSnapshot(staff: StaffDetail): StaffSnapshot {
@@ -71,24 +135,15 @@ export function buildStaffSnapshot(staff: StaffDetail): StaffSnapshot {
     category,
     count: counts[category] ?? 0,
   }));
-  const warningNotes = counts.WARNING ?? 0;
-  const improvementNotes = counts.IMPROVEMENT ?? 0;
 
-  const reasons: string[] = [];
-  if (overdueTasks > 0) reasons.push(plural(overdueTasks, "overdue task"));
-  if (warningNotes > 0) reasons.push(plural(warningNotes, "warning note"));
-  if (attendanceIssues > 0) reasons.push(plural(attendanceIssues, "attendance issue"));
-  if (improvementNotes > 0) reasons.push(plural(improvementNotes, "improvement note"));
-  if (openTasks > 0) reasons.push(plural(openTasks, "open task"));
-
-  let signal: StaffSnapshot["signal"];
-  if (overdueTasks > 0 || warningNotes > 0 || attendanceIssues >= 3) {
-    signal = "Needs attention";
-  } else if (openTasks > 0 || improvementNotes > 0 || attendanceIssues > 0) {
-    signal = "Follow-up suggested";
-  } else {
-    signal = "No immediate signals";
-  }
+  const { level, reasons } = evaluateStaffSignals({
+    openTasks,
+    overdueTasks,
+    attendanceIssues,
+    warningNotes: counts.WARNING ?? 0,
+    improvementNotes: counts.IMPROVEMENT ?? 0,
+    availabilityCount,
+  });
 
   return {
     openTasks,
@@ -97,7 +152,7 @@ export function buildStaffSnapshot(staff: StaffDetail): StaffSnapshot {
     availabilityCount,
     totalNotes: staff.performanceNotes.length,
     notesByCategory,
-    signal,
+    signal: SNAPSHOT_SIGNAL_LABEL[level],
     reasons,
   };
 }

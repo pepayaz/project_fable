@@ -12,6 +12,7 @@ Fitur MVP yang tersedia saat ini:
 - Staff CRUD
 - Staff detail 360 read-only (profil + task, attendance, availability, performance notes)
 - Staff Quick Insights (snapshot rule-based netral) dan Activity Timeline gabungan di halaman detail
+- People Intelligence Center (/insights): organization summary, staff attention list, workload balance, weekly operations — rule-based & netral, dengan teaser di dashboard
 - Search, filter, dan sort server-side di semua list page utama (via query params)
 - Department CRUD
 - Staff assignment ke department
@@ -148,6 +149,7 @@ npm run build
 | Staff management | Done |
 | Staff detail 360 | Done |
 | Staff insights & activity timeline | Done |
+| People Intelligence Center | Done |
 | List search/filter/sort | Done |
 | Department management | Done |
 | Task management | Done |
@@ -199,6 +201,8 @@ Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll,
 List search/filter/sort known limitations: belum ada pagination (semua hasil dirender), pencarian `contains` di SQLite case-insensitive terutama untuk ASCII, term pencarian muncul di URL (shareable), dan sort task priority masih urutan alfabet kolom (bukan severity).
 
 Dashboard reporting: task completion rate = `completed / (total non-deleted − cancelled) × 100`, 0% bila denominator 0. Semua metrik non-audit menghormati soft delete (`deletedAt: null`). Section Audit hanya tampil untuk ADMIN (`auditLogs:read`); AuditLog tidak di-soft-delete sehingga query audit tidak memakai filter `deletedAt`.
+
+People Intelligence Center (`/insights`, permission `dashboard:read`, ADMIN+MANAGER): organization summary, staff attention list (Needs attention / Follow-up suggested / Stable dengan reasons objektif), workload balance, dan weekly operations (last 7 days). Semua rule-based, netral, dan menghormati soft delete; populasi utama staff ACTIVE; tidak ada skor performa final maupun isi performance note (hanya hitungan kategori/sinyal). Catatan: "tasks completed recently" memakai proxy `status=DONE` & `updatedAt >= window` karena tidak ada kolom `completedAt`. Sinyal staff dievaluasi oleh `evaluateStaffSignals` yang sama dengan Staff Detail. Struktur ini disiapkan sebagai fondasi AI Weekly Brief — Sprint ini belum memakai AI.
 
 Staff insights & timeline: Quick Insights bersifat rule-based, netral, dan transparan (menampilkan angka + sinyal "Needs attention"/"Follow-up suggested"/"No immediate signals" beserta alasannya), bukan penilaian final terhadap staff. Activity Timeline menggabungkan task/attendance/availability/performance note (kategori + tanggal saja, tanpa isi note) terurut terbaru→lama (cap 20); entri audit hanya muncul untuk ADMIN. Struktur snapshot/timeline ini sengaja disiapkan sebagai input untuk fitur AI staff brief di sprint berikutnya — Sprint ini belum memakai AI.
 

@@ -188,8 +188,11 @@ Deliverables:
 
 Goal: menambahkan fitur AI yang relevan dan tidak gimmick.
 
+Fondasi non-AI sudah disiapkan: People Intelligence Center (`/insights`) dan Staff Quick Insights menghasilkan struktur rule-based (signals, reasons, workload, weekly ops) yang akan menjadi input untuk AI Weekly Brief. Sprint-sprint terakhir belum memakai AI sama sekali.
+
 Possible deliverables:
 
+- AI Weekly Brief dari struktur People Intelligence (rule-based input → ringkasan natural language).
 - Generate staff performance summary.
 - Generate follow-up message.
 - Recommend staff for task based on availability and workload.

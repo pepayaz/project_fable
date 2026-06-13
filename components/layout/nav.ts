@@ -2,6 +2,7 @@ import type { Permission } from "@/lib/auth/permissions";
 
 export const navItems = [
   { label: "Dashboard", href: "/dashboard", permission: "dashboard:read" },
+  { label: "Insights", href: "/insights", permission: "dashboard:read" },
   { label: "Staff", href: "/staff", permission: "staff:read" },
   { label: "Departments", href: "/departments", permission: "departments:read" },
   { label: "Tasks", href: "/tasks", permission: "tasks:read" },

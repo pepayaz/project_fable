@@ -130,6 +130,21 @@ Acceptance criteria:
 - Tombol Edit hanya muncul jika user punya `staff:update`.
 - Belum termasuk: inline edit, create related records dari halaman ini, pagination/filter, dan chart/export.
 
+### FR-004d People Intelligence Center
+
+Sistem menyediakan halaman `/insights` (People Intelligence Center) read-only berbasis rule untuk membantu manager memahami kondisi tim.
+
+Acceptance criteria:
+
+- Memerlukan permission `dashboard:read` (ADMIN dan MANAGER); MEMBER → `/unauthorized`; `/insights` dilindungi proxy.
+- **Organization Summary:** active staff, open/overdue/blocked tasks, attendance issues, warning/improvement notes, unassigned open tasks, staff tanpa availability, staff tanpa open task.
+- **Staff Attention List:** label netral Needs attention / Follow-up suggested / Stable dengan reasons objektif; link ke `/staff/[id]`. Memakai `evaluateStaffSignals` yang sama dengan Staff Detail.
+- **Workload Balance:** staff dengan open tasks terbanyak, overdue by staff, unassigned open tasks, staff tanpa open task.
+- **Weekly Operations (last 7 days):** tasks completed recently (proxy `status=DONE` & `updatedAt >= window`, didokumentasikan), currently overdue, attendance issues recently, recent performance notes by category (hitungan saja).
+- Populasi utama = staff ACTIVE; semua query menghormati soft delete (`deletedAt: null`).
+- Tidak ada skor performa final, rekomendasi promosi/demosi/pemecatan, atau isi performance note. Dashboard menampilkan teaser ringkas.
+- Struktur disiapkan sebagai fondasi AI Weekly Brief (belum diimplementasikan).
+
 ### FR-004c Staff Quick Insights and Activity Timeline
 
 Halaman detail staff menampilkan Quick Insights dan Activity Timeline read-only dari data existing.

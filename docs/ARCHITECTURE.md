@@ -337,6 +337,18 @@ Dashboard adalah management overview yang dihitung dari data existing, tanpa sch
 - AuditLog tidak di-soft-delete, sehingga query audit tidak memakai filter `deletedAt`.
 - Visualisasi memakai badge/list/progress bar CSS sederhana, tanpa chart library. Known limitation: query agregasi belum ber-index (full scan), diterima pada skala MVP.
 
+## People Intelligence Center
+
+`/insights` (permission `dashboard:read`, ditambahkan ke `proxy.ts`) adalah modul rule-based untuk membantu manager memahami kondisi tim, dihitung dari data existing tanpa schema atau dependency baru.
+
+- `getPeopleIntelligence()` (`lib/services/people-intelligence.ts`) menghitung organization summary, staff attention list, workload balance, dan weekly operations dalam satu `Promise.all` (count + groupBy + per-staff aggregate). Populasi utama = staff non-deleted berstatus ACTIVE.
+- **Shared signal evaluator:** `evaluateStaffSignals(metrics)` di `lib/services/staff-activity.ts` dipakai bersama oleh Staff Detail (Sprint 15) dan attention list (Sprint 16), sehingga rule konsisten dan tidak terduplikasi. Rule: Needs attention bila overdueTasks>0 / warningNotes>0 / attendanceIssues≥3 / openTasks≥5; Follow-up suggested bila openTasks>0 / improvementNotes>0 / attendanceIssues>0 / availabilityCount==0; selain itu Stable. Setiap sinyal disertai `reasons` berbasis angka.
+- **Weekly window** = last 7 days. "Tasks completed recently" memakai proxy `status=DONE` & `updatedAt >= window` karena tidak ada kolom `completedAt` (didokumentasikan sebagai keterbatasan).
+- **Dashboard teaser:** `/dashboard` menampilkan ringkasan People Intelligence (jumlah attention/follow-up/stable + top 3 + link) agar dashboard tetap calm.
+- **Etika/privacy:** label netral, tanpa skor performa final, tanpa rekomendasi promosi/demosi/pemecatan, tanpa istilah ekstrem. Tidak menampilkan isi performance note (hanya hitungan kategori). AuditLog tidak dipakai di modul ini.
+- RBAC tidak berubah: `/insights` dan teaser dijaga `dashboard:read`; MEMBER → `/unauthorized`.
+- **Fondasi AI:** struktur output disiapkan sebagai input AI Weekly Brief di masa depan. Sprint ini belum memanggil AI, belum ada prompt, dan tidak menyimpan output baru.
+
 ## Staff Activity & Insights
 
 Halaman `/staff/[id]` diperkaya dengan Quick Insights dan Activity Timeline, dihitung dari data existing tanpa schema atau dependency baru.
