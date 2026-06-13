@@ -3,6 +3,9 @@ import { verifyPassword } from "@/lib/auth/password";
 import { ServiceError } from "@/lib/services/errors";
 import { loginInputSchema } from "@/lib/validations/auth";
 
+const DUMMY_PASSWORD_HASH =
+  "scrypt$16384$8$1$0000000000000000000000000000000000000000000000000000000000000000$0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+
 export async function authenticateUser(input: unknown) {
   const parsed = loginInputSchema.safeParse(input);
 
@@ -14,13 +17,12 @@ export async function authenticateUser(input: unknown) {
     where: { email: parsed.data.email.toLowerCase() },
   });
 
-  if (!user || !user.isActive) {
-    throw new ServiceError("Invalid email or password.");
-  }
+  const passwordValid = await verifyPassword(
+    parsed.data.password,
+    user && user.isActive ? user.passwordHash : DUMMY_PASSWORD_HASH,
+  );
 
-  const passwordValid = await verifyPassword(parsed.data.password, user.passwordHash);
-
-  if (!passwordValid) {
+  if (!user || !user.isActive || !passwordValid) {
     throw new ServiceError("Invalid email or password.");
   }
 

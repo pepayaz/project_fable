@@ -70,8 +70,20 @@ export async function createAvailability(input: unknown) {
   return db.availability.create({ data });
 }
 
+async function ensureAvailabilityActive(id: string) {
+  const existing = await db.availability.findFirst({
+    where: { id, deletedAt: null },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    throw new ServiceError("Availability record not found.");
+  }
+}
+
 export async function updateAvailability(id: string, input: unknown) {
   const data = parseAvailabilityInput(input);
+  await ensureAvailabilityActive(id);
   await ensureStaffExists(data.staffId);
 
   return db.availability.update({
@@ -81,6 +93,8 @@ export async function updateAvailability(id: string, input: unknown) {
 }
 
 export async function deleteAvailability(id: string) {
+  await ensureAvailabilityActive(id);
+
   return db.availability.update({
     where: { id },
     data: { deletedAt: new Date() },

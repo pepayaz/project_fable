@@ -141,8 +141,20 @@ export async function createStaff(input: unknown) {
   });
 }
 
+async function ensureStaffActive(id: string) {
+  const existing = await db.staff.findFirst({
+    where: { id, deletedAt: null },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    throw new ServiceError("Staff not found.");
+  }
+}
+
 export async function updateStaff(id: string, input: unknown) {
   const data = parseStaffInput(input);
+  await ensureStaffActive(id);
 
   return db.staff.update({
     where: { id },
@@ -151,6 +163,8 @@ export async function updateStaff(id: string, input: unknown) {
 }
 
 export async function deleteStaff(id: string) {
+  await ensureStaffActive(id);
+
   return db.staff.update({
     where: { id },
     data: { deletedAt: new Date() },

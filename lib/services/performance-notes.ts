@@ -77,8 +77,20 @@ export async function createPerformanceNote(input: unknown) {
   });
 }
 
+async function ensurePerformanceNoteActive(id: string) {
+  const existing = await db.performanceNote.findFirst({
+    where: { id, deletedAt: null },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    throw new ServiceError("Performance note not found.");
+  }
+}
+
 export async function updatePerformanceNote(id: string, input: unknown) {
   const data = parsePerformanceNoteInput(input);
+  await ensurePerformanceNoteActive(id);
   await ensureStaffExists(data.staffId);
 
   return db.performanceNote.update({
@@ -89,6 +101,8 @@ export async function updatePerformanceNote(id: string, input: unknown) {
 }
 
 export async function deletePerformanceNote(id: string) {
+  await ensurePerformanceNoteActive(id);
+
   return db.performanceNote.update({
     where: { id },
     data: { deletedAt: new Date() },

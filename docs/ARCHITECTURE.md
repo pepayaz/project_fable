@@ -337,6 +337,19 @@ Dashboard adalah management overview yang dihitung dari data existing, tanpa sch
 - AuditLog tidak di-soft-delete, sehingga query audit tidak memakai filter `deletedAt`.
 - Visualisasi memakai badge/list/progress bar CSS sederhana, tanpa chart library. Known limitation: query agregasi belum ber-index (full scan), diterima pada skala MVP.
 
+## Security Hardening
+
+Hardening dasar setelah review keamanan berbasis kode (lihat ADR-017):
+
+- **Auth:** password scrypt (salt random, `timingSafeEqual`); session token random 256-bit disimpan sebagai SHA-256 hash, plaintext hanya di cookie `httpOnly`/`sameSite=lax`/`secure` (production); expiry ditegakkan dan session invalid/inactive dihapus saat akses. Login menyamakan timing dengan dummy `verifyPassword` agar tidak bocor apakah email ada; error generik "Invalid email or password".
+- **RBAC:** semua Server Action mutasi memakai `requirePermission` spesifik; semua protected page memakai guard read/create/update; `proxy.ts` melakukan redirect dini (termasuk `/audit-logs`) sedangkan guard server-side tetap sumber kebenaran. MEMBER terbatas pada settings.
+- **Soft delete:** read/list/relation-validation memfilter `deletedAt: null`; `update*`/`delete*` melakukan pre-check sehingga record terhapus tidak bisa diubah/dihapus ulang lewat request manual.
+- **HTTP headers:** `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` minimal (`next.config.ts`). CSP ditunda.
+- **Seed/production:** user QA `manager`/`member` hanya dibuat saat `NODE_ENV !== "production"`; di production hanya admin (bila `SEED_ADMIN_PASSWORD` diset). `.env*` diabaikan git kecuali `.env.example`.
+- **CSRF:** mengandalkan proteksi origin bawaan Next.js Server Actions; tidak memakai library CSRF.
+
+Accepted risks (di luar scope MVP): tidak ada MFA/password reset/email verification/OAuth, session belum sliding/rotation, audit log belum tamper-proof, belum ada rate limiting penuh dan CSP.
+
 ## Error Handling Strategy
 
 Error handling harus:

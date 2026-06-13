@@ -281,19 +281,24 @@ const seed = db.transaction(() => {
         email: "admin@fable.local",
         role: "ADMIN",
       },
-      {
-        id: "user-manager",
-        name: "Project Fable Manager",
-        email: "manager@fable.local",
-        role: "MANAGER",
-      },
-      {
-        id: "user-member",
-        name: "Project Fable Member",
-        email: "member@fable.local",
-        role: "MEMBER",
-      },
     ];
+
+    if (process.env.NODE_ENV !== "production") {
+      qaUsers.push(
+        {
+          id: "user-manager",
+          name: "Project Fable Manager",
+          email: "manager@fable.local",
+          role: "MANAGER",
+        },
+        {
+          id: "user-member",
+          name: "Project Fable Member",
+          email: "member@fable.local",
+          role: "MEMBER",
+        },
+      );
+    }
 
     for (const user of qaUsers) {
       upsertUser.run({

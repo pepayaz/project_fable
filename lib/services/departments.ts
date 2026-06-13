@@ -74,8 +74,20 @@ export async function createDepartment(input: unknown) {
   }
 }
 
+async function ensureDepartmentActive(id: string) {
+  const existing = await db.department.findFirst({
+    where: { id, deletedAt: null },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    throw new ServiceError("Department not found.");
+  }
+}
+
 export async function updateDepartment(id: string, input: unknown) {
   const data = parseDepartmentInput(input);
+  await ensureDepartmentActive(id);
 
   try {
     return await db.department.update({
@@ -92,6 +104,8 @@ export async function updateDepartment(id: string, input: unknown) {
 }
 
 export async function deleteDepartment(id: string) {
+  await ensureDepartmentActive(id);
+
   const staffCount = await db.staff.count({
     where: { departmentId: id, deletedAt: null },
   });

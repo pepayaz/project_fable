@@ -98,8 +98,20 @@ export async function createTask(input: unknown) {
   return db.task.create({ data });
 }
 
+async function ensureTaskActive(id: string) {
+  const existing = await db.task.findFirst({
+    where: { id, deletedAt: null },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    throw new ServiceError("Task not found.");
+  }
+}
+
 export async function updateTask(id: string, input: unknown) {
   const data = parseTaskInput(input);
+  await ensureTaskActive(id);
   await ensureTaskRelations(data);
 
   return db.task.update({
@@ -109,6 +121,8 @@ export async function updateTask(id: string, input: unknown) {
 }
 
 export async function deleteTask(id: string) {
+  await ensureTaskActive(id);
+
   return db.task.update({
     where: { id },
     data: { deletedAt: new Date() },

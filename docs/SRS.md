@@ -254,7 +254,9 @@ Aplikasi harus menghindari exposure data sensitif. Auth foundation tersedia deng
 
 Audit log foundation mencatat create/update/delete pada entity utama (siapa, kapan, terhadap apa) dengan summary aman, tanpa menyimpan passwordHash, session token, raw cookie, atau dump objek. Viewer audit log read-only dan hanya untuk ADMIN.
 
-Security hardening lanjutan masih future sprint, termasuk fine-grained ownership rules, audit log tamper-proofing/filter/search/export, pencatatan aksi gagal, rate limiting penuh, password reset, email verification, MFA, OAuth/SSO, dan deployment security headers.
+Hardening dasar sudah diterapkan (lihat ADR-017): security headers HTTP dasar (`X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`), timing login disamakan agar tidak bocor keberadaan email, proxy melindungi `/audit-logs`, service `update*`/`delete*` menolak record yang sudah soft-deleted, dan seed production hanya membuat admin. CSRF mengandalkan proteksi bawaan Next.js Server Actions.
+
+Accepted risks / future sprint: MFA, password reset, email verification, OAuth/SSO, fine-grained ownership rules, audit log tamper-proofing/filter/search/export, pencatatan aksi gagal, session sliding/rotation, rate limiting penuh, dan CSP.
 
 ### AI-Agent Compatibility
 

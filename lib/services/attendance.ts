@@ -66,8 +66,20 @@ export async function createAttendance(input: unknown) {
   return db.attendance.create({ data });
 }
 
+async function ensureAttendanceActive(id: string) {
+  const existing = await db.attendance.findFirst({
+    where: { id, deletedAt: null },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    throw new ServiceError("Attendance record not found.");
+  }
+}
+
 export async function updateAttendance(id: string, input: unknown) {
   const data = parseAttendanceInput(input);
+  await ensureAttendanceActive(id);
   await ensureStaffExists(data.staffId);
 
   return db.attendance.update({
@@ -77,6 +89,8 @@ export async function updateAttendance(id: string, input: unknown) {
 }
 
 export async function deleteAttendance(id: string) {
+  await ensureAttendanceActive(id);
+
   return db.attendance.update({
     where: { id },
     data: { deletedAt: new Date() },

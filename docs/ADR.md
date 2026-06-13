@@ -407,3 +407,36 @@ Negative:
 - Child records milik staff yang sudah dihapus tetap muncul di list-nya (tidak difilter berdasarkan `staff.deletedAt`).
 - Nama Department yang sudah soft-deleted tetap menempati unique constraint, sehingga nama itu belum bisa dipakai ulang sampai ada permanent delete/restore.
 - Ukuran database tumbuh karena row tidak benar-benar dihapus.
+
+## ADR-017 Security Hardening Review for Portfolio MVP
+
+Status: Accepted
+
+### Context
+
+Setelah auth, RBAC, audit log, dan soft delete, dilakukan review keamanan dasar berbasis kode. Postur sudah kuat (password scrypt + salt + timingSafeEqual, session token hashed, cookie httpOnly/secure, RBAC server-side menyeluruh, soft delete konsisten, audit tanpa data sensitif). Review menemukan beberapa perbaikan realistis tanpa menambah dependency atau mengubah schema.
+
+### Decision
+
+Terapkan hardening berikut:
+
+- `proxy.ts` menambahkan `/audit-logs` ke protected prefixes dan matcher agar redirect dini konsisten (page guard `auditLogs:read` tetap authoritative).
+- `next.config.ts` menambahkan security headers dasar: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, dan `Permissions-Policy` minimal. CSP ditunda agar tidak mengganggu Next.js.
+- `authenticateUser` selalu menjalankan `verifyPassword` (terhadap dummy hash konstan bila user tidak ada/inactive) untuk menyamakan timing dan mencegah enumerasi email; error tetap generik.
+- Service `update*`/`delete*` melakukan pre-check `deletedAt: null` sehingga record yang sudah soft-deleted tidak bisa diubah/dihapus ulang lewat request manual; ditolak dengan pesan aman.
+- `seed.js` hanya membuat user QA `manager`/`member` saat `NODE_ENV !== "production"`; di production hanya admin yang dibuat bila `SEED_ADMIN_PASSWORD` tersedia.
+
+### Consequences
+
+Positive:
+
+- Permukaan serangan dasar berkurang tanpa dependency baru.
+- Perilaku auth/RBAC fungsional tidak berubah.
+
+Accepted risks (di luar scope MVP):
+
+- Belum ada MFA, password reset, email verification, atau OAuth/SSO.
+- Session belum sliding/rotation; session lama bertahan sampai expiry; logout hanya device saat ini.
+- CSRF mengandalkan proteksi origin bawaan Next.js Server Actions (tanpa library CSRF).
+- Audit log belum tamper-proof.
+- Belum ada rate limiting penuh dan CSP.
