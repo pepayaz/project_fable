@@ -176,6 +176,21 @@ Acceptance criteria:
 - Semua query menghormati soft delete (`deletedAt: null`) dan RBAC read permission.
 - Known limitations: belum ada pagination, `contains` SQLite case-insensitive terutama ASCII, term pencarian tampil di URL, sort task priority masih alfabet (bukan severity); belum ada export, saved filter, atau advanced query builder.
 
+### FR-004f AI Briefing & Review System
+
+Sistem menyediakan fitur AI opt-in untuk men-generate briefing draft bagi manager.
+
+Acceptance criteria:
+
+- Memerlukan permission `ai:generate` (ADMIN dan MANAGER); MEMBER tidak boleh generate.
+- Staff AI Brief tersedia di `/staff/[id]`; Weekly People Ops Brief di `/insights`.
+- Default provider Google Gemini (`gemini-2.5-flash-lite`) via env `AI_PROVIDER`/`GEMINI_API_KEY`/`AI_MODEL`; provider abstraction memungkinkan Anthropic/OpenAI sebagai future provider tanpa mengubah business logic.
+- Fitur graceful-disabled bila `GEMINI_API_KEY` kosong; UI menampilkan state not-configured/idle/generating/output/error dengan tombol copy dan disclaimer draft/review-only.
+- Output AI tidak disimpan ke database; prompt/output tidak di-log.
+- Data yang dikirim dibatasi whitelist: staff brief memakai profil, quick insights, ringkasan task/attendance/availability, dan performance-note category counts; weekly brief memakai People Intelligence summary. Tidak mengirim passwordHash, session/token/cookie, audit log mentah, atau isi penuh performance note.
+- Tidak ada chatbot, AI scoring final, atau rekomendasi promosi/demosi/pemecatan; output netral dan diposisikan sebagai draft untuk review manusia.
+- Audit ringan mencatat event generate (summary aman saja).
+
 ### FR-004e Member Self-Service Portal
 
 Sistem menyediakan portal `/my` (My Workspace) untuk pengguna yang ter-link ke Staff melalui `User.linkedStaffId`.

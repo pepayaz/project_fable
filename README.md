@@ -14,6 +14,7 @@ Fitur MVP yang tersedia saat ini:
 - Staff Quick Insights (snapshot rule-based netral) dan Activity Timeline gabungan di halaman detail
 - People Intelligence Center (/insights): organization summary, staff attention list, workload balance, weekly operations — rule-based & netral, dengan teaser di dashboard
 - Member Self-Service Portal (/my): MEMBER yang ter-link ke Staff melihat profil/tasks/attendance/availability sendiri, mengelola availability, dan update status task miliknya (TODO/IN_PROGRESS/DONE)
+- AI Briefing & Review (opt-in): draft Staff AI Brief di /staff/[id] dan Weekly People Ops Brief di /insights, default provider Google Gemini, review-only (tidak disimpan), aktif bila GEMINI_API_KEY diisi
 - Search, filter, dan sort server-side di semua list page utama (via query params)
 - Department CRUD
 - Staff assignment ke department
@@ -35,7 +36,7 @@ Belum termasuk MVP saat ini:
 - Dashboard chart library
 - Export/import
 - Deployment production
-- Fine-grained ownership/self-service rules
+- Advanced ownership workflows lanjutan (Member Self-Service dasar sudah tersedia)
 - Audit log export, filter, search, dan tamper-proofing
 - Restore, trash page, dan permanent delete untuk soft delete
 - Password reset, email verification, MFA, OAuth/SSO
@@ -164,6 +165,7 @@ npm run build
 | Protected routes | Done |
 | Coarse RBAC | Done |
 | Member self-service portal | Done |
+| AI briefing & review (opt-in) | Done |
 | Audit log foundation | Done |
 | Soft delete & data safety | Done |
 | Security hardening review | Done |
@@ -203,6 +205,8 @@ Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll,
 List search/filter/sort known limitations: belum ada pagination (semua hasil dirender), pencarian `contains` di SQLite case-insensitive terutama untuk ASCII, term pencarian muncul di URL (shareable), dan sort task priority masih urutan alfabet kolom (bukan severity).
 
 Dashboard reporting: task completion rate = `completed / (total non-deleted − cancelled) × 100`, 0% bila denominator 0. Semua metrik non-audit menghormati soft delete (`deletedAt: null`). Section Audit hanya tampil untuk ADMIN (`auditLogs:read`); AuditLog tidak di-soft-delete sehingga query audit tidak memakai filter `deletedAt`.
+
+AI Briefing & Review (opt-in, default provider Google Gemini `gemini-2.5-flash-lite`): hanya ADMIN/MANAGER (`ai:generate`) yang dapat men-generate draft Staff AI Brief (`/staff/[id]`) dan Weekly People Ops Brief (`/insights`). Fitur graceful-disabled bila `GEMINI_API_KEY` kosong. Output adalah draft untuk review manusia, **tidak disimpan** ke database, dan prompt/output **tidak di-log**. Data yang dikirim dibatasi whitelist (profil + signals + ringkasan hitungan); **tidak** mengirim isi penuh performance note, passwordHash, session/token/cookie, atau audit log mentah. Provider abstraction memungkinkan menambah Anthropic/OpenAI sebagai future provider tanpa mengubah business logic. Bukan chatbot, tanpa scoring/keputusan HR final. Env: `AI_PROVIDER`, `GEMINI_API_KEY`, `AI_MODEL`. Lihat ADR-019.
 
 Member Self-Service Portal (`/my`): pengguna yang ter-link ke Staff via `User.linkedStaffId` melihat data miliknya sendiri (boundary kepemilikan ditegakkan server-side, `staffId` tidak pernah dari client). MEMBER: profil & attendance view-only; availability self-service; status task miliknya terbatas TODO/IN_PROGRESS/DONE; performance notes hanya hitungan kategori (tanpa isi). Availability & task-status oleh MEMBER di-audit. ADMIN/MANAGER tidak wajib linked; jika tidak linked, `/my` menampilkan empty state. Seed non-production me-link `member@fable.local` ke staff demo.
 

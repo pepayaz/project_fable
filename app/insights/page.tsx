@@ -1,9 +1,13 @@
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import MetricCard from "@/components/ui/MetricCard";
+import { can } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/guards";
 import { getPeopleIntelligence } from "@/lib/services/people-intelligence";
 import type { StaffSignalLevel } from "@/lib/services/staff-activity";
+import { isAiConfigured } from "@/lib/ai/config";
+import { generateWeeklyBriefAction } from "@/app/ai/actions";
+import AiBriefCard from "@/components/ai/AiBriefCard";
 
 function levelBadgeClass(level: StaffSignalLevel) {
   switch (level) {
@@ -81,9 +85,10 @@ function StatRow({ name, value, href }: { name: string; value: string; href?: st
 }
 
 export default async function InsightsPage() {
-  await requirePermission("dashboard:read");
+  const user = await requirePermission("dashboard:read");
   const data = await getPeopleIntelligence();
   const { orgSummary, attentionList, workload, weeklyOps } = data;
+  const canGenerateAi = can(user, "ai:generate");
 
   return (
     <div>
@@ -91,6 +96,19 @@ export default async function InsightsPage() {
         title="People Intelligence"
         description="Rule-based signals to help you understand your team's condition."
       />
+
+      {canGenerateAi && (
+        <>
+          <GroupHeading>AI Briefing</GroupHeading>
+          <AiBriefCard
+            title="Weekly People Ops AI Brief"
+            description="A neutral draft summary generated from current People Intelligence records."
+            buttonLabel="Generate weekly brief"
+            configured={isAiConfigured()}
+            action={generateWeeklyBriefAction}
+          />
+        </>
+      )}
 
       <GroupHeading>Organization Summary</GroupHeading>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">

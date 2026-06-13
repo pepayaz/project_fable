@@ -11,6 +11,9 @@ import {
   type StaffSnapshot,
   type TimelineEvent,
 } from "@/lib/services/staff-activity";
+import { isAiConfigured } from "@/lib/ai/config";
+import { generateStaffBriefAction } from "@/app/ai/actions";
+import AiBriefCard from "@/components/ai/AiBriefCard";
 
 type StaffDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -189,6 +192,7 @@ export default async function StaffDetailPage({ params }: StaffDetailPageProps) 
   }
 
   const canUpdate = can(user, "staff:update");
+  const canGenerateAi = can(user, "ai:generate");
   const auditEvents = can(user, "auditLogs:read") ? await getStaffAuditEvents(staff.id) : [];
   const snapshot = buildStaffSnapshot(staff);
   const timeline = buildStaffTimeline(staff, auditEvents);
@@ -268,6 +272,19 @@ export default async function StaffDetailPage({ params }: StaffDetailPageProps) 
             : "No immediate signals from current activity."}
         </p>
       </section>
+
+      {canGenerateAi && (
+        <>
+          <GroupHeading>AI Briefing</GroupHeading>
+          <AiBriefCard
+            title="Staff AI Brief"
+            description="A neutral draft briefing generated from this staff member's Project Fable records."
+            buttonLabel="Generate AI brief"
+            configured={isAiConfigured()}
+            action={generateStaffBriefAction.bind(null, staff.id)}
+          />
+        </>
+      )}
 
       <GroupHeading>Activity Timeline</GroupHeading>
       <section className="rounded-lg border border-border bg-surface p-5 shadow-card">

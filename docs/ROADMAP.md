@@ -190,11 +190,13 @@ Lanjutan (sudah dikerjakan): coarse RBAC, security hardening baseline, dan Membe
 
 Goal: menambahkan fitur AI yang relevan dan tidak gimmick.
 
-Fondasi non-AI sudah disiapkan: People Intelligence Center (`/insights`) dan Staff Quick Insights menghasilkan struktur rule-based (signals, reasons, workload, weekly ops) yang akan menjadi input untuk AI Weekly Brief. Sprint-sprint terakhir belum memakai AI sama sekali.
+Fondasi non-AI sudah disiapkan: People Intelligence Center (`/insights`) dan Staff Quick Insights menghasilkan struktur rule-based (signals, reasons, workload, weekly ops).
 
-Possible deliverables:
+Sudah dikerjakan (opt-in, lihat ADR-019): AI Briefing & Review System — Staff AI Brief (`/staff/[id]`) dan Weekly People Ops Brief (`/insights`), provider-agnostic dengan default Google Gemini (`gemini-2.5-flash-lite`), constrained & review-only (tanpa scoring atau keputusan HR final), output tidak disimpan, dan graceful-disabled bila API key tidak ada.
 
-- AI Weekly Brief dari struktur People Intelligence (rule-based input → ringkasan natural language).
+Possible deliverables lanjutan:
+
+- Anthropic/OpenAI sebagai provider tambahan via abstraction yang sudah ada.
 - Generate staff performance summary.
 - Generate follow-up message.
 - Recommend staff for task based on availability and workload.

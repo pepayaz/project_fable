@@ -474,3 +474,37 @@ Negative / accepted:
 - MEMBER tidak bisa mengedit profil sendiri (dikelola manager).
 - Isi performance note tidak terlihat MEMBER (hanya hitungan kategori).
 - Linking dilakukan manual/seed; belum ada UI admin untuk mengelola link User↔Staff.
+
+## ADR-019 AI Briefing & Review System (Provider-Agnostic, Gemini-First)
+
+Status: Accepted
+
+### Context
+
+Project Fable membutuhkan fitur AI yang benar-benar berguna namun constrained dan aman — bukan chatbot umum atau AI slop. Fokusnya membantu manager dengan briefing draft dari data yang sudah ada (staff brief dan weekly people-ops brief), bukan mengambil keputusan HR.
+
+### Decision
+
+Bangun AI Briefing & Review System dengan provider abstraction, default provider Google Gemini.
+
+- **Provider abstraction** (`lib/ai/`): interface `AiProvider` generic; `getAiProvider()` membaca `AI_PROVIDER` (default `gemini`). Implementasi utama `gemini.ts` memakai REST Google Generative Language API via `fetch` native (tanpa dependency baru). Anthropic/OpenAI disebut sebagai future provider; business logic tidak hardcode ke satu provider.
+- **Env:** `AI_PROVIDER="gemini"`, `GEMINI_API_KEY=""`, `AI_MODEL="gemini-2.5-flash-lite"`. Secret tidak di-commit; hanya dibaca server-side. Fitur graceful-disabled bila `GEMINI_API_KEY` kosong.
+- **Safety framework** (`lib/ai/safety.ts`): system prompt reusable yang melarang mengarang data, keputusan HR sensitif (promosi/demosi/pemecatan/hukuman), scoring final; mewajibkan bahasa netral, menyebut keterbatasan data, dan memosisikan output sebagai draft untuk review manusia.
+- **Fitur:** Staff AI Brief di `/staff/[id]` dan Weekly People Ops Brief di `/insights`, lewat Server Actions dengan guard permission baru `ai:generate` (ADMIN via spread + MANAGER; MEMBER tidak).
+- **Privacy boundary:** data contract whitelist (`lib/services/ai-brief.ts`) — profil, quick insights, ringkasan task/attendance/availability, dan performance-note **category counts**. Tidak mengirim passwordHash, session/token/cookie, audit log mentah, atau isi penuh performance note.
+- **Tidak menyimpan output AI ke database**; **tidak me-log prompt/output**. Audit ringan mencatat event generate (`action: GENERATE`, `entityType: AiBrief`) dengan summary aman saja.
+- UI `AiBriefCard` menyediakan state not-configured/idle/generating/output/error, tombol copy, dan disclaimer draft/review-only. Bukan chatbot, tanpa conversation history.
+
+### Consequences
+
+Positive:
+
+- Fitur AI berguna namun aman, constrained, dan provider-agnostic.
+- Tidak menambah dependency; tidak ubah schema.
+- Boundary privacy dan RBAC ditegakkan server-side.
+
+Negative / accepted:
+
+- Memerlukan API key eksternal; saat tidak ada, fitur disabled.
+- Output bergantung kualitas model; diposisikan sebagai draft, bukan keputusan final.
+- Belum ada personal AI brief untuk MEMBER, dan belum ada Anthropic/OpenAI provider (future).

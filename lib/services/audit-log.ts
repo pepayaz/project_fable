@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import type { AuthUser } from "@/lib/auth/session";
 
-export type AuditAction = "CREATE" | "UPDATE" | "DELETE";
+export type AuditAction = "CREATE" | "UPDATE" | "DELETE" | "GENERATE";
 
 export type AuditEntityType =
   | "Staff"
@@ -9,7 +9,8 @@ export type AuditEntityType =
   | "Task"
   | "Attendance"
   | "Availability"
-  | "PerformanceNote";
+  | "PerformanceNote"
+  | "AiBrief";
 
 type AuditActor = Pick<AuthUser, "id" | "name" | "role">;
 

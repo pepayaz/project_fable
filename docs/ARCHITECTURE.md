@@ -337,6 +337,19 @@ Dashboard adalah management overview yang dihitung dari data existing, tanpa sch
 - AuditLog tidak di-soft-delete, sehingga query audit tidak memakai filter `deletedAt`.
 - Visualisasi memakai badge/list/progress bar CSS sederhana, tanpa chart library. Known limitation: query agregasi belum ber-index (full scan), diterima pada skala MVP.
 
+## AI Briefing & Review System
+
+Fitur AI opt-in yang constrained dan provider-agnostic (lihat ADR-019), tanpa dependency baru dan tanpa schema change.
+
+- **Provider abstraction** di `lib/ai/`: `provider.ts` (interface `AiProvider` + `AiResult`), `config.ts` (env + `isAiConfigured()`), `gemini.ts` (REST Gemini via `fetch` native), `safety.ts` (system prompt + disclaimer), `index.ts` (`getAiProvider()` membaca `AI_PROVIDER`, default `gemini`). Provider tak dikenali / key kosong → `null` → fitur disabled. Anthropic/OpenAI = future provider.
+- **Business logic terpisah:** `lib/services/ai-brief.ts` membangun data contract whitelist dan prompt; tidak hardcode ke provider tertentu.
+- **Server Actions** (`app/ai/actions.ts`): `generateStaffBriefAction(staffId)` dan `generateWeeklyBriefAction()` dengan guard `requirePermission("ai:generate")` (ADMIN + MANAGER). Output **tidak disimpan** ke database; prompt/output **tidak di-log**.
+- **Privacy boundary:** hanya profil, quick insights (signals rule-based), ringkasan task/attendance/availability, dan performance-note category counts (staff brief) atau People Intelligence summary (weekly brief). Tidak mengirim passwordHash, session/token/cookie, audit log mentah, atau isi penuh performance note.
+- **Safety:** output netral, draft untuk review manusia, "based only on available Project Fable records"; tanpa keputusan HR final, scoring, atau rekomendasi promosi/demosi/pemecatan.
+- **Audit ringan:** event generate dicatat (`GENERATE` / `AiBrief`) dengan summary aman; tanpa prompt/output.
+- **Fallback:** bila `GEMINI_API_KEY` kosong, `AiBriefCard` menampilkan state not-configured (tombol disabled) dan action mengembalikan `not_configured`.
+- **Env:** `AI_PROVIDER`, `GEMINI_API_KEY`, `AI_MODEL` (default `gemini-2.5-flash-lite`). Secret server-side, tidak di-commit.
+
 ## Member Self-Service Portal
 
 MEMBER memiliki portal `/my` (My Workspace) berbasis relasi optional `User.linkedStaffId @unique` ke `Staff` (lihat ADR-018).
