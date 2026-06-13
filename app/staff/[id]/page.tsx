@@ -12,8 +12,15 @@ import {
   type TimelineEvent,
 } from "@/lib/services/staff-activity";
 import { isAiConfigured } from "@/lib/ai/config";
-import { generateStaffBriefAction } from "@/app/ai/actions";
+import {
+  generateAvailabilityReminderAction,
+  generateFollowupDraftAction,
+  generatePerformanceNoteDraftAction,
+  generateStaffBriefAction,
+} from "@/app/ai/actions";
 import AiBriefCard from "@/components/ai/AiBriefCard";
+import AiWritingCard from "@/components/ai/AiWritingCard";
+import { performanceNoteCategories } from "@/lib/validations/performance-notes";
 
 type StaffDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -283,6 +290,37 @@ export default async function StaffDetailPage({ params }: StaffDetailPageProps) 
             configured={isAiConfigured()}
             action={generateStaffBriefAction.bind(null, staff.id)}
           />
+
+          <GroupHeading>AI Writing Assistant</GroupHeading>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <AiWritingCard
+              title="Follow-up Message Draft"
+              description="A short, supportive draft message for this staff member."
+              buttonLabel="Generate draft"
+              configured={isAiConfigured()}
+              withTone
+              withContext
+              action={generateFollowupDraftAction.bind(null, staff.id)}
+            />
+            <AiWritingCard
+              title="Performance Note Draft"
+              description="A neutral draft note to review and save manually. Output is not saved automatically."
+              buttonLabel="Generate draft"
+              configured={isAiConfigured()}
+              withTone
+              withContext
+              categories={[...performanceNoteCategories]}
+              action={generatePerformanceNoteDraftAction.bind(null, staff.id)}
+            />
+            <AiWritingCard
+              title="Availability Reminder Draft"
+              description="A polite draft asking this staff member to update their availability."
+              buttonLabel="Generate draft"
+              configured={isAiConfigured()}
+              withTone
+              action={generateAvailabilityReminderAction.bind(null, staff.id)}
+            />
+          </div>
         </>
       )}
 

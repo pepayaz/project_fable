@@ -508,3 +508,37 @@ Negative / accepted:
 - Memerlukan API key eksternal; saat tidak ada, fitur disabled.
 - Output bergantung kualitas model; diposisikan sebagai draft, bukan keputusan final.
 - Belum ada personal AI brief untuk MEMBER, dan belum ada Anthropic/OpenAI provider (future).
+
+## ADR-020 AI Writing Assistant & Review Workflow
+
+Status: Accepted
+
+### Context
+
+Setelah AI Briefing (ADR-019), dibutuhkan bantuan AI untuk menyusun draft komunikasi dan draft note bagi manager — tetap constrained, netral, dan review-only, bukan AI yang mengambil aksi.
+
+### Decision
+
+Tambahkan AI writing tools draft-only di atas provider abstraction yang sudah ada, tanpa dependency atau schema change.
+
+- **Tools:** follow-up message draft, performance note draft, dan availability reminder draft di `/staff/[id]`; team availability reminder di `/insights`.
+- **Draft/review/copy-only:** output tidak disimpan ke database; performance note tidak otomatis dibuat (preview + copy, manager submit manual); pesan tidak otomatis dikirim; tidak ada email/notification.
+- **Permission:** reuse `ai:generate` (ADMIN + MANAGER); MEMBER tidak boleh generate AI writing; belum ada personal AI writing untuk MEMBER.
+- **Safety:** `AI_WRITING_SAFETY` (reuse core + formatting rules ADR-019, plus writing-specific): draft untuk review manusia; tanpa mengarang fakta; tanpa tuduhan; tanpa diagnosis perilaku/kesehatan; tanpa rekomendasi pemecatan/demosi/promosi/hukuman/gaji; tanpa performance score; tanpa data privat yang tidak diberikan; netral, profesional, ringkas; plain text tanpa markdown/Date/Subject/memo.
+- **Input:** tone (Neutral/Concise/Supportive, default Neutral) memengaruhi gaya saja; optional manager context dibatasi ≤500 karakter server-side.
+- **Privacy:** whitelist staff facts (tanpa isi penuh performance note), tanpa passwordHash/session/token/cookie/audit mentah/data staff lain. Manager context dan prompt/output tidak di-log; output tidak disimpan; context tidak masuk audit.
+- **Audit ringan:** `action: GENERATE`, `entityType: AiWriting`, summary aman (tanpa prompt/output/context).
+
+### Consequences
+
+Positive:
+
+- Manager dibantu menyusun komunikasi/note dengan aman dan netral.
+- Tidak menambah dependency, tidak ubah schema, reuse safety & provider abstraction.
+- Boundary privacy/RBAC ditegakkan server-side.
+
+Negative / accepted:
+
+- Performance note draft memakai preview + copy (manager paste manual), bukan prefill form, untuk menghindari coupling.
+- Kualitas draft bergantung model; diposisikan sebagai draft, bukan keputusan final.
+- Fitur disabled bila API key tidak ada.

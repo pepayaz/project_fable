@@ -15,6 +15,7 @@ Fitur MVP yang tersedia saat ini:
 - People Intelligence Center (/insights): organization summary, staff attention list, workload balance, weekly operations — rule-based & netral, dengan teaser di dashboard
 - Member Self-Service Portal (/my): MEMBER yang ter-link ke Staff melihat profil/tasks/attendance/availability sendiri, mengelola availability, dan update status task miliknya (TODO/IN_PROGRESS/DONE)
 - AI Briefing & Review (opt-in): draft Staff AI Brief di /staff/[id] dan Weekly People Ops Brief di /insights, default provider Google Gemini, review-only (tidak disimpan), aktif bila GEMINI_API_KEY diisi
+- AI Writing Assistant (opt-in): draft follow-up message, performance note, dan availability reminder di /staff/[id] plus team availability reminder di /insights — draft/review/copy-only, tidak auto-save & tidak auto-send
 - Search, filter, dan sort server-side di semua list page utama (via query params)
 - Department CRUD
 - Staff assignment ke department
@@ -166,6 +167,7 @@ npm run build
 | Coarse RBAC | Done |
 | Member self-service portal | Done |
 | AI briefing & review (opt-in) | Done |
+| AI writing assistant (opt-in) | Done |
 | Audit log foundation | Done |
 | Soft delete & data safety | Done |
 | Security hardening review | Done |
@@ -207,6 +209,8 @@ List search/filter/sort known limitations: belum ada pagination (semua hasil dir
 Dashboard reporting: task completion rate = `completed / (total non-deleted − cancelled) × 100`, 0% bila denominator 0. Semua metrik non-audit menghormati soft delete (`deletedAt: null`). Section Audit hanya tampil untuk ADMIN (`auditLogs:read`); AuditLog tidak di-soft-delete sehingga query audit tidak memakai filter `deletedAt`.
 
 AI Briefing & Review (opt-in, default provider Google Gemini `gemini-2.5-flash-lite`): hanya ADMIN/MANAGER (`ai:generate`) yang dapat men-generate draft Staff AI Brief (`/staff/[id]`) dan Weekly People Ops Brief (`/insights`). Fitur graceful-disabled bila `GEMINI_API_KEY` kosong. Output adalah draft untuk review manusia, **tidak disimpan** ke database, dan prompt/output **tidak di-log**. Data yang dikirim dibatasi whitelist (profil + signals + ringkasan hitungan); **tidak** mengirim isi penuh performance note, passwordHash, session/token/cookie, atau audit log mentah. Provider abstraction memungkinkan menambah Anthropic/OpenAI sebagai future provider tanpa mengubah business logic. Bukan chatbot, tanpa scoring/keputusan HR final. Env: `AI_PROVIDER`, `GEMINI_API_KEY`, `AI_MODEL`. Lihat ADR-019.
+
+AI Writing Assistant (opt-in, reuse provider abstraction & `ai:generate`): ADMIN/MANAGER dapat men-generate draft follow-up message, performance note, dan availability reminder di `/staff/[id]`, serta team availability reminder di `/insights`. Semua **draft/review/copy-only** — tidak mengirim email otomatis, tidak menyimpan output, dan tidak otomatis membuat performance note. Tone (Neutral/Concise/Supportive) dan optional manager context (≤500 char, tidak disimpan/di-log/di-audit) tersedia. Privacy boundary sama dengan AI Briefing (whitelist; tanpa isi penuh performance note, secret, atau audit mentah). Output netral & supportive, tanpa tuduhan/diagnosis/scoring/keputusan HR. Lihat ADR-020.
 
 Member Self-Service Portal (`/my`): pengguna yang ter-link ke Staff via `User.linkedStaffId` melihat data miliknya sendiri (boundary kepemilikan ditegakkan server-side, `staffId` tidak pernah dari client). MEMBER: profil & attendance view-only; availability self-service; status task miliknya terbatas TODO/IN_PROGRESS/DONE; performance notes hanya hitungan kategori (tanpa isi). Availability & task-status oleh MEMBER di-audit. ADMIN/MANAGER tidak wajib linked; jika tidak linked, `/my` menampilkan empty state. Seed non-production me-link `member@fable.local` ke staff demo.
 

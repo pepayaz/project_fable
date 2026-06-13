@@ -6,8 +6,9 @@ import { requirePermission } from "@/lib/auth/guards";
 import { getPeopleIntelligence } from "@/lib/services/people-intelligence";
 import type { StaffSignalLevel } from "@/lib/services/staff-activity";
 import { isAiConfigured } from "@/lib/ai/config";
-import { generateWeeklyBriefAction } from "@/app/ai/actions";
+import { generateAvailabilityReminderAction, generateWeeklyBriefAction } from "@/app/ai/actions";
 import AiBriefCard from "@/components/ai/AiBriefCard";
+import AiWritingCard from "@/components/ai/AiWritingCard";
 
 function levelBadgeClass(level: StaffSignalLevel) {
   switch (level) {
@@ -100,13 +101,23 @@ export default async function InsightsPage() {
       {canGenerateAi && (
         <>
           <GroupHeading>AI Briefing</GroupHeading>
-          <AiBriefCard
-            title="Weekly People Ops AI Brief"
-            description="A neutral draft summary generated from current People Intelligence records."
-            buttonLabel="Generate weekly brief"
-            configured={isAiConfigured()}
-            action={generateWeeklyBriefAction}
-          />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <AiBriefCard
+              title="Weekly People Ops AI Brief"
+              description="A neutral draft summary generated from current People Intelligence records."
+              buttonLabel="Generate weekly brief"
+              configured={isAiConfigured()}
+              action={generateWeeklyBriefAction}
+            />
+            <AiWritingCard
+              title="Team Availability Reminder Draft"
+              description="A polite draft asking the team to update their availability."
+              buttonLabel="Generate draft"
+              configured={isAiConfigured()}
+              withTone
+              action={generateAvailabilityReminderAction.bind(null, null)}
+            />
+          </div>
         </>
       )}
 

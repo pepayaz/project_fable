@@ -350,6 +350,19 @@ Fitur AI opt-in yang constrained dan provider-agnostic (lihat ADR-019), tanpa de
 - **Fallback:** bila `GEMINI_API_KEY` kosong, `AiBriefCard` menampilkan state not-configured (tombol disabled) dan action mengembalikan `not_configured`.
 - **Env:** `AI_PROVIDER`, `GEMINI_API_KEY`, `AI_MODEL` (default `gemini-2.5-flash-lite`). Secret server-side, tidak di-commit.
 
+### AI Writing Assistant (ADR-020)
+
+Memperluas AI module dengan writing tools draft-only, memakai provider abstraction dan permission `ai:generate` yang sama.
+
+- **Tools:** follow-up message draft, performance note draft, dan availability reminder draft di `/staff/[id]`; team availability reminder di `/insights`.
+- **Server Actions** (`app/ai/actions.ts`): `generateFollowupDraftAction`, `generatePerformanceNoteDraftAction`, `generateAvailabilityReminderAction(staffId | null)` — semua `requirePermission("ai:generate")`, memakai system prompt `AI_WRITING_SAFETY`.
+- **Prompt builders** (`lib/services/ai-writing.ts`): whitelist staff facts (sama seperti brief, tanpa isi note) + tone (Neutral/Concise/Supportive, default Neutral) + optional manager context (di-cap ≤500 char server-side) + category (note draft, divalidasi). Tidak ada provider hardcode.
+- **UI** (`components/ai/AiWritingCard.tsx`): reusable, optional tone/context/category, state lengkap, Copy, tipografi normal. Bukan chatbot, tanpa history.
+- **Draft-only:** output tidak disimpan, performance note tidak otomatis dibuat (preview + copy → manager submit manual), pesan tidak otomatis dikirim.
+- **Privacy:** tanpa isi penuh performance note, secret, audit mentah, atau data staff lain. Manager context tidak disimpan/di-log/di-audit. Prompt/output tidak di-log.
+- **Audit ringan:** `GENERATE` / `AiWriting` dengan summary aman (tanpa prompt/output/context).
+- **Safety:** `AI_WRITING_SAFETY` melarang tuduhan, diagnosis, scoring, rekomendasi pemecatan/demosi/promosi/hukuman/gaji, dan data privat yang tidak diberikan; bahasa netral, plain text.
+
 ## Member Self-Service Portal
 
 MEMBER memiliki portal `/my` (My Workspace) berbasis relasi optional `User.linkedStaffId @unique` ke `Staff` (lihat ADR-018).

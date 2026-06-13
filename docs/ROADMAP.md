@@ -194,6 +194,8 @@ Fondasi non-AI sudah disiapkan: People Intelligence Center (`/insights`) dan Sta
 
 Sudah dikerjakan (opt-in, lihat ADR-019): AI Briefing & Review System — Staff AI Brief (`/staff/[id]`) dan Weekly People Ops Brief (`/insights`), provider-agnostic dengan default Google Gemini (`gemini-2.5-flash-lite`), constrained & review-only (tanpa scoring atau keputusan HR final), output tidak disimpan, dan graceful-disabled bila API key tidak ada.
 
+Sudah dikerjakan (opt-in, lihat ADR-020): AI Writing Assistant & Review Workflow — draft follow-up message, performance note, dan availability reminder (per-staff + tim), draft/review/copy-only, tanpa auto-save/auto-send, memakai provider abstraction dan safety framework yang sama.
+
 Possible deliverables lanjutan:
 
 - Anthropic/OpenAI sebagai provider tambahan via abstraction yang sudah ada.

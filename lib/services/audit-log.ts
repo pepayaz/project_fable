@@ -10,7 +10,8 @@ export type AuditEntityType =
   | "Attendance"
   | "Availability"
   | "PerformanceNote"
-  | "AiBrief";
+  | "AiBrief"
+  | "AiWriting";
 
 type AuditActor = Pick<AuthUser, "id" | "name" | "role">;
 

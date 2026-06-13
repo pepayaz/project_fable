@@ -191,6 +191,21 @@ Acceptance criteria:
 - Tidak ada chatbot, AI scoring final, atau rekomendasi promosi/demosi/pemecatan; output netral dan diposisikan sebagai draft untuk review manusia.
 - Audit ringan mencatat event generate (summary aman saja).
 
+### FR-004g AI Writing Assistant
+
+Sistem menyediakan AI writing tools opt-in untuk membantu manager menyusun draft komunikasi dan draft note.
+
+Acceptance criteria:
+
+- Memerlukan permission `ai:generate` (ADMIN dan MANAGER); MEMBER tidak boleh generate AI writing.
+- Tools: follow-up message draft, performance note draft, dan availability reminder draft di `/staff/[id]`; team availability reminder di `/insights`.
+- Semua output draft/review/copy-only: tidak auto-save, tidak auto-create performance note, tidak auto-send pesan, tidak mengirim email.
+- Tone (Neutral/Concise/Supportive, default Neutral) hanya memengaruhi gaya; optional manager context dibatasi ≤500 karakter dan tidak disimpan/di-log/di-audit.
+- Privacy: tidak mengirim passwordHash/session/token/cookie, audit log mentah, isi penuh performance note, atau data staff lain; output AI tidak disimpan; prompt/output/context tidak di-log.
+- Output netral, supportive, plain text (tanpa markdown/Date/Subject/memo); tanpa tuduhan, diagnosis, performance score, atau rekomendasi pemecatan/demosi/promosi/hukuman.
+- Audit ringan mencatat event generate (summary aman saja).
+- Fitur graceful-disabled bila `GEMINI_API_KEY` kosong.
+
 ### FR-004e Member Self-Service Portal
 
 Sistem menyediakan portal `/my` (My Workspace) untuk pengguna yang ter-link ke Staff melalui `User.linkedStaffId`.
