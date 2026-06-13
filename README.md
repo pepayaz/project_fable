@@ -6,7 +6,7 @@ Project ini dibuat sebagai portfolio project berbasis workflow Human Capital / P
 
 ## 🔗 Demo & Screenshots
 
-> **Note:** Deployment publik belum live. Branch `deployment/postgres` sedang dipakai untuk stabilisasi PostgreSQL sebelum private GitHub/deployment prep.
+> **Note:** Deployment publik belum live. Branch `deployment/postgres` adalah deployment candidate untuk persiapan private GitHub dan future staging deployment.
 > [Live Demo URL akan ditambahkan di sini]
 
 ### Screenshots
@@ -48,7 +48,7 @@ Project ini mencakup fitur AI cerdas (opt-in) menggunakan Google Gemini (atau pr
 
 - **Branch Stabil:** Branch `main`/`master` tetap **SQLite-first** dan stabil untuk baseline lokal.
 - **Branch PostgreSQL:** Branch `deployment/postgres` sudah dikonfigurasi untuk PostgreSQL dengan Docker Compose, Prisma PostgreSQL provider, dan Prisma PG adapter.
-- **Production Deployment:** Deployment produksi belum live. Branch PostgreSQL masih perlu review, private GitHub/deployment prep, dan smoke test staging sebelum digunakan untuk produksi.
+- **Production Deployment:** Deployment produksi belum live. Branch PostgreSQL siap untuk private GitHub review dan masih memerlukan staging smoke test sebelum digunakan untuk produksi.
 - **Alasan PostgreSQL untuk Cloud:** Platform cloud serverless (seperti Vercel/Netlify) menggunakan filesystem ephemeral yang **tidak cocok** untuk write file SQLite. PostgreSQL diperlukan sebelum deployment sungguhan ke cloud.
 
 ## ⚠️ Current Limitations
@@ -67,7 +67,8 @@ Sprint 24 fokus pada *GitHub Readiness* & *Documentation*. Langkah deployment se
 3. **Database Migration (Sprint 26):** Eksekusi *switch branch* untuk PostgreSQL (ubah provider Prisma, adaptasi schema).
 4. **PostgreSQL QA (Sprint 27):** QA lokal terhadap branch PostgreSQL tanpa committed project changes.
 5. **PostgreSQL Stabilization (Sprint 28A):** Cleanup dokumentasi, dependency seed, dan konfigurasi lokal sebelum private GitHub/deployment prep.
-6. **Cloud Deployment (future):** Staging test, lalu deploy produksi ke platform seperti Vercel/Netlify setelah QA dan deployment prep selesai.
+6. **Private GitHub & Deployment Prep (Sprint 28B):** CI, deployment prep checklist, dan repository hygiene untuk private push.
+7. **Cloud Deployment (future):** Staging test, lalu deploy produksi ke platform seperti Vercel/Netlify setelah QA dan deployment prep selesai.
 
 ---
 
@@ -157,6 +158,7 @@ npm run build
 - `docs/ADR.md` - Architecture Decision Records
 - `docs/DB_MIGRATION.md` - Panduan migrasi ke PostgreSQL
 - `docs/OPERATIONS.md` - Panduan operasional & deployment checklist
+- `docs/DEPLOYMENT_PREP.md` - Checklist private GitHub dan future staging deployment untuk branch PostgreSQL
 
 ## 🤖 Agent Workflow
 
