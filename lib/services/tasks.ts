@@ -57,8 +57,8 @@ export async function listTasks(params?: TaskListParams) {
       ...(params?.q
         ? {
             OR: [
-              { title: { contains: params.q } },
-              { description: { contains: params.q } },
+              { title: { contains: params.q , mode: "insensitive" } },
+              { description: { contains: params.q , mode: "insensitive" } },
             ],
           }
         : {}),
@@ -128,3 +128,4 @@ export async function deleteTask(id: string) {
     data: { deletedAt: new Date() },
   });
 }
+

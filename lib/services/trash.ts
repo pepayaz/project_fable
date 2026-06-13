@@ -62,9 +62,9 @@ export async function listTrashRecords(params?: TrashListParams) {
             ...(q
               ? {
                   OR: [
-                    { name: { contains: q } },
-                    { email: { contains: q } },
-                    { position: { contains: q } },
+                    { name: { contains: q , mode: "insensitive" } },
+                    { email: { contains: q , mode: "insensitive" } },
+                    { position: { contains: q , mode: "insensitive" } },
                   ],
                 }
               : {}),
@@ -78,7 +78,7 @@ export async function listTrashRecords(params?: TrashListParams) {
       ? db.department.findMany({
           where: {
             deletedAt: { not: null },
-            ...(q ? { name: { contains: q } } : {}),
+            ...(q ? { name: { contains: q , mode: "insensitive" } } : {}),
           },
           orderBy: { deletedAt: "desc" },
           take: TRASH_LIMIT_PER_ENTITY,
@@ -92,10 +92,10 @@ export async function listTrashRecords(params?: TrashListParams) {
             ...(q
               ? {
                   OR: [
-                    { title: { contains: q } },
-                    { description: { contains: q } },
-                    { status: { contains: q } },
-                    { priority: { contains: q } },
+                    { title: { contains: q , mode: "insensitive" } },
+                    { description: { contains: q , mode: "insensitive" } },
+                    { status: { contains: q , mode: "insensitive" } },
+                    { priority: { contains: q , mode: "insensitive" } },
                   ],
                 }
               : {}),
@@ -115,9 +115,9 @@ export async function listTrashRecords(params?: TrashListParams) {
             ...(q
               ? {
                   OR: [
-                    { eventName: { contains: q } },
-                    { status: { contains: q } },
-                    { notes: { contains: q } },
+                    { eventName: { contains: q , mode: "insensitive" } },
+                    { status: { contains: q , mode: "insensitive" } },
+                    { notes: { contains: q , mode: "insensitive" } },
                   ],
                 }
               : {}),
@@ -134,10 +134,10 @@ export async function listTrashRecords(params?: TrashListParams) {
             ...(q
               ? {
                   OR: [
-                    { dayOfWeek: { contains: q } },
-                    { startTime: { contains: q } },
-                    { endTime: { contains: q } },
-                    { notes: { contains: q } },
+                    { dayOfWeek: { contains: q , mode: "insensitive" } },
+                    { startTime: { contains: q , mode: "insensitive" } },
+                    { endTime: { contains: q , mode: "insensitive" } },
+                    { notes: { contains: q , mode: "insensitive" } },
                   ],
                 }
               : {}),
@@ -154,8 +154,8 @@ export async function listTrashRecords(params?: TrashListParams) {
             ...(q
               ? {
                   OR: [
-                    { category: { contains: q } },
-                    { note: { contains: q } },
+                    { category: { contains: q , mode: "insensitive" } },
+                    { note: { contains: q , mode: "insensitive" } },
                   ],
                 }
               : {}),
@@ -366,3 +366,4 @@ export async function restoreTrashRecord(
     }
   }
 }
+

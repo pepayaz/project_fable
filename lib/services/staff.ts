@@ -31,9 +31,9 @@ export async function listStaff(params?: StaffListParams) {
       ...(params?.q
         ? {
             OR: [
-              { name: { contains: params.q } },
-              { email: { contains: params.q } },
-              { position: { contains: params.q } },
+              { name: { contains: params.q , mode: "insensitive" } },
+              { email: { contains: params.q , mode: "insensitive" } },
+              { position: { contains: params.q , mode: "insensitive" } },
             ],
           }
         : {}),
@@ -172,3 +172,4 @@ export async function deleteStaff(id: string) {
     data: { deletedAt: new Date() },
   });
 }
+

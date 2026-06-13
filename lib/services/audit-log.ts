@@ -79,9 +79,9 @@ export async function listAuditLogs(params?: AuditLogListParams) {
       ...(params?.q
         ? {
             OR: [
-              { summary: { contains: params.q } },
-              { actorName: { contains: params.q } },
-              { entityId: { contains: params.q } },
+              { summary: { contains: params.q , mode: "insensitive" } },
+              { actorName: { contains: params.q , mode: "insensitive" } },
+              { entityId: { contains: params.q , mode: "insensitive" } },
             ],
           }
         : {}),
@@ -122,3 +122,4 @@ export function summarizeAvailability(availability: {
 export function summarizePerformanceNote(note: { category: string; staff: { name: string } }) {
   return `Performance note (${note.category}) for ${note.staff.name}`;
 }
+

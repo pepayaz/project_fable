@@ -142,3 +142,6 @@ Sprint 23 prepared the codebase for future PostgreSQL migration:
 - Seed script shows clear guidance when PostgreSQL URL is detected.
 
 PostgreSQL is **not live yet**. The Prisma provider, client, adapter, and seed are still SQLite-first. See `docs/DB_MIGRATION.md` for the full migration plan.
+
+## Local PostgreSQL Prototype
+Start the local database with `docker compose up -d`. The branch is currently configured for PostgreSQL via Prisma adapter.

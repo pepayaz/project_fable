@@ -84,3 +84,6 @@ Before merging `deployment/postgres` into the main development line (or deployin
 - [ ] Case-insensitive search implemented (`mode: "insensitive"`) and verified.
 - [ ] Staging deployment succeeds and connects to a managed PostgreSQL database.
 - [ ] Code review approved by technical lead.
+
+## Prototype Status
+The PostgreSQL prototype is currently implemented on the `deployment/postgres` branch. Do not deploy to production until QA is complete.

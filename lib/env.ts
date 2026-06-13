@@ -25,32 +25,12 @@ function assertDatabaseUrl(databaseUrl: string) {
     throw new Error("DATABASE_URL is required.");
   }
 
-  const isSqlite = databaseUrl.startsWith("file:");
   const isPostgres =
     databaseUrl.startsWith("postgresql://") || databaseUrl.startsWith("postgres://");
 
-  if (!isSqlite && !isPostgres) {
+  if (!isPostgres) {
     throw new Error(
-      "DATABASE_URL must be a SQLite file: URL or a PostgreSQL postgresql:// URL.",
-    );
-  }
-
-  if (isPostgres) {
-    throw new Error(
-      "PostgreSQL DATABASE_URL detected but the Prisma provider is still sqlite. " +
-        "Complete the provider/client/adapter migration before using PostgreSQL. " +
-        "See docs/DB_MIGRATION.md for steps.",
-    );
-  }
-
-  const isProduction = process.env.NODE_ENV === "production";
-  const allowSqliteProduction = process.env.ALLOW_SQLITE_PRODUCTION === "true";
-
-  if (isSqlite && isProduction && !allowSqliteProduction) {
-    throw new Error(
-      "SQLite is not recommended for production. " +
-        "Set ALLOW_SQLITE_PRODUCTION=true to override, or migrate to PostgreSQL. " +
-        "See docs/DB_MIGRATION.md for migration steps.",
+      "DATABASE_URL must be a PostgreSQL postgresql:// URL.",
     );
   }
 }

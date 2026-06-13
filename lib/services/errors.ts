@@ -12,3 +12,4 @@ export function getServiceErrorMessage(error: unknown, fallback: string) {
 
   return fallback;
 }
+

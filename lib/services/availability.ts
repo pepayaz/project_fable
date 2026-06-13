@@ -100,3 +100,4 @@ export async function deleteAvailability(id: string) {
     data: { deletedAt: new Date() },
   });
 }
+

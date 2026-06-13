@@ -32,7 +32,7 @@ export async function listDepartments(params?: DepartmentListParams) {
   return db.department.findMany({
     where: {
       deletedAt: null,
-      ...(params?.q ? { name: { contains: params.q } } : {}),
+      ...(params?.q ? { name: { contains: params.q , mode: "insensitive" } } : {}),
     },
     orderBy: departmentOrderBy(params?.sort ?? "name", params?.dir ?? "asc"),
     include: {
@@ -119,3 +119,4 @@ export async function deleteDepartment(id: string) {
     data: { deletedAt: new Date() },
   });
 }
+

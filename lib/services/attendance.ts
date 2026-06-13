@@ -37,7 +37,7 @@ export async function listAttendanceRecords(params?: AttendanceListParams) {
   return db.attendance.findMany({
     where: {
       deletedAt: null,
-      ...(params?.q ? { eventName: { contains: params.q } } : {}),
+      ...(params?.q ? { eventName: { contains: params.q , mode: "insensitive" } } : {}),
       ...(params?.status ? { status: params.status } : {}),
       ...(params?.staff ? { staffId: params.staff } : {}),
     },
@@ -96,3 +96,4 @@ export async function deleteAttendance(id: string) {
     data: { deletedAt: new Date() },
   });
 }
+

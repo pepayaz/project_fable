@@ -45,7 +45,7 @@ export async function listPerformanceNotes(params?: PerformanceNoteListParams) {
   return db.performanceNote.findMany({
     where: {
       deletedAt: null,
-      ...(params?.q ? { note: { contains: params.q } } : {}),
+      ...(params?.q ? { note: { contains: params.q , mode: "insensitive" } } : {}),
       ...(params?.category ? { category: params.category } : {}),
       ...(params?.staff ? { staffId: params.staff } : {}),
     },
@@ -109,3 +109,4 @@ export async function deletePerformanceNote(id: string) {
     include: { staff: { select: { name: true } } },
   });
 }
+

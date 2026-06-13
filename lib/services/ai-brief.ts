@@ -153,3 +153,4 @@ export async function getWeeklyBriefPrompt() {
     "This briefing is based only on available Project Fable records and should be reviewed before use.",
   ].join("\n");
 }
+
