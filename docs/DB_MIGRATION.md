@@ -1,4 +1,4 @@
-﻿
+
 # Database Migration Guide
 
 Project Fable is currently a SQLite-first application for local development and MVP evaluation. This document explains the current database status, the PostgreSQL migration path, and the operational checks required before any production database switch.
@@ -72,6 +72,8 @@ Do not use SQLite as the final production database for sensitive organizational 
 
 ## Why PostgreSQL Requires a Planned Switch
 
+While SQLite is excellent for local development, it relies on a local file to store data (e.g., `dev.db`). Modern cloud deployment platforms like Vercel or Netlify use ephemeral/serverless filesystems. This means any writes to a SQLite database on these platforms will be lost when the serverless function spins down. Because of this, **PostgreSQL is strictly required for real cloud production deployments on those platforms**.
+
 PostgreSQL requires more than changing the environment variable.
 
 A proper switch needs:
@@ -87,6 +89,11 @@ A proper switch needs:
 9. Rollback plan.
 
 The current migration history is SQLite-based. A PostgreSQL migration should be prepared in a dedicated sprint or deployment branch.
+
+**Recommended Deployment Sequence (Option D):**
+Following ADR-025, we use a safe, decoupled approach for deployment:
+- **Phase 1 (Repo Readiness):** Ensure documentation, codebase hygiene, and GitHub readiness are finalized while still on SQLite (Sprint 24).
+- **Phase 2 (DB Migration & Cloud Deploy):** Switch the Prisma provider to PostgreSQL, perform data migration, and deploy to the cloud platform (Sprint 25).
 
 ## Recommended PostgreSQL Migration Path
 

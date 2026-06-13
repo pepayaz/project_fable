@@ -53,15 +53,64 @@ If your `DATABASE_URL` points elsewhere, copy that file instead.
 4. Run `npm run build` if code changed since the backup.
 5. Start the app and run smoke tests.
 
-## Smoke Tests
+## Release & Launch Checklist
 
-- Login as ADMIN.
-- Open Dashboard, Staff, Tasks, Insights, Data Tools, Users, Trash, and Audit Logs.
-- Create and soft-delete a test record, then restore it from Trash.
-- Export a CSV from Data Tools.
-- Preview an invalid CSV import and confirm it does not import.
-- Deactivate a test user and confirm the session is revoked.
-- Confirm AI cards are disabled when `GEMINI_API_KEY` is empty.
+This checklist supersedes basic smoke testing and provides a comprehensive guide for staging, pushing, and deploying.
+
+### Pre-push Checklist
+
+- [ ] Code compiles without TypeScript errors (`npm run build`).
+- [ ] Linter passes (`npm run lint`).
+- [ ] Repository hygiene commands run and confirmed clean (see `docs/GITHUB_READINESS.md`).
+- [ ] Git history does not contain `.env` files or `.db` files.
+
+### Pre-public Checklist
+
+- [ ] Repository is private. (Do not make public until after Sprint 25).
+- [ ] Screenshots in documentation are sanitized (no PII or real API keys).
+- [ ] Demo seeds use dummy data.
+- [ ] README.md clearly documents the SQLite-first nature of the app.
+
+### Pre-deployment Checklist
+
+- [ ] `DATABASE_URL` is set to the correct production path.
+- [ ] `ALLOW_SQLITE_PRODUCTION=true` is set (if deploying a portfolio/demo with SQLite).
+- [ ] `SEED_ADMIN_*` variables are securely configured.
+- [ ] Hosting environment supports persistent storage for SQLite (Vercel/Netlify are NOT suitable due to ephemeral filesystems; use a VPS, Railway with volume, or similar).
+
+### Expanded Smoke Test Checklist
+
+- [ ] **Auth**: Login as ADMIN.
+- [ ] **Navigation**: Open Dashboard, Staff, Tasks, Insights, Data Tools, Users, Trash, and Audit Logs.
+- [ ] **CRUD**: Create and soft-delete a test record (e.g., a Task or Staff member), then restore it from Trash.
+- [ ] **Export**: Export a CSV from Data Tools and verify the file contents.
+- [ ] **Import**: Preview an invalid CSV import and confirm it surfaces errors and does not import.
+- [ ] **Security**: Deactivate a test user and confirm the session is revoked immediately.
+- [ ] **Feature Flags**: Confirm AI cards/features are disabled gracefully when `GEMINI_API_KEY` is empty.
+
+### Rollback Notes
+
+If a deployment or data migration fails, follow these PowerShell-friendly rollback steps:
+
+1. **Stop the Application**: Ensure no new connections are writing to the database.
+2. **Restore Database Backup**:
+   ```powershell
+   # Move corrupted/current DB aside
+   Rename-Item -Path "prisma/prod.db" -NewName "prisma/prod-failed.db"
+   # Restore the last known good backup
+   Copy-Item -Path "backups/prod-backup.db" -Destination "prisma/prod.db"
+   ```
+3. **Revert Git Commit** (if code caused the issue):
+   ```powershell
+   git revert HEAD
+   # Or checkout the specific stable tag
+   git checkout tags/v1.0.0
+   ```
+4. **Rebuild & Restart**:
+   ```powershell
+   npm run build
+   # Restart your application service (e.g., pm2 restart fable or restart systemctl service)
+   ```
 
 ## Future Production Requirements
 

@@ -4,204 +4,161 @@ Project Fable adalah aplikasi people management ringan untuk organisasi, kepanit
 
 Project ini dibuat sebagai portfolio project berbasis workflow Human Capital / People Management non-enterprise, lalu dikembangkan menuju internal people operations platform yang lebih aman.
 
-## MVP Features
+## 🔗 Demo & Screenshots
 
-Fitur MVP yang tersedia saat ini:
+> **Note:** Deployment publik sedang dalam persiapan (Sprint 25).
+> [Live Demo URL akan ditambahkan di sini]
 
-- Dashboard management overview dengan metric cards, CSS-only visual analytics, top workload, dan recent activity (tanpa chart library)
-- Staff CRUD
-- Staff detail 360 read-only (profil + task, attendance, availability, performance notes)
-- Staff Quick Insights (snapshot rule-based netral) dan Activity Timeline gabungan di halaman detail
-- People Intelligence Center (/insights): organization summary, staff attention list, workload balance, weekly operations — rule-based & netral, dengan teaser di dashboard
-- Member Self-Service Portal (/my): MEMBER yang ter-link ke Staff melihat profil/tasks/attendance/availability sendiri, mengelola availability, dan update status task miliknya (TODO/IN_PROGRESS/DONE)
-- AI Briefing & Review (opt-in): draft Staff AI Brief di /staff/[id] dan Weekly People Ops Brief di /insights, default provider Google Gemini, review-only (tidak disimpan), aktif bila GEMINI_API_KEY diisi
-- AI Writing Assistant (opt-in): draft follow-up message, performance note, dan availability reminder di /staff/[id] plus team availability reminder di /insights — draft/review/copy-only, tidak auto-save & tidak auto-send
-- Search, filter, dan sort server-side di semua list page utama (via query params)
-- Data Tools (/data-tools): CSV export, template download, dan ADMIN-only CSV import preview/confirm untuk departments/staff/tasks
-- Admin User Management (/users): list/create users, role/status changes, staff link/unlink, session revoke on deactivate
-- Audit log search/filter/sort untuk ADMIN
-- Trash & restore untuk soft-deleted records (ADMIN-only, restore-only)
-- Department CRUD
-- Staff assignment ke department
-- Task CRUD
-- Task assignment ke staff dan department
-- Attendance CRUD
-- Availability CRUD
-- Performance Notes CRUD
-- Seed data demo untuk staff dan department
-- Auth foundation dengan login/logout
-- Protected routes untuk halaman utama
-- Admin user seed via environment variable
-- Coarse role-based access control untuk ADMIN, MANAGER, dan MEMBER
-- Audit log foundation untuk create/update/delete entity utama (viewer ADMIN-only)
-- Soft delete untuk entity utama (data historis tidak hilang permanen)
+### Screenshots
 
-Belum termasuk MVP saat ini:
+*(Placeholder untuk screenshot aplikasi)*
+- `[Screenshot Dashboard]`
+- `[Screenshot Staff Detail]`
+- `[Screenshot People Intelligence Center]`
+- `[Screenshot Data Tools]`
 
-- External dashboard chart library
-- Deployment production
-- Advanced ownership workflows lanjutan (Member Self-Service dasar sudah tersedia)
-- Audit log export dan tamper-proofing
-- Permanent delete untuk soft delete
-- Password reset, email verification, MFA, OAuth/SSO
-- Production security hardening penuh
+## 🚀 Project Summary & Feature Highlights
 
-## Tech Stack
+Fitur utama yang tersedia saat ini:
+- **Dashboard & Analytics:** Dashboard management overview dengan metric cards, CSS-only visual analytics, top workload, dan recent activity (tanpa external chart library).
+- **Core Entities:** Staff, Department, Task, Attendance, Availability, dan Performance Notes CRUD dengan search, filter, dan sort (server-side).
+- **People Intelligence Center:** Insight organisasi, staff attention list, workload balance, dan analisis availability.
+- **Member Self-Service Portal:** Staff/Member dapat mengelola availability dan status task miliknya sendiri dengan akses terbatas secara aman.
+- **Data Tools:** Import (dengan pre-validation) & Export CSV untuk entity utama.
+- **User & Access Management:** Admin user management dengan coarse Role-Based Access Control (RBAC) untuk ADMIN, MANAGER, dan MEMBER.
+- **Data Safety:** Soft delete untuk entity utama, trash & restore (ADMIN-only), dan Audit Log untuk akuntabilitas aksi penting.
+
+## 🛡️ Security Posture Summary
+
+Meskipun ini adalah project portfolio, keamanan diutamakan:
+- **Authentication:** First-party auth foundation dengan password hashing (scrypt + salt + timing-safe equal) dan session berbasis token yang di-hash di database.
+- **Authorization:** Server-side RBAC checks di tingkat Server Actions. Member portal menggunakan verifikasi kepemilikan via `linkedStaffId` yang di-resolve server-side.
+- **Hardening:** Environment validation, production seed aman (tanpa demo data & menolak password lemah), session cleanup opportunistik, in-memory failed-login limiter, dan HTTP security headers dasar (termasuk CSP awal). Proxy digunakan untuk melarang akses bypass ke route terproteksi.
+- **Data Integrity:** Soft delete mencegah kehilangan data tak sengaja. Semua mutasi vital (create/update/delete/restore/import) diaudit. Proteksi level logic menolak pembaruan untuk data yang sudah di-soft-delete.
+
+## 🤖 AI Safety Summary
+
+Project ini mencakup fitur AI cerdas (opt-in) menggunakan Google Gemini (atau provider lain lewat abstraksi) untuk **membantu** manager, bukan mengambil keputusan akhir:
+- **AI Briefing & Review:** Menghasilkan draft Staff AI Brief dan Weekly People Ops Brief.
+- **AI Writing Assistant:** Draft follow-up messages, performance notes, dan reminders.
+- **Privacy First:** Data payload di-whitelist. **Tidak pernah** mengirim passwordHash, isi detail performance note yang sensitif, raw audit log, atau session token ke API AI.
+- **No Side-effects:** Output AI murni **draft review-only**. Output tidak otomatis disimpan ke database, tidak otomatis dikirimkan ke user, dan prompt/output tidak disimpan ke audit log.
+
+## 🗄️ Database Status
+
+- **Status Saat Ini:** **SQLite-first**. Aplikasi secara default berjalan menggunakan SQLite (`dev.db`).
+- **PostgreSQL:** **Belum live**. Pengaturan `DATABASE_URL` yang diarahkan ke PostgreSQL saat ini hanya memvalidasi URL, namun provider Prisma di skema masih dikonfigurasi untuk SQLite.
+- **Alasan Penundaan Deployment Cloud:** Platform cloud serverless (seperti Vercel/Netlify) menggunakan filesystem ephemeral yang **tidak cocok** untuk menampung write file SQLite. Data akan hilang setelah instance serverless mati. Karena itu, PostgreSQL mutlak diperlukan sebelum deployment sungguhan ke cloud. Hal ini dipisahkan untuk ditangani pada sprint khusus (Option D: Decoupled approach).
+
+## ⚠️ Current Limitations
+
+- **Search Case-Sensitivity:** Search `contains` di SQLite bersifat case-insensitive, tetapi akan berubah menjadi case-sensitive saat beralih ke PostgreSQL.
+- **Pagination:** Belum ada global pagination di semua tabel (semua hasil diload/di-cap pada batas wajar).
+- **Authentication Features:** Belum mendukung OAuth/SSO, 2FA/MFA, email verification, dan password reset flow.
+- **Audit Logs:** Audit log belum memiliki tamper-proofing (hash chaining).
+- **Data Retention:** Fitur permanent delete (hard delete) belum tersedia.
+
+## 🗺️ Roadmap to Production Deployment
+
+Sprint 24 fokus pada *GitHub Readiness* & *Documentation*. Langkah deployment sesungguhnya masuk ke dalam Sprint 25:
+1. **Repository Readiness (Selesai Sprint 24):** Codebase bersih, dokumentasi solid, portfolio-ready.
+2. **Database Migration (Sprint 25):** Swap Prisma provider ke PostgreSQL, setup baseline migration, validasi index.
+3. **Cloud Deployment (Sprint 25):** Deploy ke platform seperti Vercel/Netlify, hubungkan ke PostgreSQL provider eksternal.
+
+---
+
+## 💻 Tech Stack
 
 - Next.js App Router
 - TypeScript
 - Tailwind CSS
 - Prisma ORM
-- SQLite
+- SQLite (for local dev)
 - Zod
 - Server Actions
 - npm
 
-## Requirements
+## ⚙️ Requirements
 
 - Node.js 20 atau lebih baru
 - npm
 
-## Install
+## 🛠️ Install & Setup
 
 ```bash
 npm install
 ```
 
-## Environment Setup
-
 Copy file environment example:
-
 ```bash
+# Unix/Mac
 cp .env.example .env
-```
 
-Untuk Windows PowerShell:
-
-```powershell
+# Windows PowerShell
 Copy-Item .env.example .env
 ```
 
-Default database lokal:
-
+Default database lokal (SQLite):
 ```env
 DATABASE_URL="file:./prisma/dev.db"
 ```
 
-Admin seed tidak memakai password default. Isi env ini hanya di `.env` lokal:
-
+Admin seed demo configuration (hanya untuk lokal):
 ```env
 SEED_ADMIN_NAME="Project Fable Admin"
 SEED_ADMIN_EMAIL="admin@fable.local"
 SEED_ADMIN_PASSWORD="change-this-local-password"
 ```
 
-## Prisma Setup
+## 💾 Prisma Configuration
 
 Generate Prisma Client:
-
 ```bash
 npx prisma generate
 ```
 
 Jalankan migration lokal:
-
 ```bash
 npx prisma migrate dev
 ```
 
 Seed data demo:
-
 ```bash
 npx prisma db seed
 ```
+Seed menambahkan department dan staff demo. Jika `SEED_ADMIN_EMAIL` dan `SEED_ADMIN_PASSWORD` diisi, seed juga membuat/memperbarui user admin.
 
-Seed saat ini menambahkan department dan staff demo. Jika `SEED_ADMIN_EMAIL` dan `SEED_ADMIN_PASSWORD` diisi, seed juga membuat atau memperbarui admin user.
-
-## Development
+## 🏃 Development & Checks
 
 Jalankan dev server:
-
 ```bash
 npm run dev
 ```
+Akses di: `http://localhost:3000`
 
-App berjalan di:
-
-```text
-http://localhost:3000
-```
-
-## Quality Checks
-
-Lint:
-
+Quality Checks:
 ```bash
 npm run lint
-```
-
-Build:
-
-```bash
 npm run build
 ```
 
-## Feature Status
+## 📄 Project Documents
 
-| Area | Status |
-| --- | --- |
-| Documentation foundation | Done |
-| App scaffold | Done |
-| Staff management | Done |
-| Staff detail 360 | Done |
-| Staff insights & activity timeline | Done |
-| People Intelligence Center | Done |
-| List search/filter/sort | Done |
-| Department management | Done |
-| Task management | Done |
-| Attendance tracking | Done |
-| Availability tracking | Done |
-| Performance notes | Done |
-| Dashboard summary | Done |
-| Reporting & dashboard upgrade | Done |
-| Visual analytics dashboard | Done |
-| Import/export data tools | Done |
-| Admin user management | Done |
-| Production readiness hardening | Done |
-| Polish and demo readiness | Done |
-| Auth foundation | Done |
-| Protected routes | Done |
-| Coarse RBAC | Done |
-| Member self-service portal | Done |
-| AI briefing & review (opt-in) | Done |
-| AI writing assistant (opt-in) | Done |
-| Audit log foundation | Done |
-| Audit log filter/search/sort | Done |
-| Soft delete & data safety | Done |
-| Trash / restore | Done |
-| Security hardening review | Done |
-| PostgreSQL migration prep | Done (prep only) |
-| Fine-grained ownership rules | Future sprint |
-| Audit log export / tamper-proofing | Future sprint |
-| Permanent delete | Future sprint |
-| Deployment | Not included yet |
+- `AGENTS.md` - Aturan AI agent workflow
+- `CLAUDE.md` - General instructions
+- `DESIGN.md` - UI/UX Design System
+- `docs/ARCHITECTURE.md` - Arsitektur aplikasi
+- `docs/DATA_MODEL.md` - Skema entitas
+- `docs/ROADMAP.md` - Rencana fitur & milestone
+- `docs/ADR.md` - Architecture Decision Records
+- `docs/DB_MIGRATION.md` - Panduan migrasi ke PostgreSQL
+- `docs/OPERATIONS.md` - Panduan operasional & deployment checklist
 
-## Project Documents
-
-- `AGENTS.md`
-- `CLAUDE.md`
-- `DESIGN.md`
-- `docs/ARCHITECTURE.md`
-- `docs/DATA_MODEL.md`
-- `docs/ROADMAP.md`
-- `docs/ADR.md`
-
-## Agent Workflow
+## 🤖 Agent Workflow
 
 This project is designed to work with AI coding agents. Agents should follow `AGENTS.md`, use RTK for terminal output where possible, and inspect `graphify-out/GRAPH_REPORT.md` if available before reading many files.
 
 Recommended commands:
-
 ```bash
 rtk git status
 rtk find .
@@ -209,37 +166,3 @@ rtk git diff
 rtk test npm run lint
 rtk test npm run build
 ```
-
-## Scope Notes
-
-Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, and multi-tenancy are deferred until the core workflow is stable. Auth foundation, coarse RBAC, audit logs, soft delete, MEMBER self-service ownership rules, trash/restore, and audit filtering are available. Audit export, audit tamper-proofing, permanent delete policy, and production security hardening remain future work. Sprint 23 prepared for PostgreSQL migration (environment validation, transaction safety, documentation) but the Prisma provider, adapter, and seed are still SQLite-first. See `docs/DB_MIGRATION.md`.
-
-List search/filter/sort known limitations: belum ada pagination (semua hasil dirender), pencarian `contains` di SQLite case-insensitive terutama untuk ASCII, term pencarian muncul di URL (shareable), dan sort task priority masih urutan alfabet kolom (bukan severity).
-
-Dashboard reporting: task completion rate = `completed / (total non-deleted − cancelled) × 100`, 0% bila denominator 0. Semua metrik non-audit menghormati soft delete (`deletedAt: null`). Section Audit hanya tampil untuk ADMIN (`auditLogs:read`); AuditLog tidak di-soft-delete sehingga query audit tidak memakai filter `deletedAt`.
-
-Visual analytics memakai komponen CSS-only (`ChartCard`, `HorizontalBarList`, `StatusDistribution`) tanpa dependency chart library. `/dashboard` memakai pola metric cards, chart overview, lalu actionable/recent lists. `/insights` menambahkan attention levels, availability coverage, task pressure, top open task load, dan overdue distribution tanpa mengganti Staff Attention List.
-
-Data Tools (`/data-tools`): ADMIN dan MANAGER dapat export CSV active records (`deletedAt: null`) untuk Staff, Departments, Tasks, Attendance, dan Availability. Performance Notes full-note export hanya ADMIN. ADMIN dapat download template dan import CSV untuk Departments, Staff, dan Tasks lewat paste/preview/confirm; confirm selalu re-parse dan re-validate server-side. Parser CSV internal mendukung comma delimiter, quoted values, escaped quotes, CRLF/LF, dengan cap 20.000 karakter, 200 rows, dan 50 columns. CSV raw tidak disimpan dan tidak masuk audit.
-
-Admin User Management (`/users`, ADMIN-only): ADMIN dapat membuat user dengan temporary password (langsung di-hash), mengubah role, activate/deactivate, dan link/unlink ke Staff aktif. Password hash dan session token/hash tidak pernah ditampilkan. Deactivate user juga revoke session user tersebut. Current admin tidak bisa deactivate diri sendiri atau melepas role ADMIN sendiri.
-
-Production readiness hardening: environment validation tersedia untuk `DATABASE_URL`, AI config, dan production seed admin; production seed tidak membuat demo data/accounts dan menolak password admin lemah. Session cookie tetap `HttpOnly`, `SameSite=Lax`, `Secure` di production, token disimpan hashed, expired sessions dibersihkan opportunistically, dan login memiliki in-memory failed-attempt limiter. Security headers mencakup baseline headers plus CSP dasar yang kompatibel dengan Next. Lihat `docs/OPERATIONS.md` untuk backup/restore, seed, smoke test, dan deployment checklist.
-
-Trash & restore (`/trash`, ADMIN-only): menampilkan soft-deleted Staff, Department, Task, Attendance, Availability, dan PerformanceNote, dikelompokkan per entity type. Restore hanya set `deletedAt = null` untuk record target, tidak cascade. Child records hanya bisa direstore bila parent terkait aktif; Department restore mengecek conflict nama. Restore dicatat ke audit log (`RESTORE`). Permanent delete sengaja belum tersedia dan menunggu policy terpisah.
-
-Audit log usability (`/audit-logs`, ADMIN-only): viewer mendukung search/filter/sort via query params (`q`, `action`, `entityType`, `actorRole`, `from`, `to`, `sort=createdAt`, `dir`). Filtering audit tidak diaudit. Export dan tamper-proof hash chain masih future.
-
-AI Briefing & Review (opt-in, default provider Google Gemini `gemini-2.5-flash-lite`): hanya ADMIN/MANAGER (`ai:generate`) yang dapat men-generate draft Staff AI Brief (`/staff/[id]`) dan Weekly People Ops Brief (`/insights`). Fitur graceful-disabled bila `GEMINI_API_KEY` kosong. Output adalah draft untuk review manusia, **tidak disimpan** ke database, dan prompt/output **tidak di-log**. Data yang dikirim dibatasi whitelist (profil + signals + ringkasan hitungan); **tidak** mengirim isi penuh performance note, passwordHash, session/token/cookie, atau audit log mentah. Provider abstraction memungkinkan menambah Anthropic/OpenAI sebagai future provider tanpa mengubah business logic. Bukan chatbot, tanpa scoring/keputusan HR final. Env: `AI_PROVIDER`, `GEMINI_API_KEY`, `AI_MODEL`. Lihat ADR-019.
-
-AI Writing Assistant (opt-in, reuse provider abstraction & `ai:generate`): ADMIN/MANAGER dapat men-generate draft follow-up message, performance note, dan availability reminder di `/staff/[id]`, serta team availability reminder di `/insights`. Semua **draft/review/copy-only** — tidak mengirim email otomatis, tidak menyimpan output, dan tidak otomatis membuat performance note. Tone (Neutral/Concise/Supportive) dan optional manager context (≤500 char, tidak disimpan/di-log/di-audit) tersedia. Privacy boundary sama dengan AI Briefing (whitelist; tanpa isi penuh performance note, secret, atau audit mentah). Output netral & supportive, tanpa tuduhan/diagnosis/scoring/keputusan HR. Lihat ADR-020.
-
-Member Self-Service Portal (`/my`): pengguna yang ter-link ke Staff via `User.linkedStaffId` melihat data miliknya sendiri (boundary kepemilikan ditegakkan server-side, `staffId` tidak pernah dari client). MEMBER: profil & attendance view-only; availability self-service; status task miliknya terbatas TODO/IN_PROGRESS/DONE; performance notes hanya hitungan kategori (tanpa isi). Availability & task-status oleh MEMBER di-audit. ADMIN/MANAGER tidak wajib linked; jika tidak linked, `/my` menampilkan empty state. Seed non-production me-link `member@fable.local` ke staff demo.
-
-People Intelligence Center (`/insights`, permission `dashboard:read`, ADMIN+MANAGER): organization summary, staff attention list (Needs attention / Follow-up suggested / Stable dengan reasons objektif), workload balance, dan weekly operations (last 7 days). Semua rule-based, netral, dan menghormati soft delete; populasi utama staff ACTIVE; tidak ada skor performa final maupun isi performance note (hanya hitungan kategori/sinyal). Catatan: "tasks completed recently" memakai proxy `status=DONE` & `updatedAt >= window` karena tidak ada kolom `completedAt`. Sinyal staff dievaluasi oleh `evaluateStaffSignals` yang sama dengan Staff Detail. Struktur ini disiapkan sebagai fondasi AI Weekly Brief — Sprint ini belum memakai AI.
-
-Staff insights & timeline: Quick Insights bersifat rule-based, netral, dan transparan (menampilkan angka + sinyal "Needs attention"/"Follow-up suggested"/"No immediate signals" beserta alasannya), bukan penilaian final terhadap staff. Activity Timeline menggabungkan task/attendance/availability/performance note (kategori + tanggal saja, tanpa isi note) terurut terbaru→lama (cap 20); entri audit hanya muncul untuk ADMIN. Struktur snapshot/timeline ini sengaja disiapkan sebagai input untuk fitur AI staff brief di sprint berikutnya — Sprint ini belum memakai AI.
-
-Security hardening (lihat ADR-017 dan ADR-023): security headers dasar + CSP baseline, timing login disamakan agar tidak bocor keberadaan email, login failed-attempt limiter in-memory, proxy melindungi route utama, `update*`/`delete*` menolak record yang sudah soft-deleted, dan seed production hanya membuat admin. CSRF mengandalkan proteksi bawaan Next.js Server Actions. Accepted risks: tidak ada MFA/password reset/OAuth, session belum sliding/rotation, audit log belum tamper-proof, dan rate limiting belum production-grade untuk multi-instance/serverless.
-
-Deployment checklist: set env variables, validate production seed admin env, run Prisma migration/generate, seed production admin, run `npm run lint`, run `npm run build`, run smoke tests from `docs/OPERATIONS.md`, confirm `.env` is not committed, decide whether AI should stay disabled or set `GEMINI_API_KEY`, and verify auth/RBAC/users/data-tools/trash/audit workflows.

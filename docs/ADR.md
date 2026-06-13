@@ -684,3 +684,28 @@ Negative / accepted:
 - Seed tetap menggunakan raw SQLite SQL sampai Sprint 24.
 - `mode: "insensitive"` belum ditambahkan; search case-sensitivity akan berubah saat migrasi ke PostgreSQL.
 - Tidak ada dependency baru yang ditambahkan.
+
+## ADR-025 Deployment Strategy & GitHub Readiness
+
+Status: Accepted
+
+### Context
+
+Project Fable sudah memiliki dokumentasi, arsitektur, dan fitur yang solid. Menjelang fase akhir MVP, muncul kebutuhan untuk mendeploy aplikasi ke platform cloud (seperti Vercel atau Netlify) agar portofolio dapat dilihat secara publik. Namun, platform cloud serverless ini menggunakan file system ephemeral yang tidak cocok untuk SQLite writes, sehingga migrasi ke PostgreSQL mutlak diperlukan sebelum deployment produksi.
+
+### Decision
+
+Gunakan **Option D: Safe, decoupled approach**.
+
+- **Sprint 24:** Fokus sepenuhnya pada GitHub readiness, repo hygiene, dan dokumentasi portofolio. Menyiapkan `README.md` yang honest, screenshot placeholder, demo link placeholder, dan memastikan seluruh kode rapi.
+- **Sprint 25:** Fokus menangani actual PostgreSQL switch (provider swap, schema validation, migration script) dan deployment cloud (Vercel/Netlify).
+
+### Consequences
+
+Positive:
+- Pendekatan yang lebih aman (Safe, decoupled approach) tanpa menggabungkan pembersihan dokumentasi dengan perubahan database kritis dalam satu sprint.
+- Repositori siap dipublikasikan di GitHub (GitHub readiness) segera setelah Sprint 24 selesai.
+- Mengurangi risiko build gagal karena masalah migrasi database saat merapikan repo.
+
+Negative / accepted:
+- Deployment cloud dan live URL belum tersedia sampai Sprint 25.

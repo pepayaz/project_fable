@@ -228,7 +228,9 @@ Deliverables:
 
 Sprint 23 (done): PostgreSQL migration prep — environment validation, transaction safety (`confirmImport`, `setUserActive`), seed hardening, `ALLOW_SQLITE_PRODUCTION`, `docs/DB_MIGRATION.md`, ADR-024. Provider stays SQLite.
 
-Sprint 24 (future): Actual PostgreSQL migration — provider switch to `postgresql`, baseline migration, `@prisma/adapter-pg`, seed rewrite to Prisma Client, `mode: "insensitive"` on search filters, PostgreSQL indexes.
+Sprint 24 (done): Mega Sprint — GitHub readiness, deployment strategy (Option D), repository hygiene, and portfolio launch prep. App is still SQLite-first.
+
+Sprint 25 (future): Actual PostgreSQL migration (provider switch, seed rewrite) AND production deployment decision / portfolio case study finalization.
 
 ## Priority Order
 
