@@ -292,6 +292,8 @@ Coarse RBAC uses explicit permission strings such as `staff:create`, `tasks:upda
 - `MANAGER` can view dashboard, CRUD staff, tasks, attendance, availability, and performance notes, and view departments.
 - `MEMBER` can access only its own workspace and settings.
 - Trash permissions (`trash:read`, `trash:restore`) are ADMIN-only.
+- Data exchange: `export:read` is ADMIN/MANAGER; `import:manage` is ADMIN-only.
+- User management: `users:read` and `users:manage` are ADMIN-only.
 
 All protected pages use read permissions. All mutating Server Actions use create/update/delete permissions. UI actions are hidden when permission is missing, but server-side permission checks remain the source of truth.
 
@@ -306,7 +308,31 @@ Audit log foundation mencatat aksi penting pada entity utama untuk akuntabilitas
 - Viewer `/audit-logs` read-only dan ADMIN-only lewat permission `auditLogs:read`.
 - Viewer audit mendukung query param filtering/search/sort (`q`, `action`, `entityType`, `actorRole`, `from`, `to`, `sort=createdAt`, `dir`) dengan cap 200 row.
 - Restore dari trash dicatat sebagai `RESTORE` dengan summary aman. Filtering audit tidak dicatat.
+- Export/import dicatat sebagai `EXPORT` / `IMPORT` pada `DataExport` / `DataImport` tanpa CSV raw. User management dicatat pada `User` tanpa password/session data.
 - Foundation ini belum tamper-proof, belum mencatat aksi gagal/auth, dan belum punya export atau pagination penuh.
+
+## Data Tools Strategy
+
+`/data-tools` menyediakan CSV exchange untuk data operasional tanpa dependency dan tanpa schema change.
+
+- **Export:** route handler `app/data-tools/export/route.ts` menghasilkan `text/csv` untuk Staff, Departments, Tasks, Attendance, Availability, dan Performance Notes. Semua query export memakai `deletedAt: null`. User/Session/AuditLog/AI output/secrets tidak diekspor. Performance Notes full-note export hanya ADMIN.
+- **Templates:** `app/data-tools/template/route.ts` menghasilkan header CSV untuk Departments, Staff, dan Tasks.
+- **Import:** ADMIN-only via textarea paste CSV. Flow import adalah preview -> validation report -> confirm. Confirm selalu re-parse dan re-validate CSV server-side sebelum menulis data.
+- **Parser:** `lib/csv.ts` support comma delimiter, quoted values, escaped quotes, CRLF/LF, dengan cap 20.000 karakter, 200 rows, dan 50 columns.
+- **Validation:** `lib/services/data-import.ts` memakai Zod/service rules existing. Staff email diperlakukan duplicate jika sudah ada staff aktif dengan email sama. Task import prefer `assignedStaffEmail`; `assignedStaffName` hanya boleh jika unik; `departmentName` harus resolve ke department aktif.
+- **Audit/privacy:** audit hanya mencatat jumlah/type import/export, tidak CSV raw.
+
+## Admin User Management Strategy
+
+`/users` adalah ADMIN-only module untuk account control dasar.
+
+- `lib/services/users.ts` menangani list/create/update role/status/link/unlink/revoke sessions.
+- Create user memakai `hashPassword`; temporary password tidak disimpan selain hash dan tidak pernah diaudit.
+- User table tidak menampilkan `passwordHash` atau session token/hash.
+- `linkedStaffId` memakai constraint unique schema; service juga mengecek Staff aktif dan link existing untuk pesan aman.
+- Deactivate men-set `isActive=false` dan revoke session via `db.session.deleteMany({ userId })`.
+- Guard self-lockout: current admin tidak bisa deactivate diri sendiri atau mengubah role dirinya dari ADMIN.
+- Tidak ada delete user, invitation email, password reset email, MFA, OAuth, atau notification.
 
 ## Soft Delete Strategy
 

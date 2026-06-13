@@ -17,6 +17,8 @@ Fitur MVP yang tersedia saat ini:
 - AI Briefing & Review (opt-in): draft Staff AI Brief di /staff/[id] dan Weekly People Ops Brief di /insights, default provider Google Gemini, review-only (tidak disimpan), aktif bila GEMINI_API_KEY diisi
 - AI Writing Assistant (opt-in): draft follow-up message, performance note, dan availability reminder di /staff/[id] plus team availability reminder di /insights — draft/review/copy-only, tidak auto-save & tidak auto-send
 - Search, filter, dan sort server-side di semua list page utama (via query params)
+- Data Tools (/data-tools): CSV export, template download, dan ADMIN-only CSV import preview/confirm untuk departments/staff/tasks
+- Admin User Management (/users): list/create users, role/status changes, staff link/unlink, session revoke on deactivate
 - Audit log search/filter/sort untuk ADMIN
 - Trash & restore untuk soft-deleted records (ADMIN-only, restore-only)
 - Department CRUD
@@ -37,7 +39,6 @@ Fitur MVP yang tersedia saat ini:
 Belum termasuk MVP saat ini:
 
 - External dashboard chart library
-- Export/import
 - Deployment production
 - Advanced ownership workflows lanjutan (Member Self-Service dasar sudah tersedia)
 - Audit log export dan tamper-proofing
@@ -164,6 +165,8 @@ npm run build
 | Dashboard summary | Done |
 | Reporting & dashboard upgrade | Done |
 | Visual analytics dashboard | Done |
+| Import/export data tools | Done |
+| Admin user management | Done |
 | Polish and demo readiness | Done |
 | Auth foundation | Done |
 | Protected routes | Done |
@@ -214,6 +217,10 @@ List search/filter/sort known limitations: belum ada pagination (semua hasil dir
 Dashboard reporting: task completion rate = `completed / (total non-deleted − cancelled) × 100`, 0% bila denominator 0. Semua metrik non-audit menghormati soft delete (`deletedAt: null`). Section Audit hanya tampil untuk ADMIN (`auditLogs:read`); AuditLog tidak di-soft-delete sehingga query audit tidak memakai filter `deletedAt`.
 
 Visual analytics memakai komponen CSS-only (`ChartCard`, `HorizontalBarList`, `StatusDistribution`) tanpa dependency chart library. `/dashboard` memakai pola metric cards, chart overview, lalu actionable/recent lists. `/insights` menambahkan attention levels, availability coverage, task pressure, top open task load, dan overdue distribution tanpa mengganti Staff Attention List.
+
+Data Tools (`/data-tools`): ADMIN dan MANAGER dapat export CSV active records (`deletedAt: null`) untuk Staff, Departments, Tasks, Attendance, dan Availability. Performance Notes full-note export hanya ADMIN. ADMIN dapat download template dan import CSV untuk Departments, Staff, dan Tasks lewat paste/preview/confirm; confirm selalu re-parse dan re-validate server-side. Parser CSV internal mendukung comma delimiter, quoted values, escaped quotes, CRLF/LF, dengan cap 20.000 karakter, 200 rows, dan 50 columns. CSV raw tidak disimpan dan tidak masuk audit.
+
+Admin User Management (`/users`, ADMIN-only): ADMIN dapat membuat user dengan temporary password (langsung di-hash), mengubah role, activate/deactivate, dan link/unlink ke Staff aktif. Password hash dan session token/hash tidak pernah ditampilkan. Deactivate user juga revoke session user tersebut. Current admin tidak bisa deactivate diri sendiri atau melepas role ADMIN sendiri.
 
 Trash & restore (`/trash`, ADMIN-only): menampilkan soft-deleted Staff, Department, Task, Attendance, Availability, dan PerformanceNote, dikelompokkan per entity type. Restore hanya set `deletedAt = null` untuk record target, tidak cascade. Child records hanya bisa direstore bila parent terkait aktif; Department restore mengecek conflict nama. Restore dicatat ke audit log (`RESTORE`). Permanent delete sengaja belum tersedia dan menunggu policy terpisah.
 

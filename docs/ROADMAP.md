@@ -198,6 +198,8 @@ Sudah dikerjakan (opt-in, lihat ADR-020): AI Writing Assistant & Review Workflow
 
 Sudah dikerjakan (lihat ADR-021): Visual Analytics, Data Recovery & Audit Usability - CSS-only chart overview di `/dashboard` dan `/insights`, `/trash` ADMIN-only untuk restore soft-deleted records, audit log search/filter/sort, dan audit action `RESTORE`. Permanent delete tetap future.
 
+Sudah dikerjakan (lihat ADR-022): Import/Export System & Admin User Management - `/data-tools` untuk CSV export/template/import preview-confirm, `/users` untuk ADMIN user management, audit `EXPORT`/`IMPORT`, tanpa dependency/schema change.
+
 Possible deliverables lanjutan:
 
 - Anthropic/OpenAI sebagai provider tambahan via abstraction yang sudah ada.

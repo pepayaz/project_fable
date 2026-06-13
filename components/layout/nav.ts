@@ -8,11 +8,13 @@ export const navItems = [
   { label: "Tasks", href: "/tasks", permission: "tasks:read" },
   { label: "Attendance", href: "/attendance", permission: "attendance:read" },
   { label: "Availability", href: "/availability", permission: "availability:read" },
+  { label: "Data Tools", href: "/data-tools", permission: "export:read" },
   {
     label: "Performance Notes",
     href: "/performance-notes",
     permission: "performanceNotes:read",
   },
+  { label: "Users", href: "/users", permission: "users:read" },
   { label: "Audit Logs", href: "/audit-logs", permission: "auditLogs:read" },
   { label: "Trash", href: "/trash", permission: "trash:read" },
   { label: "My Workspace", href: "/my", permission: "my:read" },

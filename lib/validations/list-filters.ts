@@ -69,7 +69,15 @@ export const performanceNoteListParamsSchema = z.object({
 });
 export type PerformanceNoteListParams = z.infer<typeof performanceNoteListParamsSchema>;
 
-export const auditActions = ["CREATE", "UPDATE", "DELETE", "GENERATE", "RESTORE"] as const;
+export const auditActions = [
+  "CREATE",
+  "UPDATE",
+  "DELETE",
+  "GENERATE",
+  "RESTORE",
+  "EXPORT",
+  "IMPORT",
+] as const;
 export const auditEntityTypes = [
   "Staff",
   "Department",
@@ -79,6 +87,9 @@ export const auditEntityTypes = [
   "PerformanceNote",
   "AiBrief",
   "AiWriting",
+  "DataExport",
+  "DataImport",
+  "User",
 ] as const;
 export const auditActorRoles = ["ADMIN", "MANAGER", "MEMBER"] as const;
 export const auditLogSortKeys = ["createdAt"] as const;

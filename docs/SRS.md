@@ -323,6 +323,36 @@ Acceptance criteria:
 - Filtering audit tidak membuat audit event baru.
 - Export dan tamper-proofing audit log tetap future.
 
+### FR-015 CSV Import and Export
+
+Sistem menyediakan Data Tools untuk pertukaran data CSV.
+
+Acceptance criteria:
+
+- `/data-tools` dapat diakses ADMIN dan MANAGER lewat permission `export:read`.
+- Export tersedia untuk Staff, Departments, Tasks, Attendance, Availability, dan Performance Notes.
+- Export default hanya record aktif (`deletedAt: null`) dan tidak menyertakan User, Session, AuditLog, AI output, secret, passwordHash, atau session token.
+- Performance Notes full-note export hanya boleh ADMIN.
+- ADMIN dapat download template CSV untuk Departments, Staff, dan Tasks.
+- Import hanya ADMIN lewat permission `import:manage`.
+- Import memakai paste CSV, preview, validation report, dan confirm; tidak boleh import bila ada invalid rows.
+- Confirm import harus re-parse dan re-validate server-side sebelum write.
+- Import mencatat audit `IMPORT`; export mencatat audit `EXPORT`; CSV raw tidak masuk audit.
+
+### FR-016 Admin User Management
+
+Sistem menyediakan `/users` untuk ADMIN mengelola akun aplikasi.
+
+Acceptance criteria:
+
+- `/users` hanya ADMIN lewat `users:read`; mutasi memakai `users:manage`.
+- ADMIN dapat list users, create user, activate/deactivate, change role, link/unlink User ke Staff aktif.
+- Create user memakai temporary password minimal 8 karakter dan menyimpan hash saja.
+- Password hash, session token, dan session hash tidak pernah ditampilkan.
+- Deactivate revoke sessions user tersebut.
+- Current admin tidak boleh deactivate diri sendiri atau melepas role ADMIN sendiri.
+- Tidak ada delete user, password reset email, invitation email, MFA, OAuth, atau email notification.
+
 ## Non-Functional Requirements
 
 ### Usability
@@ -356,7 +386,7 @@ Aplikasi harus dapat dijalankan lokal dengan instruksi yang jelas.
 
 Aplikasi harus menghindari exposure data sensitif. Auth foundation tersedia dengan password hashing, database session, httpOnly cookie, protected routes, dan logout.
 
-Audit log foundation mencatat create/update/delete/restore/generate pada entity utama (siapa, kapan, terhadap apa) dengan summary aman, tanpa menyimpan passwordHash, session token, raw cookie, atau dump objek. Viewer audit log read-only, filterable, dan hanya untuk ADMIN.
+Audit log foundation mencatat create/update/delete/restore/generate/export/import pada entity utama (siapa, kapan, terhadap apa) dengan summary aman, tanpa menyimpan passwordHash, session token, raw cookie, CSV raw, temporary password, atau dump objek. Viewer audit log read-only, filterable, dan hanya untuk ADMIN.
 
 Hardening dasar sudah diterapkan (lihat ADR-017): security headers HTTP dasar (`X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`), timing login disamakan agar tidak bocor keberadaan email, proxy melindungi `/audit-logs`, service `update*`/`delete*` menolak record yang sudah soft-deleted, dan seed production hanya membuat admin. CSRF mengandalkan proteksi bawaan Next.js Server Actions.
 

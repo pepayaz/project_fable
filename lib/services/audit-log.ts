@@ -2,7 +2,14 @@ import { db } from "@/lib/db";
 import type { AuthUser } from "@/lib/auth/session";
 import type { AuditLogListParams } from "@/lib/validations/list-filters";
 
-export type AuditAction = "CREATE" | "UPDATE" | "DELETE" | "GENERATE" | "RESTORE";
+export type AuditAction =
+  | "CREATE"
+  | "UPDATE"
+  | "DELETE"
+  | "GENERATE"
+  | "RESTORE"
+  | "EXPORT"
+  | "IMPORT";
 
 export type AuditEntityType =
   | "Staff"
@@ -12,7 +19,10 @@ export type AuditEntityType =
   | "Availability"
   | "PerformanceNote"
   | "AiBrief"
-  | "AiWriting";
+  | "AiWriting"
+  | "DataExport"
+  | "DataImport"
+  | "User";
 
 type AuditActor = Pick<AuthUser, "id" | "name" | "role">;
 

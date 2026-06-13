@@ -578,3 +578,39 @@ Negative / accepted:
 - CSS-only charts tidak punya tooltip/legend interaktif kompleks.
 - Trash belum memiliki permanent delete; ini sengaja ditunda sampai ada policy retention/cascade.
 - Audit log belum tamper-proof dan belum punya export.
+
+## ADR-022 CSV Import/Export and Admin User Management
+
+Status: Accepted
+
+### Context
+
+Project Fable sudah memiliki CRUD, RBAC, audit, soft delete, trash/restore, visual analytics, dan AI review workflows. Admin nyata membutuhkan cara menukar data operasional via CSV dan mengelola akun user tanpa membuka database.
+
+### Decision
+
+Bangun Data Tools dan Admin User Management tanpa dependency baru dan tanpa schema change.
+
+- **Routes:** `/data-tools` untuk export/import/template CSV; `/users` untuk user management.
+- **Permissions:** `export:read` untuk ADMIN/MANAGER; `import:manage`, `users:read`, dan `users:manage` hanya ADMIN.
+- **Export:** route handler CSV menghasilkan active records (`deletedAt: null`) untuk Staff, Departments, Tasks, Attendance, Availability, dan Performance Notes. Performance Notes full-note export hanya ADMIN. User/Session/AuditLog/AI output/secrets tidak diekspor.
+- **Templates:** template CSV generated untuk Departments, Staff, dan Tasks.
+- **Import:** ADMIN-only paste CSV dengan preview/validation report/confirm. Confirm selalu re-parse dan re-validate server-side. Import scope: Departments, Staff, Tasks.
+- **CSV parser:** internal parser support comma delimiter, quoted values, escaped quotes, CRLF/LF; cap 20.000 chars, 200 rows, 50 columns.
+- **Validation:** reuse Zod/service rules. Staff email dianggap duplicate bila ada active staff dengan email sama. Task import prefer staff email; staff name hanya valid jika unik; department name harus resolve ke active department.
+- **User management:** ADMIN dapat list/create users, role change, activate/deactivate, link/unlink Staff. Password memakai existing scrypt hash. Deactivate revoke sessions. Current admin tidak bisa deactivate diri sendiri atau melepas role ADMIN sendiri.
+- **Audit:** `EXPORT`/`IMPORT` pada `DataExport`/`DataImport`; user create/update pada `User`. Audit summary aman; tidak menyimpan CSV raw, password temporary, passwordHash, atau session token/hash.
+
+### Consequences
+
+Positive:
+
+- Admin dapat melakukan data exchange dasar dan account management tanpa database access.
+- CSV import lebih aman karena preview dan confirm validasi ulang.
+- Tidak menambah dependency, tidak ubah schema, dan tetap sesuai Server Actions/service-layer pattern.
+
+Negative / accepted:
+
+- Import memakai textarea, bukan file upload.
+- CSV parser internal cukup untuk CSV dasar, bukan spreadsheet parser penuh.
+- Tidak ada user deletion, invitation email, password reset email, MFA/OAuth/SSO.
