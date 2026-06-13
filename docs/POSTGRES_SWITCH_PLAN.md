@@ -1,8 +1,8 @@
 # PostgreSQL Migration Plan
 
-This document outlines the planned future migration from the current SQLite-first architecture to a robust PostgreSQL database. 
+This document tracks the branch-based PostgreSQL migration. The stable `main`/`master` line remains SQLite-first, while `deployment/postgres` is the PostgreSQL prototype/stabilization branch.
 
-**Important Note:** The application is currently SQLite-first. Vercel/Netlify are NOT suitable with SQLite writes due to ephemeral filesystems. This migration should be executed only when moving to a persistent, production-ready database environment.
+**Important Note:** Production deployment is not live from this branch. Vercel/Netlify are NOT suitable with SQLite writes due to ephemeral filesystems, so PostgreSQL is required before real cloud deployment.
 
 ## 1. Branch-Based Migration Strategy
 
@@ -12,14 +12,14 @@ Do not perform the migration directly on `main`. The migration must be isolated 
 
 This ensures that the `main` branch remains stable and SQLite-compatible until the migration is fully tested and approved.
 
-## 2. Technical Steps for the Future Branch
+## 2. Technical Steps for the PostgreSQL Branch
 
-Execute these steps strictly within the `deployment/postgres` branch:
+These steps belong strictly within the `deployment/postgres` branch. Sprint 26 completed the provider switch and PostgreSQL baseline on this branch; future changes should continue to protect `main`/`master` as the SQLite-first baseline.
 
 1. **Backup SQLite Database:** Ensure you have a secure backup of the local SQLite database (`dev.db` and any production snapshots) before proceeding.
-2. **Create Migration Branch:** Checkout the new branch (`git checkout -b deployment/postgres`).
+2. **Create Migration Branch:** Checkout the new branch (`git checkout -b deployment/postgres`) if it does not already exist.
 3. **Switch Prisma Provider:** Update `schema.prisma` to change the datasource provider from `"sqlite"` to `"postgresql"`.
-4. **Replace/Remove SQLite Adapter:** Remove any custom SQLite adapters (e.g., LibSQL/Turso adapters) and revert to using the Prisma native engine for PostgreSQL.
+4. **Replace/Remove SQLite Adapter:** Remove SQLite adapters and use the PostgreSQL adapter/runtime path required by the current Prisma version.
 5. **Rewrite Seed Scripts:** Update `prisma/seed.ts` to use Prisma Client natively. 
     - Preserve `dev` vs. `prod` behavior.
     - Require a strong admin password for production.
@@ -86,4 +86,4 @@ Before merging `deployment/postgres` into the main development line (or deployin
 - [ ] Code review approved by technical lead.
 
 ## Prototype Status
-The PostgreSQL prototype is currently implemented on the `deployment/postgres` branch. Do not deploy to production until QA is complete.
+The PostgreSQL prototype is currently implemented on the `deployment/postgres` branch. Sprint 27 local QA passed, and Sprint 28A focuses on stabilization. Do not deploy to production until deployment prep, staging checks, and explicit approval are complete.

@@ -1,21 +1,27 @@
 
 # Database Migration Guide
 
-Project Fable is currently a SQLite-first application for local development and MVP evaluation. This document explains the current database status, the PostgreSQL migration path, and the operational checks required before any production database switch.
+Project Fable has two relevant branch states. `main`/`master` remains SQLite-first for the stable baseline. `deployment/postgres` is the PostgreSQL prototype/stabilization branch. This document explains the branch status, migration path, and operational checks required before any production database switch.
 
 ## Current Database Status
 
-Project Fable currently uses SQLite.
+On `main`/`master`, Project Fable uses SQLite. On `deployment/postgres`, Project Fable uses PostgreSQL.
 
-Current implementation details:
+Stable SQLite implementation details:
 
 * `prisma/schema.prisma` uses `provider = "sqlite"`.
 * `prisma/migrations/migration_lock.toml` is locked to SQLite.
 * `lib/db.ts` uses `@prisma/adapter-better-sqlite3`.
 * Local development uses `DATABASE_URL="file:./prisma/dev.db"`.
-* Production PostgreSQL is not live yet.
+PostgreSQL branch implementation details:
 
-Changing `DATABASE_URL` to `postgresql://...` is not enough. The Prisma provider, generated client, database adapter, migration history, and seed workflow must be reviewed before PostgreSQL can be used safely.
+* `prisma/schema.prisma` uses `provider = "postgresql"`.
+* `prisma/migrations/migration_lock.toml` is locked to PostgreSQL.
+* `lib/db.ts` uses `pg` with `@prisma/adapter-pg`.
+* Local PostgreSQL runs through Docker Compose.
+* Production PostgreSQL deployment is not live yet.
+
+Changing `DATABASE_URL` to `postgresql://...` is not enough on `main`/`master`. Use the dedicated `deployment/postgres` branch for PostgreSQL work.
 
 ## Sprint 23 Scope
 
@@ -60,7 +66,7 @@ or:
 DATABASE_URL="postgres://USER:PASSWORD@HOST:PORT/DATABASE"
 ```
 
-While the Prisma provider is still SQLite, PostgreSQL URLs should be treated as future deployment preparation and should produce clear guidance instead of pretending that PostgreSQL is already active.
+While the Prisma provider is still SQLite on `main`/`master`, PostgreSQL URLs should be treated as future deployment preparation. On `deployment/postgres`, PostgreSQL URLs are expected.
 
 Production should reject SQLite by default. A limited override such as the following may be used only for local smoke testing or temporary internal evaluation:
 
@@ -88,12 +94,12 @@ A proper switch needs:
 8. Smoke testing after migration.
 9. Rollback plan.
 
-The current migration history is SQLite-based. A PostgreSQL migration should be prepared in a dedicated sprint or deployment branch.
+The `main`/`master` migration history is SQLite-based. The `deployment/postgres` branch has a PostgreSQL baseline migration.
 
 **Recommended Deployment Sequence (Option D: Branch-Based Migration):**
 Following ADR-025 and ADR-026, we use a safe, decoupled, branch-based approach for deployment:
 - **Phase 1 (Repo Readiness):** Ensure documentation, codebase hygiene, and GitHub readiness are finalized while keeping the `main` branch completely SQLite-first (Sprint 24).
-- **Phase 2 (DB Migration & Cloud Deploy):** Create a dedicated `deployment/postgres` branch. Direct provider switch and deleting SQLite migrations on `main` is too aggressive and risky, as it breaks local development stability. Instead, in the `deployment/postgres` branch: switch the Prisma provider to PostgreSQL, delete the SQLite migrations, generate a new PostgreSQL migration baseline, and deploy to the cloud platform from this branch (Sprint 25). *Note: PostgreSQL is planned, not live.*
+- **Phase 2 (DB Migration Branch):** Use the dedicated `deployment/postgres` branch. Direct provider switch and deleting SQLite migrations on `main` is too aggressive and risky, as it breaks local development stability. In `deployment/postgres`, the provider switch and PostgreSQL baseline have been completed. *Note: production deployment is not live.*
 
 ## Recommended PostgreSQL Migration Path
 
@@ -131,7 +137,7 @@ Production seed behavior:
 * Production admin password must be strong and explicitly provided.
 * Weak, empty, or fallback production passwords must be rejected.
 
-If a PostgreSQL URL is used while the application still has SQLite Prisma provider configuration, the seed script should show a clear message pointing to this migration guide.
+If a PostgreSQL URL is used while the application still has SQLite Prisma provider configuration on `main`/`master`, the seed script should show clear guidance. On `deployment/postgres`, the seed script is expected to run against PostgreSQL.
 
 ## Transaction Safety
 
@@ -153,7 +159,7 @@ Important difference:
 * SQLite `contains` behavior may be case-insensitive for ASCII depending on collation and query behavior.
 * PostgreSQL `contains` is generally case-sensitive unless configured otherwise.
 
-Do not add `mode: "insensitive"` while the project still uses the SQLite Prisma provider if it is not supported by the generated client.
+Do not add `mode: "insensitive"` while working on the SQLite-first branch if it is not supported by the generated client.
 
 When the project actually switches to PostgreSQL, search behavior should be reviewed and normalized.
 
@@ -199,7 +205,7 @@ Future PostgreSQL recommendations:
 * Consider a partial unique index for active staff email if staff email becomes a strict identity field.
 * Consider partial unique policies for soft-deleted entities if business rules require name reuse after deletion.
 
-Do not add partial indexes while still on SQLite provider without a dedicated schema migration plan.
+Do not add partial indexes while still on the SQLite provider without a dedicated schema migration plan.
 
 ## Backup Before Migration
 
@@ -244,6 +250,6 @@ After any database provider switch or migration, verify:
 
 ## Current Recommendation
 
-Keep SQLite for local development and portfolio iteration until the deployment sprint is ready.
+Keep `main`/`master` SQLite-first for stable local development and portfolio iteration.
 
-Use PostgreSQL for real production only after a dedicated provider switch, migration review, staging test, and smoke test pass.
+Use `deployment/postgres` for PostgreSQL stabilization. Use PostgreSQL for real production only after migration review, staging test, smoke test, and explicit deployment approval pass.

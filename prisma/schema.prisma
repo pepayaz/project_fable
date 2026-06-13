@@ -1,6 +1,6 @@
 // Project Fable database schema.
-// Enum-like values are stored as String because SQLite has no native enum (see docs/ADR.md ADR-012).
-// Valid values are documented in docs/DATA_MODEL.md and will be validated with Zod in lib/validations/.
+// Enum-like values are stored as strings and validated in the application layer.
+// Valid values are documented in docs/DATA_MODEL.md and validated with Zod in lib/validations/.
 
 generator client {
   provider = "prisma-client"

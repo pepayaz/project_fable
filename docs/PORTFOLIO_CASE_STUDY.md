@@ -18,11 +18,11 @@ Project Fable is an MVP-focused people management application that provides:
 
 ## Architecture Decisions
 - **Tech Stack:** Next.js with App Router, React, Tailwind CSS, TypeScript.
-- **Database:** SQLite (primary development/MVP), managed by Prisma ORM. Currently SQLite-first.
+- **Database:** SQLite on the stable `main`/`master` baseline, PostgreSQL on the `deployment/postgres` prototype/stabilization branch, managed by Prisma ORM.
 - **UI System:** Bespoke design system based on standard UX patterns without relying on heavily opinionated component libraries.
 
 ## Security Decisions
-- **Authentication:** Custom session management with bcrypt password hashing and secure cookies.
+- **Authentication:** Custom session management with scrypt-style password hashing and secure cookies.
 - **Role-Based Access Control (RBAC):** Coarse-grained roles to restrict admin and human capital functions.
 - **Hardening:** Environment validation, production seed safety, session cleanup, in-memory login limiter, protected-route proxy checks, and Content Security Policy (CSP) baselines.
 
@@ -37,7 +37,7 @@ Project Fable is an MVP-focused people management application that provides:
 - **User Management:** Admin-only user management interface to create, manage, and assign roles to system users, including linking user accounts to staff profiles for self-service.
 
 ## Tradeoffs and Limitations
-- **SQLite First:** The application is currently SQLite-first, which is highly portable but unsuitable for serverless deployments on platforms like Vercel or Netlify due to ephemeral file systems losing data on write.
+- **Branch Split:** The stable branch remains SQLite-first, while `deployment/postgres` validates PostgreSQL for serverless-friendly deployment. Production deployment is not live yet.
 - **Authentication:** Custom authentication instead of NextAuth/Auth.js keeps the system self-contained but may lack some out-of-the-box OAuth integrations.
 - **Coarse RBAC:** Current permissions are broad (Admin vs HC vs User). Finer-grained permissions might be needed for larger teams.
 

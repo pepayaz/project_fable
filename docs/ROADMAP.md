@@ -230,11 +230,15 @@ Sprint 23 (done): PostgreSQL migration prep — environment validation, transact
 
 Sprint 24 (done): Mega Sprint — GitHub readiness, deployment strategy (Option D), repository hygiene, and portfolio launch prep. App is still SQLite-first.
 
-Sprint 25 (future): PostgreSQL switch branch strategy and migration prototype planning.
+Sprint 25 (done): PostgreSQL switch branch strategy and migration prototype planning.
 
-Sprint 26 (future): Actual PostgreSQL provider switch branch (Prisma provider change, schema adaptation).
+Sprint 26 (done): Actual PostgreSQL provider switch branch (Prisma provider change, PostgreSQL adapter, Docker Compose, and baseline migration).
 
-Sprint 27 (future): Staging/production deployment and portfolio case study finalization.
+Sprint 27 (done): PostgreSQL QA checkpoint with no committed project changes.
+
+Sprint 28A (current): PostgreSQL branch stabilization before private GitHub/deployment prep.
+
+Future deployment sprint: private GitHub/deployment prep, staging checks, production deployment decision, and portfolio case study finalization.
 
 ## Priority Order
 

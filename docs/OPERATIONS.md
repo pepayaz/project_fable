@@ -1,17 +1,18 @@
 # Operations Guide
 
-Project Fable is not deployed by this repository yet. This guide documents the operational steps expected before a staging or production deployment.
+Project Fable is not deployed by this repository yet. This guide documents branch-specific local operations and the checks expected before a staging or production deployment.
 
 ## Environment Checklist
 
-- Set `DATABASE_URL` to a SQLite `file:` URL for the current deployment scope.
+- On `main`/`master`, set `DATABASE_URL` to a SQLite `file:` URL.
+- On `deployment/postgres`, set `DATABASE_URL` to the local or staging PostgreSQL URL.
 - Set `SEED_ADMIN_NAME`.
 - Set `SEED_ADMIN_EMAIL` to the first admin account email.
 - Set `SEED_ADMIN_PASSWORD` to a strong temporary admin password.
 - Leave `GEMINI_API_KEY` empty if AI features should be disabled.
 - Keep `.env` and all secrets out of git.
-- Set `ALLOW_SQLITE_PRODUCTION=true` only for portfolio/demo deployments using SQLite in production. Not needed for development.
-- PostgreSQL `DATABASE_URL` (e.g. `postgresql://...`) is recognized but not yet supported. See `docs/DB_MIGRATION.md`.
+- Set `ALLOW_SQLITE_PRODUCTION=true` only for portfolio/demo deployments using SQLite in production from the SQLite-first branch. Not needed for `deployment/postgres`.
+- PostgreSQL `DATABASE_URL` (e.g. `postgresql://...`) is supported on `deployment/postgres`. See `docs/DB_MIGRATION.md`.
 
 ## Production Seed
 
@@ -21,7 +22,7 @@ Required production env:
 
 ```env
 NODE_ENV="production"
-DATABASE_URL="file:/absolute/path/to/prod.db"
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
 SEED_ADMIN_NAME="Project Fable Admin"
 SEED_ADMIN_EMAIL="admin@example.org"
 SEED_ADMIN_PASSWORD="use-a-strong-temporary-password"
@@ -35,7 +36,7 @@ npm run seed
 
 After first login, create named admin/manager/member users from `/users` and rotate the temporary password outside this MVP if a password-change workflow is later added.
 
-## Local SQLite Backup
+## Local SQLite Backup (`main`/`master`)
 
 Stop the app before copying the SQLite file when possible.
 
@@ -45,7 +46,7 @@ Copy-Item prisma/dev.db backups/dev-$(Get-Date -Format yyyyMMdd-HHmmss).db
 
 If your `DATABASE_URL` points elsewhere, copy that file instead.
 
-## Local SQLite Restore
+## Local SQLite Restore (`main`/`master`)
 
 1. Stop the app.
 2. Move the current database file aside.
@@ -66,17 +67,17 @@ This checklist supersedes basic smoke testing and provides a comprehensive guide
 
 ### Pre-public Checklist
 
-- [ ] Repository is private. (Do not make public until after Sprint 25).
+- [ ] Repository is private until the deployment prep sprint explicitly approves publication.
 - [ ] Screenshots in documentation are sanitized (no PII or real API keys).
 - [ ] Demo seeds use dummy data.
-- [ ] README.md clearly documents the SQLite-first nature of the app.
+- [ ] README.md clearly documents `main`/`master` as SQLite-first and `deployment/postgres` as the PostgreSQL branch.
 
 ### Pre-deployment Checklist
 
-- [ ] `DATABASE_URL` is set to the correct production path.
-- [ ] `ALLOW_SQLITE_PRODUCTION=true` is set (if deploying a portfolio/demo with SQLite).
+- [ ] `DATABASE_URL` is set to the correct production database.
+- [ ] `ALLOW_SQLITE_PRODUCTION=true` is set only if intentionally deploying a portfolio/demo from the SQLite-first branch.
 - [ ] `SEED_ADMIN_*` variables are securely configured.
-- [ ] Hosting environment supports persistent storage for SQLite (Vercel/Netlify are NOT suitable due to ephemeral filesystems; use a VPS, Railway with volume, or similar).
+- [ ] Hosting environment uses a persistent database. For serverless cloud deployment, use PostgreSQL rather than SQLite file writes.
 
 ### Expanded Smoke Test Checklist
 
@@ -114,10 +115,10 @@ If a deployment or data migration fails, follow these PowerShell-friendly rollba
 
 ## Deployment Decision Workflow
 
-The current main branch is strictly SQLite-first and stable for local or VPS deployment. Moving to a serverless cloud environment requires a dedicated PostgreSQL migration path. The expected workflow for deployment is:
+The current `main`/`master` branch is strictly SQLite-first and stable for local or VPS deployment. The `deployment/postgres` branch contains the PostgreSQL prototype/stabilization work. The expected workflow for deployment is:
 
 1. **Private repo**: Ensure the repository remains private during the initial staging process.
-2. **PostgreSQL switch branch**: Create a separate migration branch to change the Prisma provider to `postgresql` and adapt the schema.
+2. **PostgreSQL switch branch**: Use `deployment/postgres`, where the Prisma provider has been changed to `postgresql` and local PostgreSQL is available through Docker Compose.
 3. **Staging database**: Provision a staging PostgreSQL database and set the connection URL.
 4. **Staging smoke test**: Deploy the switch branch to a staging environment and execute the expanded smoke test checklist.
 5. **Production deployment only after QA**: Provision the production database and deploy to production only after the staging smoke test passes.
@@ -141,7 +142,7 @@ Sprint 23 prepared the codebase for future PostgreSQL migration:
 - `confirmImport()` and `setUserActive()` are now transactional.
 - Seed script shows clear guidance when PostgreSQL URL is detected.
 
-PostgreSQL is **not live yet**. The Prisma provider, client, adapter, and seed are still SQLite-first. See `docs/DB_MIGRATION.md` for the full migration plan.
+PostgreSQL is implemented on `deployment/postgres` but production deployment is **not live yet**. See `docs/DB_MIGRATION.md` for the full migration plan and branch status.
 
 ## Local PostgreSQL Prototype
 Start the local database with `docker compose up -d`. The branch is currently configured for PostgreSQL via Prisma adapter.

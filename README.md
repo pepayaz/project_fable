@@ -6,7 +6,7 @@ Project ini dibuat sebagai portfolio project berbasis workflow Human Capital / P
 
 ## 🔗 Demo & Screenshots
 
-> **Note:** Deployment publik sedang dalam persiapan (Sprint 25).
+> **Note:** Deployment publik belum live. Branch `deployment/postgres` sedang dipakai untuk stabilisasi PostgreSQL sebelum private GitHub/deployment prep.
 > [Live Demo URL akan ditambahkan di sini]
 
 ### Screenshots
@@ -46,13 +46,14 @@ Project ini mencakup fitur AI cerdas (opt-in) menggunakan Google Gemini (atau pr
 
 ## 🗄️ Database Status
 
-- **Status Saat Ini:** Branch `main` adalah **SQLite-first** dan stabil. Aplikasi secara default berjalan menggunakan SQLite (`dev.db`).
-- **PostgreSQL:** **Belum live**. Pengaturan `DATABASE_URL` yang diarahkan ke PostgreSQL saat ini hanya memvalidasi URL, namun provider Prisma di skema masih dikonfigurasi untuk SQLite. Migrasi ke PostgreSQL direncanakan akan dilakukan melalui *migration branch* yang terpisah.
-- **Alasan Penundaan Deployment Cloud:** Platform cloud serverless (seperti Vercel/Netlify) menggunakan filesystem ephemeral yang **tidak cocok** untuk menampung write file SQLite. Data akan hilang setelah instance serverless mati. Karena itu, PostgreSQL mutlak diperlukan sebelum deployment sungguhan ke cloud. Hal ini dipisahkan untuk ditangani pada sprint khusus (Option D: Decoupled approach).
+- **Branch Stabil:** Branch `main`/`master` tetap **SQLite-first** dan stabil untuk baseline lokal.
+- **Branch PostgreSQL:** Branch `deployment/postgres` sudah dikonfigurasi untuk PostgreSQL dengan Docker Compose, Prisma PostgreSQL provider, dan Prisma PG adapter.
+- **Production Deployment:** Deployment produksi belum live. Branch PostgreSQL masih perlu review, private GitHub/deployment prep, dan smoke test staging sebelum digunakan untuk produksi.
+- **Alasan PostgreSQL untuk Cloud:** Platform cloud serverless (seperti Vercel/Netlify) menggunakan filesystem ephemeral yang **tidak cocok** untuk write file SQLite. PostgreSQL diperlukan sebelum deployment sungguhan ke cloud.
 
 ## ⚠️ Current Limitations
 
-- **Search Case-Sensitivity:** Search `contains` di SQLite bersifat case-insensitive, tetapi akan berubah menjadi case-sensitive saat beralih ke PostgreSQL.
+- **Search Case-Sensitivity:** Pada branch PostgreSQL, search `contains` perlu dijaga agar behavior case-insensitive tetap konsisten jika dibutuhkan.
 - **Pagination:** Belum ada global pagination di semua tabel (semua hasil diload/di-cap pada batas wajar).
 - **Authentication Features:** Belum mendukung OAuth/SSO, 2FA/MFA, email verification, dan password reset flow.
 - **Audit Logs:** Audit log belum memiliki tamper-proofing (hash chaining).
@@ -64,7 +65,9 @@ Sprint 24 fokus pada *GitHub Readiness* & *Documentation*. Langkah deployment se
 1. **Repository Readiness (Selesai Sprint 24):** Codebase bersih, dokumentasi solid, portfolio-ready.
 2. **Migration Planning (Sprint 25):** Strategi *switch branch* untuk PostgreSQL dan perencanaan prototipe migrasi.
 3. **Database Migration (Sprint 26):** Eksekusi *switch branch* untuk PostgreSQL (ubah provider Prisma, adaptasi schema).
-4. **Cloud Deployment (Sprint 27):** Staging test, lalu deploy produksi ke platform seperti Vercel/Netlify (deployment cloud saat ini **belum selesai/live**).
+4. **PostgreSQL QA (Sprint 27):** QA lokal terhadap branch PostgreSQL tanpa committed project changes.
+5. **PostgreSQL Stabilization (Sprint 28A):** Cleanup dokumentasi, dependency seed, dan konfigurasi lokal sebelum private GitHub/deployment prep.
+6. **Cloud Deployment (future):** Staging test, lalu deploy produksi ke platform seperti Vercel/Netlify setelah QA dan deployment prep selesai.
 
 ---
 
@@ -74,7 +77,7 @@ Sprint 24 fokus pada *GitHub Readiness* & *Documentation*. Langkah deployment se
 - TypeScript
 - Tailwind CSS
 - Prisma ORM
-- SQLite (for local dev)
+- SQLite on `main`/`master`; PostgreSQL on `deployment/postgres`
 - Zod
 - Server Actions
 - npm
@@ -99,9 +102,9 @@ cp .env.example .env
 Copy-Item .env.example .env
 ```
 
-Default database lokal (SQLite):
+Default database lokal pada branch `deployment/postgres` (PostgreSQL via Docker Compose):
 ```env
-DATABASE_URL="file:./prisma/dev.db"
+DATABASE_URL="postgresql://fable:fable_dev_password@localhost:5432/project_fable?schema=public"
 ```
 
 Admin seed demo configuration (hanya untuk lokal):
@@ -168,4 +171,4 @@ rtk test npm run lint
 rtk test npm run build
 ```
 
-**Note:** This branch (\deployment/postgres\) is a prototype for the PostgreSQL migration. Do not deploy without QA.
+**Note:** This branch (`deployment/postgres`) is the PostgreSQL prototype/stabilization branch. Do not deploy without QA and explicit deployment approval.
