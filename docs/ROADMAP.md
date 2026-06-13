@@ -230,7 +230,11 @@ Sprint 23 (done): PostgreSQL migration prep — environment validation, transact
 
 Sprint 24 (done): Mega Sprint — GitHub readiness, deployment strategy (Option D), repository hygiene, and portfolio launch prep. App is still SQLite-first.
 
-Sprint 25 (future): Actual PostgreSQL migration (provider switch, seed rewrite) AND production deployment decision / portfolio case study finalization.
+Sprint 25 (future): PostgreSQL switch branch strategy and migration prototype planning.
+
+Sprint 26 (future): Actual PostgreSQL provider switch branch (Prisma provider change, schema adaptation).
+
+Sprint 27 (future): Staging/production deployment and portfolio case study finalization.
 
 ## Priority Order
 

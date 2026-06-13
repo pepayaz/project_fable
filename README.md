@@ -46,8 +46,8 @@ Project ini mencakup fitur AI cerdas (opt-in) menggunakan Google Gemini (atau pr
 
 ## 🗄️ Database Status
 
-- **Status Saat Ini:** **SQLite-first**. Aplikasi secara default berjalan menggunakan SQLite (`dev.db`).
-- **PostgreSQL:** **Belum live**. Pengaturan `DATABASE_URL` yang diarahkan ke PostgreSQL saat ini hanya memvalidasi URL, namun provider Prisma di skema masih dikonfigurasi untuk SQLite.
+- **Status Saat Ini:** Branch `main` adalah **SQLite-first** dan stabil. Aplikasi secara default berjalan menggunakan SQLite (`dev.db`).
+- **PostgreSQL:** **Belum live**. Pengaturan `DATABASE_URL` yang diarahkan ke PostgreSQL saat ini hanya memvalidasi URL, namun provider Prisma di skema masih dikonfigurasi untuk SQLite. Migrasi ke PostgreSQL direncanakan akan dilakukan melalui *migration branch* yang terpisah.
 - **Alasan Penundaan Deployment Cloud:** Platform cloud serverless (seperti Vercel/Netlify) menggunakan filesystem ephemeral yang **tidak cocok** untuk menampung write file SQLite. Data akan hilang setelah instance serverless mati. Karena itu, PostgreSQL mutlak diperlukan sebelum deployment sungguhan ke cloud. Hal ini dipisahkan untuk ditangani pada sprint khusus (Option D: Decoupled approach).
 
 ## ⚠️ Current Limitations
@@ -60,10 +60,11 @@ Project ini mencakup fitur AI cerdas (opt-in) menggunakan Google Gemini (atau pr
 
 ## 🗺️ Roadmap to Production Deployment
 
-Sprint 24 fokus pada *GitHub Readiness* & *Documentation*. Langkah deployment sesungguhnya masuk ke dalam Sprint 25:
+Sprint 24 fokus pada *GitHub Readiness* & *Documentation*. Langkah deployment sesungguhnya dibagi ke dalam sprint berikutnya:
 1. **Repository Readiness (Selesai Sprint 24):** Codebase bersih, dokumentasi solid, portfolio-ready.
-2. **Database Migration (Sprint 25):** Swap Prisma provider ke PostgreSQL, setup baseline migration, validasi index.
-3. **Cloud Deployment (Sprint 25):** Deploy ke platform seperti Vercel/Netlify, hubungkan ke PostgreSQL provider eksternal.
+2. **Migration Planning (Sprint 25):** Strategi *switch branch* untuk PostgreSQL dan perencanaan prototipe migrasi.
+3. **Database Migration (Sprint 26):** Eksekusi *switch branch* untuk PostgreSQL (ubah provider Prisma, adaptasi schema).
+4. **Cloud Deployment (Sprint 27):** Staging test, lalu deploy produksi ke platform seperti Vercel/Netlify (deployment cloud saat ini **belum selesai/live**).
 
 ---
 

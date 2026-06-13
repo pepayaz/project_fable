@@ -709,3 +709,34 @@ Positive:
 
 Negative / accepted:
 - Deployment cloud dan live URL belum tersedia sampai Sprint 25.
+
+## ADR-026 Branch-Based PostgreSQL Migration Strategy
+
+Status: Accepted
+
+### Context
+
+Project Fable adalah aplikasi portofolio yang dirancang SQLite-first (ADR-004) untuk kemudahan development lokal dan evaluasi MVP. Menjelang rencana deployment ke platform cloud (Vercel/Netlify) yang menggunakan file system ephemeral, database perlu dimigrasikan ke PostgreSQL. Namun, melakukan switch provider (menghapus migrasi SQLite lama dan membuat baseline PostgreSQL baru) secara langsung di branch `main` berisiko tinggi. Hal ini dapat merusak stabilitas development lokal yang sangat bergantung pada SQLite, mempersulit kontributor, dan menjadikan transisi terlalu agresif.
+
+### Decision
+
+Gunakan strategi Branch-Based PostgreSQL Migration (implementasi Option D yang lebih aman).
+
+- Pertahankan branch `main` sebagai source of truth yang stabil dan SQLite-first.
+- Buat branch terpisah, misalnya `deployment/postgres`, khusus untuk migrasi ke PostgreSQL.
+- Di branch `deployment/postgres`, lakukan langkah-langkah transisi: hapus folder migrasi SQLite, ubah provider di `schema.prisma` menjadi `postgresql`, dan buat baseline migration PostgreSQL yang baru.
+- Hubungkan platform cloud deployment (seperti Vercel atau Netlify) ke branch `deployment/postgres` tersebut, bukan ke `main`.
+- Catatan: Aplikasi tetap SQLite-first. PostgreSQL bersifat planned, belum live.
+
+### Consequences
+
+Positive:
+
+- Stabilitas branch `main` terjaga; local development tetap cepat, mulus, dan tidak membutuhkan setup database server tambahan.
+- Mencegah risiko kerusakan historis pada SQLite migrations yang dapat menghambat evaluasi portofolio.
+- Repositori tetap honest dan accessible bagi evaluator yang ingin menjalankan MVP lokal.
+
+Negative:
+
+- Perlu disiplin untuk melakukan merge atau sinkronisasi perubahan schema Prisma dari branch `main` ke branch `deployment/postgres`.
+- Overhead manajemen branch saat merilis pembaruan fitur.

@@ -90,22 +90,22 @@ A proper switch needs:
 
 The current migration history is SQLite-based. A PostgreSQL migration should be prepared in a dedicated sprint or deployment branch.
 
-**Recommended Deployment Sequence (Option D):**
-Following ADR-025, we use a safe, decoupled approach for deployment:
-- **Phase 1 (Repo Readiness):** Ensure documentation, codebase hygiene, and GitHub readiness are finalized while still on SQLite (Sprint 24).
-- **Phase 2 (DB Migration & Cloud Deploy):** Switch the Prisma provider to PostgreSQL, perform data migration, and deploy to the cloud platform (Sprint 25).
+**Recommended Deployment Sequence (Option D: Branch-Based Migration):**
+Following ADR-025 and ADR-026, we use a safe, decoupled, branch-based approach for deployment:
+- **Phase 1 (Repo Readiness):** Ensure documentation, codebase hygiene, and GitHub readiness are finalized while keeping the `main` branch completely SQLite-first (Sprint 24).
+- **Phase 2 (DB Migration & Cloud Deploy):** Create a dedicated `deployment/postgres` branch. Direct provider switch and deleting SQLite migrations on `main` is too aggressive and risky, as it breaks local development stability. Instead, in the `deployment/postgres` branch: switch the Prisma provider to PostgreSQL, delete the SQLite migrations, generate a new PostgreSQL migration baseline, and deploy to the cloud platform from this branch (Sprint 25). *Note: PostgreSQL is planned, not live.*
 
 ## Recommended PostgreSQL Migration Path
 
 Recommended future steps:
 
 1. Create a backup of the current SQLite database.
-2. Create a clean branch for the PostgreSQL provider switch.
-3. Review `prisma/schema.prisma`.
+2. Create a clean deployment branch (e.g., `deployment/postgres`) for the PostgreSQL provider switch to keep `main` safely SQLite-first.
+3. Review `prisma/schema.prisma` in the deployment branch.
 4. Switch the Prisma datasource provider to PostgreSQL.
 5. Replace or remove the SQLite-specific adapter if needed.
 6. Generate a PostgreSQL-compatible Prisma client.
-7. Create a new PostgreSQL migration baseline.
+7. Delete the old SQLite migrations folder and create a new PostgreSQL migration baseline in the deployment branch.
 8. Review generated SQL carefully.
 9. Create a staging PostgreSQL database.
 10. Set `DATABASE_URL` to the staging PostgreSQL URL.

@@ -112,6 +112,18 @@ If a deployment or data migration fails, follow these PowerShell-friendly rollba
    # Restart your application service (e.g., pm2 restart fable or restart systemctl service)
    ```
 
+## Deployment Decision Workflow
+
+The current main branch is strictly SQLite-first and stable for local or VPS deployment. Moving to a serverless cloud environment requires a dedicated PostgreSQL migration path. The expected workflow for deployment is:
+
+1. **Private repo**: Ensure the repository remains private during the initial staging process.
+2. **PostgreSQL switch branch**: Create a separate migration branch to change the Prisma provider to `postgresql` and adapt the schema.
+3. **Staging database**: Provision a staging PostgreSQL database and set the connection URL.
+4. **Staging smoke test**: Deploy the switch branch to a staging environment and execute the expanded smoke test checklist.
+5. **Production deployment only after QA**: Provision the production database and deploy to production only after the staging smoke test passes.
+
+*Note: Deployment is currently planned and not yet complete.*
+
 ## Future Production Requirements
 
 - Managed database backups and restore drills.
