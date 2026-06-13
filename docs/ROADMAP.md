@@ -236,9 +236,15 @@ Sprint 26 (done): Actual PostgreSQL provider switch branch (Prisma provider chan
 
 Sprint 27 (done): PostgreSQL QA checkpoint with no committed project changes.
 
-Sprint 28A (current): PostgreSQL branch stabilization before private GitHub/deployment prep.
+Sprint 28A (done): PostgreSQL branch stabilization before private GitHub/deployment prep.
 
-Future deployment sprint: private GitHub/deployment prep, staging checks, production deployment decision, and portfolio case study finalization.
+Sprint 28B (done): Private GitHub readiness, GitHub Actions CI, and deployment prep docs.
+
+Sprint 29C (done): Runtime polish for AI zero-data wording and Vercel + Neon deployment notes.
+
+Sprint 30 (current): Portfolio launch package, final demo docs, screenshot checklist, and smoke-test guide.
+
+Future work: final screenshots, manual browser smoke test, optional dependency audit review, optional performance polish, and public portfolio copy if approved.
 
 ## Priority Order
 

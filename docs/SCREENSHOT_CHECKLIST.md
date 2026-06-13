@@ -1,36 +1,51 @@
-# Project Fable: Screenshot Checklist
+# Screenshot Checklist
 
-This checklist provides a guide for capturing standardized screenshots of Project Fable for documentation, presentations, and portfolios.
+Use this checklist to capture consistent portfolio assets for Project Fable.
 
-## 🛑 Privacy Rules & Data Masking
-Before taking any screenshots, ensure the environment strictly complies with these rules:
-- **No Real PII**: Do not use real names, emails, phone numbers, or addresses. Use generated dummy data (e.g., John Doe, `jane.smith@example.com`).
-- **No Secrets**: Never capture screens showing real passwords, tokens, or API keys.
-- **No Production Data**: Only use a local development or dedicated staging/demo database.
-- **Masking**: If an accidental real detail appears, mask or blur it completely before saving or sharing.
+## Privacy Rules
 
----
+- Never show secrets, connection strings, API keys, passwords, Vercel env values, Neon credentials, or Gemini keys.
+- Blur email addresses if needed.
+- Use dummy names and fake email addresses only.
+- Prefer seeded local demo data for rich product screenshots.
+- Use deployed Vercel only for proof-of-deploy screenshots.
+- Keep browser size consistent across captures, such as 1440x900 or 1920x1080.
+- Hide bookmarks, extensions, OS notifications, and unrelated tabs.
 
-## Screenshot Checklist
+## Product Screenshots
 
-Use this checklist to ensure all major views are captured in their optimal state.
+- [ ] Login page.
+- [ ] Dashboard with metric cards and visual analytics.
+- [ ] Staff list with search/filter/sort visible.
+- [ ] Staff detail 360 view.
+- [ ] Tasks list with status/priority/assignment context.
+- [ ] Attendance page.
+- [ ] Availability page.
+- [ ] Insights page with attention, availability, and workload charts.
+- [ ] AI brief or writing assistant state.
+- [ ] Audit logs.
+- [ ] Trash/restore.
+- [ ] Data tools import/export.
+- [ ] Users/RBAC management.
+- [ ] Member portal if a member account exists in demo data.
 
-### Core Views
-- [ ] **Dashboard Visual Analytics**: Main landing page showing charts, KPI cards, and overall system status.
-- [ ] **My Portal**: The personalized view for a logged-in Member showing their own attendance, tasks, or status.
-- [ ] **Staff Detail (360 View)**: A comprehensive profile view of a single staff member, including tabs for performance notes, attendance, and availability.
+## Deployment and Engineering Screenshots
 
-### Management & Analytics
-- [ ] **Insights**: The reporting/analytics page showing organizational trends and data breakdowns.
-- [ ] **AI Brief / Writing Assistant**: The UI showing AI-generated summaries, performance drafting, or review prompts.
+- [ ] Vercel deployment success screen without env vars.
+- [ ] GitHub Actions CI success screen.
+- [ ] Neon database dashboard without connection strings, passwords, or query data that reveals secrets.
+- [ ] Architecture/deployment diagram from `docs/ARCHITECTURE_OVERVIEW.md`, if useful.
 
-### Admin & Operations
-- [ ] **Data Tools (Import/Export)**: The interface for CSV uploading, mapping fields, or exporting system data.
-- [ ] **Users**: The user management table showing roles (Admin, Manager, Member) and statuses.
-- [ ] **Trash (Soft Delete/Restore)**: The archive view showing deleted records with options to restore.
-- [ ] **Audit Logs**: The table displaying system activity history (User, Action, Timestamp, IP).
+## Empty-State Screenshots
 
-## Tips for Great Screenshots
-- Use a standard resolution (e.g., 1920x1080) for consistency across all captures.
-- Ensure the browser window is clean (hide bookmarks bars, unnecessary extensions, and OS taskbars).
-- Capture empty states (e.g., "No audit logs found") as well as populated states if thoroughly documenting UI states.
+- [ ] Dashboard with no records, if using staging.
+- [ ] Staff empty state.
+- [ ] Insights zero-data state.
+- [ ] AI disabled state if `GEMINI_API_KEY` is empty.
+
+## Capture Notes
+
+- Use seeded local demo data for the main portfolio narrative.
+- Use Vercel screenshots only to prove deployment and runtime readiness.
+- Do not show browser autofill, password managers, terminal secrets, or local `.env` files.
+- Keep final exported images named consistently, for example `01-login.png`, `02-dashboard.png`, and `03-staff-detail.png`.

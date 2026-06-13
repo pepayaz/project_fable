@@ -301,23 +301,24 @@ All protected pages use read permissions. All mutating Server Actions use create
 
 Environment validation is lazy and server-side.
 
-- `lib/env.ts` validates `DATABASE_URL` as required and SQLite `file:` for the current deployment scope.
+- `lib/env.ts` validates `DATABASE_URL` as required. On `deployment/postgres`, it expects a PostgreSQL URL.
 - AI env remains optional: `AI_PROVIDER` defaults to `gemini`, only `gemini` is allowed, `AI_MODEL` defaults to `gemini-2.5-flash-lite`, and empty `GEMINI_API_KEY` keeps AI gracefully disabled.
 - Production seed admin env validates `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD`; weak/default/local fallback passwords are rejected in production.
 - `.env.example` documents safe placeholders only.
 
 ## Database Portability
 
-Project Fable is SQLite-first with portability preparation for future PostgreSQL migration.
+Project Fable has two branch states: `main`/`master` remains SQLite-first, while `deployment/postgres` is the PostgreSQL deployment candidate.
 
-- **Current provider:** SQLite via `@prisma/adapter-better-sqlite3`. Prisma schema uses `provider = "sqlite"`. All 5 migrations are SQLite.
-- **Environment validation:** `lib/env.ts` accepts `file:` URLs for SQLite, recognizes `postgresql://` and `postgres://` with a guidance error explaining that the provider/client/adapter migration must be completed first. Production rejects SQLite unless `ALLOW_SQLITE_PRODUCTION=true`.
+- **Current branch provider:** `deployment/postgres` uses Prisma `provider = "postgresql"` with `pg` and `@prisma/adapter-pg`.
+- **Stable baseline provider:** `main`/`master` remains SQLite-first for the local baseline.
+- **Environment validation:** `lib/env.ts` expects PostgreSQL URLs on this branch. Vercel runtime uses the Neon pooled connection URL; local Prisma migration work should use a direct Neon connection when needed.
 - **Transaction safety:** `confirmImport()` uses `db.$transaction` to prevent partial imports. `setUserActive(false)` uses `db.$transaction` for atomic deactivation and session revocation.
-- **Search portability:** SQLite `contains` is case-insensitive for ASCII; PostgreSQL is case-sensitive. `mode: "insensitive"` will be added when the provider switches to PostgreSQL. This is documented in `docs/DB_MIGRATION.md`.
-- **Seed:** `prisma/seed.js` uses raw `better-sqlite3` with SQLite-specific SQL. It will be rewritten to use Prisma Client when the provider switches.
+- **Search portability:** SQLite and PostgreSQL differ in `contains` case sensitivity. Search behavior should be reviewed before broader production use.
+- **Seed:** `prisma/seed.ts` uses Prisma Client with the PostgreSQL adapter. Production seed creates only the configured admin user.
 - **Pagination:** List queries are unbounded (documented known limitation). Pagination is future work.
 
-See `docs/DB_MIGRATION.md` for the full migration plan and `docs/ADR.md` ADR-024 for the decision rationale.
+See `docs/DB_MIGRATION.md`, `docs/VERCEL_NEON_DEPLOYMENT.md`, and `docs/ADR.md` ADR-024 for the decision rationale and deployment notes.
 
 ## Audit Log Strategy
 

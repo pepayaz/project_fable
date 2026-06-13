@@ -1,6 +1,6 @@
 # GitHub Readiness
 
-This document outlines the checklist and repository hygiene practices required before pushing Project Fable to GitHub.
+This document outlines the checklist and repository hygiene practices for Project Fable's private GitHub repository.
 
 ## GitHub Readiness Checklist
 
@@ -10,9 +10,9 @@ This document outlines the checklist and repository hygiene practices required b
 - [ ] **Tracked Sensitive Files**: Verify that no sensitive files or local databases have been accidentally tracked in the Git history.
 - [ ] **Screenshot Safety**: Ensure any documentation screenshots do not contain real user data, actual API keys, or proprietary internal tokens.
 - [ ] **Demo Account Policy**: Any demo accounts seeded must use explicitly fake credentials (e.g., `admin@example.org`) and never real production passwords or PII.
-- [ ] **README Readiness**: Ensure `README.md` clearly states that `main`/`master` is SQLite-first and `deployment/postgres` is the PostgreSQL deployment candidate.
+- [ ] **README Readiness**: Ensure `README.md` clearly states that `main`/`master` is SQLite-first and `deployment/postgres` is the PostgreSQL demo/staging branch.
 - [ ] **CI Readiness**: Confirm GitHub Actions CI exists and runs install, Prisma generate, lint, and build without production secrets.
-- [ ] **Deployment Status**: Confirm production deployment is still pending and tracked in `docs/DEPLOYMENT_PREP.md`.
+- [ ] **Deployment Status**: Confirm demo/staging deployment is documented and enterprise production readiness is not claimed.
 
 ## Repository Hygiene Commands
 
@@ -49,9 +49,9 @@ Only `.env.example` should appear unless a tracked documentation file is intenti
 
 ## PostgreSQL Branch Notes
 
-- `deployment/postgres` is ready for private GitHub push after final manual review.
+- `deployment/postgres` has been prepared for private GitHub review.
 - GitHub Actions CI is configured for dependency install, Prisma client generation, lint, and build.
-- Production deployment is still pending; follow `docs/DEPLOYMENT_PREP.md` before staging or production work.
+- Vercel + Neon demo/staging notes live in `docs/VERCEL_NEON_DEPLOYMENT.md`; follow `docs/DEPLOYMENT_PREP.md` before production promotion.
 
 ### 4. Review Changes Before Commit
 Always review staged files before creating a commit:
