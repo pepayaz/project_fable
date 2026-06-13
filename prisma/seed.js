@@ -33,7 +33,10 @@ function resolveDatabasePath() {
   }
 
   if (!databaseUrl.startsWith("file:")) {
-    throw new Error("Seed script only supports SQLite file: DATABASE_URL values.");
+    throw new Error(
+      "Seed script only supports SQLite file: DATABASE_URL values. " +
+        "See docs/DB_MIGRATION.md for PostgreSQL migration steps.",
+    );
   }
 
   const filePath = databaseUrl.slice("file:".length);

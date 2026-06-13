@@ -226,6 +226,10 @@ Deliverables:
 - Demo data
 - Portfolio description
 
+Sprint 23 (done): PostgreSQL migration prep — environment validation, transaction safety (`confirmImport`, `setUserActive`), seed hardening, `ALLOW_SQLITE_PRODUCTION`, `docs/DB_MIGRATION.md`, ADR-024. Provider stays SQLite.
+
+Sprint 24 (future): Actual PostgreSQL migration — provider switch to `postgresql`, baseline migration, `@prisma/adapter-pg`, seed rewrite to Prisma Client, `mode: "insensitive"` on search filters, PostgreSQL indexes.
+
 ## Priority Order
 
 1. Documentation foundation

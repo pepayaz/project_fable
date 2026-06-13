@@ -1,9 +1,6 @@
 import { parseCsv } from "@/lib/csv";
 import { db } from "@/lib/db";
-import { createDepartment } from "@/lib/services/departments";
 import { ServiceError } from "@/lib/services/errors";
-import { createStaff } from "@/lib/services/staff";
-import { createTask } from "@/lib/services/tasks";
 import type { ImportEntity } from "@/lib/validations/data-tools";
 import { departmentInputSchema } from "@/lib/validations/department";
 import { staffInputSchema } from "@/lib/validations/staff";
@@ -272,11 +269,13 @@ export async function confirmImport(entity: ImportEntity, csvText: string) {
     throw new ServiceError("Import has validation errors. Preview and fix the CSV before importing.");
   }
 
-  for (const record of prepared.records) {
-    if (entity === "departments") await createDepartment(record);
-    if (entity === "staff") await createStaff(record);
-    if (entity === "tasks") await createTask(record);
-  }
+  await db.$transaction(async (tx) => {
+    for (const record of prepared.records) {
+      if (entity === "departments") await tx.department.create({ data: departmentInputSchema.parse(record) });
+      if (entity === "staff") await tx.staff.create({ data: staffInputSchema.parse(record) });
+      if (entity === "tasks") await tx.task.create({ data: taskInputSchema.parse(record) });
+    }
+  });
 
   return prepared.records.length;
 }

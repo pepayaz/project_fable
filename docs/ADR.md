@@ -648,3 +648,39 @@ Negative / accepted:
 - In-memory rate limiting is not suitable for serverless/multi-instance production.
 - CSP still allows inline script/style for Next compatibility; full nonce-based CSP is future.
 - SQLite backup plan is documented, not automated.
+
+## ADR-024 PostgreSQL Migration Prep Without Provider Switch
+
+Status: Accepted
+
+### Context
+
+Project Fable adalah SQLite-first. Sebelum beralih ke PostgreSQL, service queries, environment validation, seed behavior, dan transaction safety perlu di-harden. Mengubah provider sekarang akan menginvalidasi 5 migrasi SQLite yang ada dan merusak seed script yang memakai raw `better-sqlite3`.
+
+### Decision
+
+Sprint 23 mempersiapkan migrasi PostgreSQL tanpa mengubah Prisma provider.
+
+- Environment validation (`lib/env.ts`) mengenali `postgresql://` dan `postgres://` dengan guidance error yang menjelaskan bahwa provider/client/adapter migration harus diselesaikan terlebih dahulu.
+- `ALLOW_SQLITE_PRODUCTION` menjaga agar production menolak SQLite kecuali di-override secara eksplisit.
+- `confirmImport()` dibungkus `db.$transaction` untuk mencegah partial import.
+- `setUserActive(false)` dibungkus `db.$transaction` untuk atomic deactivation dan session revoke.
+- Seed error message merujuk `docs/DB_MIGRATION.md` saat URL bukan `file:`.
+- Perbedaan case-sensitivity search (`contains` case-insensitive di SQLite, case-sensitive di PostgreSQL) didokumentasikan sebagai pekerjaan Sprint 24. `mode: "insensitive"` tidak ditambahkan selama provider masih `sqlite` karena generated Prisma client mungkin tidak mendukungnya.
+- `docs/DB_MIGRATION.md` mendokumentasikan langkah migrasi PostgreSQL secara lengkap.
+
+### Consequences
+
+Positive:
+
+- Semua service query tetap berfungsi di SQLite.
+- Transaction safety meningkat untuk import dan user deactivation.
+- Migration path terdokumentasi dan jelas.
+- Local SQLite development tidak berubah.
+
+Negative / accepted:
+
+- PostgreSQL belum dapat digunakan sampai Sprint 24 melakukan actual provider switch, baseline migration, seed rewrite, dan adapter swap.
+- Seed tetap menggunakan raw SQLite SQL sampai Sprint 24.
+- `mode: "insensitive"` belum ditambahkan; search case-sensitivity akan berubah saat migrasi ke PostgreSQL.
+- Tidak ada dependency baru yang ditambahkan.

@@ -20,13 +20,38 @@ function readEnv(name: string) {
   return (process.env[name] ?? "").trim();
 }
 
-function assertSqliteDatabaseUrl(databaseUrl: string) {
+function assertDatabaseUrl(databaseUrl: string) {
   if (!databaseUrl) {
     throw new Error("DATABASE_URL is required.");
   }
 
-  if (!databaseUrl.startsWith("file:")) {
-    throw new Error("DATABASE_URL must use a SQLite file: URL for this deployment scope.");
+  const isSqlite = databaseUrl.startsWith("file:");
+  const isPostgres =
+    databaseUrl.startsWith("postgresql://") || databaseUrl.startsWith("postgres://");
+
+  if (!isSqlite && !isPostgres) {
+    throw new Error(
+      "DATABASE_URL must be a SQLite file: URL or a PostgreSQL postgresql:// URL.",
+    );
+  }
+
+  if (isPostgres) {
+    throw new Error(
+      "PostgreSQL DATABASE_URL detected but the Prisma provider is still sqlite. " +
+        "Complete the provider/client/adapter migration before using PostgreSQL. " +
+        "See docs/DB_MIGRATION.md for steps.",
+    );
+  }
+
+  const isProduction = process.env.NODE_ENV === "production";
+  const allowSqliteProduction = process.env.ALLOW_SQLITE_PRODUCTION === "true";
+
+  if (isSqlite && isProduction && !allowSqliteProduction) {
+    throw new Error(
+      "SQLite is not recommended for production. " +
+        "Set ALLOW_SQLITE_PRODUCTION=true to override, or migrate to PostgreSQL. " +
+        "See docs/DB_MIGRATION.md for migration steps.",
+    );
   }
 }
 
@@ -50,7 +75,7 @@ function isWeakSeedPassword(password: string) {
 
 export function getServerEnv(): ServerEnv {
   const databaseUrl = readEnv("DATABASE_URL");
-  assertSqliteDatabaseUrl(databaseUrl);
+  assertDatabaseUrl(databaseUrl);
 
   return {
     databaseUrl,

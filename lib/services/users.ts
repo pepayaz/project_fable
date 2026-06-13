@@ -158,17 +158,19 @@ export async function setUserActive(id: string, isActive: boolean, actorId: stri
     throw new ServiceError("You cannot deactivate your own account.");
   }
 
-  const user = await db.user.update({
-    where: { id },
-    data: { isActive },
-    select: { id: true, name: true, email: true, isActive: true },
+  return db.$transaction(async (tx) => {
+    const user = await tx.user.update({
+      where: { id },
+      data: { isActive },
+      select: { id: true, name: true, email: true, isActive: true },
+    });
+
+    if (!isActive) {
+      await tx.session.deleteMany({ where: { userId: id } });
+    }
+
+    return user;
   });
-
-  if (!isActive) {
-    await revokeUserSessions(id);
-  }
-
-  return user;
 }
 
 export async function linkUserToStaff(userId: string, input: unknown) {

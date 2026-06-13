@@ -306,6 +306,19 @@ Environment validation is lazy and server-side.
 - Production seed admin env validates `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD`; weak/default/local fallback passwords are rejected in production.
 - `.env.example` documents safe placeholders only.
 
+## Database Portability
+
+Project Fable is SQLite-first with portability preparation for future PostgreSQL migration.
+
+- **Current provider:** SQLite via `@prisma/adapter-better-sqlite3`. Prisma schema uses `provider = "sqlite"`. All 5 migrations are SQLite.
+- **Environment validation:** `lib/env.ts` accepts `file:` URLs for SQLite, recognizes `postgresql://` and `postgres://` with a guidance error explaining that the provider/client/adapter migration must be completed first. Production rejects SQLite unless `ALLOW_SQLITE_PRODUCTION=true`.
+- **Transaction safety:** `confirmImport()` uses `db.$transaction` to prevent partial imports. `setUserActive(false)` uses `db.$transaction` for atomic deactivation and session revocation.
+- **Search portability:** SQLite `contains` is case-insensitive for ASCII; PostgreSQL is case-sensitive. `mode: "insensitive"` will be added when the provider switches to PostgreSQL. This is documented in `docs/DB_MIGRATION.md`.
+- **Seed:** `prisma/seed.js` uses raw `better-sqlite3` with SQLite-specific SQL. It will be rewritten to use Prisma Client when the provider switches.
+- **Pagination:** List queries are unbounded (documented known limitation). Pagination is future work.
+
+See `docs/DB_MIGRATION.md` for the full migration plan and `docs/ADR.md` ADR-024 for the decision rationale.
+
 ## Audit Log Strategy
 
 Audit log foundation mencatat aksi penting pada entity utama untuk akuntabilitas dasar.

@@ -10,6 +10,8 @@ Project Fable is not deployed by this repository yet. This guide documents the o
 - Set `SEED_ADMIN_PASSWORD` to a strong temporary admin password.
 - Leave `GEMINI_API_KEY` empty if AI features should be disabled.
 - Keep `.env` and all secrets out of git.
+- Set `ALLOW_SQLITE_PRODUCTION=true` only for portfolio/demo deployments using SQLite in production. Not needed for development.
+- PostgreSQL `DATABASE_URL` (e.g. `postgresql://...`) is recognized but not yet supported. See `docs/DB_MIGRATION.md`.
 
 ## Production Seed
 
@@ -68,3 +70,14 @@ If your `DATABASE_URL` points elsewhere, copy that file instead.
 - Full CSP with nonces.
 - External monitoring and alerting.
 - Password reset or password rotation workflow.
+
+## PostgreSQL Migration Status
+
+Sprint 23 prepared the codebase for future PostgreSQL migration:
+
+- Environment validation recognizes `postgresql://` and `postgres://` URLs with guidance.
+- Production SQLite requires explicit `ALLOW_SQLITE_PRODUCTION=true`.
+- `confirmImport()` and `setUserActive()` are now transactional.
+- Seed script shows clear guidance when PostgreSQL URL is detected.
+
+PostgreSQL is **not live yet**. The Prisma provider, client, adapter, and seed are still SQLite-first. See `docs/DB_MIGRATION.md` for the full migration plan.

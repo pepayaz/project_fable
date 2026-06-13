@@ -180,6 +180,7 @@ npm run build
 | Soft delete & data safety | Done |
 | Trash / restore | Done |
 | Security hardening review | Done |
+| PostgreSQL migration prep | Done (prep only) |
 | Fine-grained ownership rules | Future sprint |
 | Audit log export / tamper-proofing | Future sprint |
 | Permanent delete | Future sprint |
@@ -211,7 +212,7 @@ rtk test npm run build
 
 ## Scope Notes
 
-Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, and multi-tenancy are deferred until the core workflow is stable. Auth foundation, coarse RBAC, audit logs, soft delete, MEMBER self-service ownership rules, trash/restore, and audit filtering are available. Audit export, audit tamper-proofing, permanent delete policy, and production security hardening remain future work.
+Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, and multi-tenancy are deferred until the core workflow is stable. Auth foundation, coarse RBAC, audit logs, soft delete, MEMBER self-service ownership rules, trash/restore, and audit filtering are available. Audit export, audit tamper-proofing, permanent delete policy, and production security hardening remain future work. Sprint 23 prepared for PostgreSQL migration (environment validation, transaction safety, documentation) but the Prisma provider, adapter, and seed are still SQLite-first. See `docs/DB_MIGRATION.md`.
 
 List search/filter/sort known limitations: belum ada pagination (semua hasil dirender), pencarian `contains` di SQLite case-insensitive terutama untuk ASCII, term pencarian muncul di URL (shareable), dan sort task priority masih urutan alfabet kolom (bukan severity).
 

@@ -368,13 +368,6 @@ Acceptance criteria:
 - Protected route prefixes mencakup dashboard, data tools, users, trash, audit logs, insights, member workspace, dan CRUD pages.
 - Global error boundary dan not-found page tidak menampilkan stack trace.
 - Dokumentasi operasi mencakup seed, backup/restore SQLite, smoke tests, dan deployment checklist.
-
-## Non-Functional Requirements
-
-### Usability
-
-Aplikasi harus mudah digunakan oleh user non-teknis.
-
 ### Performance
 
 Aplikasi MVP harus responsif untuk data kecil sampai menengah.
