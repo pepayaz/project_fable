@@ -214,6 +214,8 @@ export async function getPeopleIntelligence() {
   const noOpenTask = evaluated
     .filter((entry) => entry.openTasks === 0)
     .map((entry) => ({ id: entry.id, name: entry.name }));
+  const staffNoAvailability = evaluated.filter((entry) => entry.availabilityCount === 0).length;
+  const staffNoOpenTask = noOpenTask.length;
 
   return {
     orgSummary: {
@@ -225,10 +227,27 @@ export async function getPeopleIntelligence() {
       warningNotes: warningNotesTotal,
       improvementNotes: improvementNotesTotal,
       unassignedOpenTasks,
-      staffNoAvailability: evaluated.filter((entry) => entry.availabilityCount === 0).length,
-      staffNoOpenTask: noOpenTask.length,
+      staffNoAvailability,
+      staffNoOpenTask,
     },
     attentionCounts,
+    visualAnalytics: {
+      attentionLevels: [
+        { label: "Needs attention", count: attentionCounts.attention, level: "attention" as const },
+        { label: "Follow-up", count: attentionCounts.followUp, level: "follow_up" as const },
+        { label: "Stable", count: attentionCounts.stable, level: "stable" as const },
+      ],
+      availabilityCoverage: [
+        { label: "With availability", count: Math.max(activeStaff.length - staffNoAvailability, 0) },
+        { label: "No availability", count: staffNoAvailability },
+      ],
+      taskPressure: [
+        { label: "Open tasks", count: openTasksTotal },
+        { label: "Overdue tasks", count: overdueTasksTotal },
+        { label: "Blocked tasks", count: blockedTasks },
+        { label: "Unassigned open", count: unassignedOpenTasks },
+      ],
+    },
     attentionList,
     workload: {
       topOpen,

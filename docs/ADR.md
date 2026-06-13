@@ -542,3 +542,39 @@ Negative / accepted:
 - Performance note draft memakai preview + copy (manager paste manual), bukan prefill form, untuk menghindari coupling.
 - Kualitas draft bergantung model; diposisikan sebagai draft, bukan keputusan final.
 - Fitur disabled bila API key tidak ada.
+
+## ADR-021 Visual Analytics, Trash Restore, and Audit Usability
+
+Status: Accepted
+
+### Context
+
+Project Fable sudah memiliki CRUD, dashboard reporting, soft delete, RBAC, audit log foundation, People Intelligence, dan AI review workflows. Sprint berikutnya perlu meningkatkan readability data, memberi ADMIN cara memulihkan soft-deleted records, dan membuat audit log lebih usable tanpa menambah kompleksitas production-grade seperti export, hash chain, atau hard delete policy.
+
+### Decision
+
+Bangun Sprint 20 sebagai module gabungan visual analytics, trash/restore, dan audit usability tanpa dependency baru dan tanpa schema change.
+
+- **Chart strategy:** gunakan CSS-only visualization components (`ChartCard`, `HorizontalBarList`, `StatusDistribution`) di atas Tailwind/design tokens existing. Tidak memakai Recharts/chart library karena data saat ini berupa categorical counts dan top-N bars.
+- **Dashboard visual analytics:** `/dashboard` memakai pola metric cards -> chart overview -> actionable/recent lists. Chart yang dipakai: Tasks by Status, Tasks by Priority, Staff by Department, Staff by Status, Attendance by Status, Performance Notes by Category, dan Top Staff by Open Tasks.
+- **Insights visual analytics:** `/insights` menampilkan Attention Levels, Availability Coverage, Open vs Overdue task pressure, Top Open Task Load, dan Overdue by Staff. Staff Attention List tetap menjadi actionable detail utama.
+- **Trash route:** `/trash` ADMIN-only via `trash:read`, menampilkan soft-deleted Staff, Department, Task, Attendance, Availability, dan PerformanceNote grouped by entity type. AuditLog, User, dan Session tidak masuk trash.
+- **Restore policy:** restore ADMIN-only via `trash:restore`; restore hanya set `deletedAt = null` pada record target, tidak cascade. Child restore ditolak bila parent terkait masih soft-deleted. Department restore mengecek conflict nama. Staff email tidak dicek karena schema saat ini tidak unique.
+- **Permanent delete:** tidak dibuat pada Sprint 20. Hard delete memerlukan retention/cascade policy terpisah dan tidak boleh tersedia untuk active records.
+- **Audit usability:** `/audit-logs` mendukung `q`, `action`, `entityType`, `actorRole`, `from`, `to`, `sort=createdAt`, dan `dir`, dengan empty state no matching logs dan cap 200 row.
+- **Audit events:** restore sukses dicatat sebagai `RESTORE` dengan summary aman. Filtering audit tidak diaudit.
+
+### Consequences
+
+Positive:
+
+- Dashboard dan People Intelligence lebih mudah dibaca tanpa menambah dependency/bundle chart library.
+- ADMIN bisa memulihkan data yang soft-deleted tanpa membuka database.
+- Audit viewer lebih berguna untuk review operasional dasar.
+- Restore path tetap konservatif dan tidak mengubah behavior soft delete normal.
+
+Negative / accepted:
+
+- CSS-only charts tidak punya tooltip/legend interaktif kompleks.
+- Trash belum memiliki permanent delete; ini sengaja ditunda sampai ada policy retention/cascade.
+- Audit log belum tamper-proof dan belum punya export.

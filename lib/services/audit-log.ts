@@ -1,7 +1,8 @@
 import { db } from "@/lib/db";
 import type { AuthUser } from "@/lib/auth/session";
+import type { AuditLogListParams } from "@/lib/validations/list-filters";
 
-export type AuditAction = "CREATE" | "UPDATE" | "DELETE" | "GENERATE";
+export type AuditAction = "CREATE" | "UPDATE" | "DELETE" | "GENERATE" | "RESTORE";
 
 export type AuditEntityType =
   | "Staff"
@@ -41,9 +42,45 @@ export async function recordAuditLog(input: RecordAuditLogInput) {
   }
 }
 
-export async function listAuditLogs() {
+function parseDateStart(value: string) {
+  if (!value) {
+    return undefined;
+  }
+
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+function parseDateEnd(value: string) {
+  if (!value) {
+    return undefined;
+  }
+
+  const date = new Date(`${value}T23:59:59.999`);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+export async function listAuditLogs(params?: AuditLogListParams) {
+  const from = parseDateStart(params?.from ?? "");
+  const to = parseDateEnd(params?.to ?? "");
+
   return db.auditLog.findMany({
-    orderBy: { createdAt: "desc" },
+    where: {
+      ...(params?.q
+        ? {
+            OR: [
+              { summary: { contains: params.q } },
+              { actorName: { contains: params.q } },
+              { entityId: { contains: params.q } },
+            ],
+          }
+        : {}),
+      ...(params?.action ? { action: params.action } : {}),
+      ...(params?.entityType ? { entityType: params.entityType } : {}),
+      ...(params?.actorRole ? { actorRole: params.actorRole } : {}),
+      ...(from || to ? { createdAt: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } } : {}),
+    },
+    orderBy: { createdAt: params?.dir ?? "desc" },
     take: 200,
   });
 }

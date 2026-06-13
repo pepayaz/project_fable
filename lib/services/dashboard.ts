@@ -5,7 +5,7 @@ import { attendanceStatuses } from "@/lib/validations/attendance";
 import { performanceNoteCategories } from "@/lib/validations/performance-notes";
 
 const CLOSED_TASK_STATUSES = ["DONE", "CANCELLED"];
-const AUDIT_ACTIONS = ["CREATE", "UPDATE", "DELETE"] as const;
+const AUDIT_ACTIONS = ["CREATE", "UPDATE", "DELETE", "GENERATE", "RESTORE"] as const;
 
 function buildBreakdown(keys: readonly string[], rows: { _count: number }[], field: string) {
   const counts = Object.fromEntries(
@@ -153,6 +153,13 @@ export async function getDashboardSummary() {
     .filter((member) => member.openTasks > 0)
     .sort((a, b) => b.openTasks - a.openTasks)
     .slice(0, 5);
+  const staffByDepartmentBreakdown = [
+    ...staffByDepartment.map((department) => ({
+      label: department.name,
+      count: department._count.staff,
+    })),
+    ...(unassignedStaff > 0 ? [{ label: "Unassigned", count: unassignedStaff }] : []),
+  ].sort((a, b) => b.count - a.count);
 
   return {
     metrics: {
@@ -181,6 +188,7 @@ export async function getDashboardSummary() {
       "category",
     ),
     topWorkload,
+    staffByDepartmentBreakdown,
     recentTasks,
     recentAttendance,
     recentPerformanceNotes,

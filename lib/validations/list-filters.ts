@@ -8,6 +8,7 @@ import { performanceNoteCategories } from "@/lib/validations/performance-notes";
 const searchText = z.string().trim().max(100).catch("");
 const relationId = z.string().trim().max(100).catch("");
 const direction = z.enum(["asc", "desc"]);
+const dateText = z.string().trim().max(20).catch("");
 
 export const staffSortKeys = ["name", "createdAt", "updatedAt"] as const;
 export const staffListParamsSchema = z.object({
@@ -67,3 +68,43 @@ export const performanceNoteListParamsSchema = z.object({
   dir: direction.catch("desc"),
 });
 export type PerformanceNoteListParams = z.infer<typeof performanceNoteListParamsSchema>;
+
+export const auditActions = ["CREATE", "UPDATE", "DELETE", "GENERATE", "RESTORE"] as const;
+export const auditEntityTypes = [
+  "Staff",
+  "Department",
+  "Task",
+  "Attendance",
+  "Availability",
+  "PerformanceNote",
+  "AiBrief",
+  "AiWriting",
+] as const;
+export const auditActorRoles = ["ADMIN", "MANAGER", "MEMBER"] as const;
+export const auditLogSortKeys = ["createdAt"] as const;
+export const auditLogListParamsSchema = z.object({
+  q: searchText,
+  action: z.enum(auditActions).optional().catch(undefined),
+  entityType: z.enum(auditEntityTypes).optional().catch(undefined),
+  actorRole: z.enum(auditActorRoles).optional().catch(undefined),
+  from: dateText,
+  to: dateText,
+  sort: z.enum(auditLogSortKeys).catch("createdAt"),
+  dir: direction.catch("desc"),
+});
+export type AuditLogListParams = z.infer<typeof auditLogListParamsSchema>;
+
+export const trashEntityTypes = [
+  "Staff",
+  "Department",
+  "Task",
+  "Attendance",
+  "Availability",
+  "PerformanceNote",
+] as const;
+export const trashListParamsSchema = z.object({
+  q: searchText,
+  entityType: z.enum(trashEntityTypes).optional().catch(undefined),
+});
+export type TrashListParams = z.infer<typeof trashListParamsSchema>;
+export type TrashEntityType = (typeof trashEntityTypes)[number];

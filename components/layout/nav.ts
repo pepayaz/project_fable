@@ -14,6 +14,7 @@ export const navItems = [
     permission: "performanceNotes:read",
   },
   { label: "Audit Logs", href: "/audit-logs", permission: "auditLogs:read" },
+  { label: "Trash", href: "/trash", permission: "trash:read" },
   { label: "My Workspace", href: "/my", permission: "my:read" },
   { label: "Settings", href: "/settings", permission: "settings:read" },
 ] satisfies Array<{ label: string; href: string; permission: Permission }>;

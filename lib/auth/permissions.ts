@@ -27,6 +27,8 @@ export const permissions = [
   "performanceNotes:update",
   "performanceNotes:delete",
   "auditLogs:read",
+  "trash:read",
+  "trash:restore",
   "ai:generate",
   "my:read",
   "my:availability:manage",

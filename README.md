@@ -8,7 +8,7 @@ Project ini dibuat sebagai portfolio project berbasis workflow Human Capital / P
 
 Fitur MVP yang tersedia saat ini:
 
-- Dashboard management overview dengan metric cards, breakdown (status/priority/kategori), top workload, dan recent activity (tanpa chart library)
+- Dashboard management overview dengan metric cards, CSS-only visual analytics, top workload, dan recent activity (tanpa chart library)
 - Staff CRUD
 - Staff detail 360 read-only (profil + task, attendance, availability, performance notes)
 - Staff Quick Insights (snapshot rule-based netral) dan Activity Timeline gabungan di halaman detail
@@ -17,6 +17,8 @@ Fitur MVP yang tersedia saat ini:
 - AI Briefing & Review (opt-in): draft Staff AI Brief di /staff/[id] dan Weekly People Ops Brief di /insights, default provider Google Gemini, review-only (tidak disimpan), aktif bila GEMINI_API_KEY diisi
 - AI Writing Assistant (opt-in): draft follow-up message, performance note, dan availability reminder di /staff/[id] plus team availability reminder di /insights — draft/review/copy-only, tidak auto-save & tidak auto-send
 - Search, filter, dan sort server-side di semua list page utama (via query params)
+- Audit log search/filter/sort untuk ADMIN
+- Trash & restore untuk soft-deleted records (ADMIN-only, restore-only)
 - Department CRUD
 - Staff assignment ke department
 - Task CRUD
@@ -34,12 +36,12 @@ Fitur MVP yang tersedia saat ini:
 
 Belum termasuk MVP saat ini:
 
-- Dashboard chart library
+- External dashboard chart library
 - Export/import
 - Deployment production
 - Advanced ownership workflows lanjutan (Member Self-Service dasar sudah tersedia)
-- Audit log export, filter, search, dan tamper-proofing
-- Restore, trash page, dan permanent delete untuk soft delete
+- Audit log export dan tamper-proofing
+- Permanent delete untuk soft delete
 - Password reset, email verification, MFA, OAuth/SSO
 - Production security hardening penuh
 
@@ -161,6 +163,7 @@ npm run build
 | Performance notes | Done |
 | Dashboard summary | Done |
 | Reporting & dashboard upgrade | Done |
+| Visual analytics dashboard | Done |
 | Polish and demo readiness | Done |
 | Auth foundation | Done |
 | Protected routes | Done |
@@ -169,11 +172,13 @@ npm run build
 | AI briefing & review (opt-in) | Done |
 | AI writing assistant (opt-in) | Done |
 | Audit log foundation | Done |
+| Audit log filter/search/sort | Done |
 | Soft delete & data safety | Done |
+| Trash / restore | Done |
 | Security hardening review | Done |
 | Fine-grained ownership rules | Future sprint |
-| Audit log filter/search/export | Future sprint |
-| Restore / trash / permanent delete | Future sprint |
+| Audit log export / tamper-proofing | Future sprint |
+| Permanent delete | Future sprint |
 | Deployment | Not included yet |
 
 ## Project Documents
@@ -202,11 +207,17 @@ rtk test npm run build
 
 ## Scope Notes
 
-Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, and multi-tenancy are deferred until the core workflow is stable. Auth foundation, coarse RBAC, an audit log foundation, and soft delete for primary entities are available, but MEMBER self-service ownership rules, audit log filter/search/export, tamper-proofing, restore/trash/permanent delete, and production security hardening remain future work.
+Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll, legal contracts, complex permissions, AI analytics, and multi-tenancy are deferred until the core workflow is stable. Auth foundation, coarse RBAC, audit logs, soft delete, MEMBER self-service ownership rules, trash/restore, and audit filtering are available. Audit export, audit tamper-proofing, permanent delete policy, and production security hardening remain future work.
 
 List search/filter/sort known limitations: belum ada pagination (semua hasil dirender), pencarian `contains` di SQLite case-insensitive terutama untuk ASCII, term pencarian muncul di URL (shareable), dan sort task priority masih urutan alfabet kolom (bukan severity).
 
 Dashboard reporting: task completion rate = `completed / (total non-deleted − cancelled) × 100`, 0% bila denominator 0. Semua metrik non-audit menghormati soft delete (`deletedAt: null`). Section Audit hanya tampil untuk ADMIN (`auditLogs:read`); AuditLog tidak di-soft-delete sehingga query audit tidak memakai filter `deletedAt`.
+
+Visual analytics memakai komponen CSS-only (`ChartCard`, `HorizontalBarList`, `StatusDistribution`) tanpa dependency chart library. `/dashboard` memakai pola metric cards, chart overview, lalu actionable/recent lists. `/insights` menambahkan attention levels, availability coverage, task pressure, top open task load, dan overdue distribution tanpa mengganti Staff Attention List.
+
+Trash & restore (`/trash`, ADMIN-only): menampilkan soft-deleted Staff, Department, Task, Attendance, Availability, dan PerformanceNote, dikelompokkan per entity type. Restore hanya set `deletedAt = null` untuk record target, tidak cascade. Child records hanya bisa direstore bila parent terkait aktif; Department restore mengecek conflict nama. Restore dicatat ke audit log (`RESTORE`). Permanent delete sengaja belum tersedia dan menunggu policy terpisah.
+
+Audit log usability (`/audit-logs`, ADMIN-only): viewer mendukung search/filter/sort via query params (`q`, `action`, `entityType`, `actorRole`, `from`, `to`, `sort=createdAt`, `dir`). Filtering audit tidak diaudit. Export dan tamper-proof hash chain masih future.
 
 AI Briefing & Review (opt-in, default provider Google Gemini `gemini-2.5-flash-lite`): hanya ADMIN/MANAGER (`ai:generate`) yang dapat men-generate draft Staff AI Brief (`/staff/[id]`) dan Weekly People Ops Brief (`/insights`). Fitur graceful-disabled bila `GEMINI_API_KEY` kosong. Output adalah draft untuk review manusia, **tidak disimpan** ke database, dan prompt/output **tidak di-log**. Data yang dikirim dibatasi whitelist (profil + signals + ringkasan hitungan); **tidak** mengirim isi penuh performance note, passwordHash, session/token/cookie, atau audit log mentah. Provider abstraction memungkinkan menambah Anthropic/OpenAI sebagai future provider tanpa mengubah business logic. Bukan chatbot, tanpa scoring/keputusan HR final. Env: `AI_PROVIDER`, `GEMINI_API_KEY`, `AI_MODEL`. Lihat ADR-019.
 

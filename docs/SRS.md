@@ -285,6 +285,7 @@ Dashboard menampilkan:
 - Attendance & Performance: attendance by status, performance notes by category.
 - Recent activity: recent tasks, attendance, performance notes.
 - Audit (ADMIN-only): recent audit logs dan activity by action.
+- CSS-only visual analytics: Tasks by Status, Tasks by Priority, Staff by Department, Staff by Status, Attendance by Status, Performance Notes by Category, dan Top Staff by Open Tasks.
 
 Acceptance criteria:
 
@@ -292,7 +293,35 @@ Acceptance criteria:
 - Semua metrik non-audit menghormati soft delete (`deletedAt: null`).
 - Section audit hanya di-fetch dan dirender bila user punya `auditLogs:read` (ADMIN); MANAGER tidak menerima data audit.
 - AuditLog tidak di-soft-delete, sehingga query audit tidak memakai filter `deletedAt`.
-- Visualisasi memakai badge/list/progress bar sederhana (CSS/Tailwind), tanpa chart library.
+- Visualisasi memakai reusable CSS/Tailwind components, tanpa chart library.
+
+### FR-013 Trash and Restore
+
+Sistem harus menyediakan halaman `/trash` untuk ADMIN agar soft-deleted records bisa direview dan direstore.
+
+Acceptance criteria:
+
+- `/trash` hanya bisa diakses ADMIN lewat permission `trash:read`.
+- Restore hanya bisa dilakukan ADMIN lewat permission `trash:restore`.
+- Entity yang tampil: Staff, Department, Task, Attendance, Availability, PerformanceNote.
+- AuditLog, User, dan Session tidak tampil di trash.
+- Restore hanya boleh untuk record dengan `deletedAt` tidak null, dan mengubah record target menjadi `deletedAt: null`.
+- Restore tidak cascade. Child restore ditolak bila parent terkait masih soft-deleted.
+- Department restore mengecek conflict unique name dan menampilkan error aman.
+- Restore sukses dicatat ke AuditLog dengan action `RESTORE`.
+- Permanent delete tidak tersedia pada sprint ini.
+
+### FR-014 Audit Log Usability
+
+Sistem harus menyediakan audit log viewer ADMIN-only yang mudah difilter.
+
+Acceptance criteria:
+
+- `/audit-logs` tetap ADMIN-only lewat permission `auditLogs:read`.
+- Viewer mendukung `q`, `action`, `entityType`, `actorRole`, `from`, `to`, `sort=createdAt`, dan `dir`.
+- Empty state membedakan audit kosong dan filter tanpa hasil.
+- Filtering audit tidak membuat audit event baru.
+- Export dan tamper-proofing audit log tetap future.
 
 ## Non-Functional Requirements
 
@@ -327,11 +356,11 @@ Aplikasi harus dapat dijalankan lokal dengan instruksi yang jelas.
 
 Aplikasi harus menghindari exposure data sensitif. Auth foundation tersedia dengan password hashing, database session, httpOnly cookie, protected routes, dan logout.
 
-Audit log foundation mencatat create/update/delete pada entity utama (siapa, kapan, terhadap apa) dengan summary aman, tanpa menyimpan passwordHash, session token, raw cookie, atau dump objek. Viewer audit log read-only dan hanya untuk ADMIN.
+Audit log foundation mencatat create/update/delete/restore/generate pada entity utama (siapa, kapan, terhadap apa) dengan summary aman, tanpa menyimpan passwordHash, session token, raw cookie, atau dump objek. Viewer audit log read-only, filterable, dan hanya untuk ADMIN.
 
 Hardening dasar sudah diterapkan (lihat ADR-017): security headers HTTP dasar (`X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`), timing login disamakan agar tidak bocor keberadaan email, proxy melindungi `/audit-logs`, service `update*`/`delete*` menolak record yang sudah soft-deleted, dan seed production hanya membuat admin. CSRF mengandalkan proteksi bawaan Next.js Server Actions.
 
-Accepted risks / future sprint: MFA, password reset, email verification, OAuth/SSO, fine-grained ownership rules, audit log tamper-proofing/filter/search/export, pencatatan aksi gagal, session sliding/rotation, rate limiting penuh, dan CSP.
+Accepted risks / future sprint: MFA, password reset, email verification, OAuth/SSO, audit log tamper-proofing/export, permanent delete policy, pencatatan aksi gagal, session sliding/rotation, rate limiting penuh, dan CSP.
 
 ### AI-Agent Compatibility
 

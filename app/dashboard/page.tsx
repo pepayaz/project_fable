@@ -1,6 +1,9 @@
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import MetricCard from "@/components/ui/MetricCard";
+import ChartCard from "@/components/ui/analytics/ChartCard";
+import HorizontalBarList, { type BarTone } from "@/components/ui/analytics/HorizontalBarList";
+import StatusDistribution from "@/components/ui/analytics/StatusDistribution";
 import { can } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/guards";
 import { getAuditActivitySummary, getDashboardSummary } from "@/lib/services/dashboard";
@@ -21,6 +24,21 @@ function taskStatusBadgeClass(status: string) {
   }
 }
 
+function taskStatusTone(status: string): BarTone {
+  switch (status) {
+    case "DONE":
+      return "success";
+    case "IN_PROGRESS":
+      return "info";
+    case "BLOCKED":
+      return "warning";
+    case "CANCELLED":
+      return "muted";
+    default:
+      return "primary";
+  }
+}
+
 function priorityBadgeClass(priority: string) {
   switch (priority) {
     case "LOW":
@@ -34,16 +52,29 @@ function priorityBadgeClass(priority: string) {
   }
 }
 
-function staffStatusBadgeClass(status: string) {
+function priorityTone(priority: string): BarTone {
+  switch (priority) {
+    case "LOW":
+      return "muted";
+    case "HIGH":
+      return "warning";
+    case "URGENT":
+      return "danger";
+    default:
+      return "info";
+  }
+}
+
+function staffStatusTone(status: string): BarTone {
   switch (status) {
     case "ACTIVE":
-      return "bg-success-soft text-success";
+      return "success";
     case "PROBATION":
-      return "bg-warning-soft text-warning";
+      return "warning";
     case "RESIGNED":
-      return "bg-danger-soft text-danger";
+      return "danger";
     default:
-      return "bg-surface-muted text-text-muted";
+      return "muted";
   }
 }
 
@@ -62,6 +93,22 @@ function attendanceBadgeClass(status: string) {
   }
 }
 
+function attendanceTone(status: string): BarTone {
+  switch (status) {
+    case "PRESENT":
+      return "success";
+    case "ABSENT":
+      return "danger";
+    case "EXCUSED":
+      return "info";
+    case "SICK":
+    case "LATE":
+      return "warning";
+    default:
+      return "primary";
+  }
+}
+
 function categoryBadgeClass(category: string) {
   switch (category) {
     case "POSITIVE":
@@ -75,6 +122,19 @@ function categoryBadgeClass(category: string) {
   }
 }
 
+function categoryTone(category: string): BarTone {
+  switch (category) {
+    case "POSITIVE":
+      return "success";
+    case "IMPROVEMENT":
+      return "info";
+    case "WARNING":
+      return "warning";
+    default:
+      return "muted";
+  }
+}
+
 function actionBadgeClass(action: string) {
   switch (action) {
     case "CREATE":
@@ -83,8 +143,25 @@ function actionBadgeClass(action: string) {
       return "bg-info-soft text-info";
     case "DELETE":
       return "bg-danger-soft text-danger";
+    case "RESTORE":
+      return "bg-primary-soft text-primary";
     default:
       return "bg-surface-muted text-text-muted";
+  }
+}
+
+function actionTone(action: string): BarTone {
+  switch (action) {
+    case "CREATE":
+      return "success";
+    case "UPDATE":
+      return "info";
+    case "DELETE":
+      return "danger";
+    case "RESTORE":
+      return "primary";
+    default:
+      return "muted";
   }
 }
 
@@ -157,33 +234,6 @@ function Badge({ className, children }: { className: string; children: React.Rea
   );
 }
 
-function Breakdown({
-  items,
-}: {
-  items: { label: string; count: number; className: string }[];
-}) {
-  const total = items.reduce((sum, item) => sum + item.count, 0);
-
-  return (
-    <div className="space-y-3">
-      {items.map((item) => {
-        const width = total > 0 ? Math.round((item.count / total) * 100) : 0;
-        return (
-          <div key={item.label}>
-            <div className="flex items-center justify-between gap-3">
-              <Badge className={item.className}>{item.label}</Badge>
-              <span className="text-sm font-medium text-text-primary">{item.count}</span>
-            </div>
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
-              <div className="h-full rounded-full bg-primary" style={{ width: `${width}%` }} />
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 export default async function DashboardPage() {
   const user = await requirePermission("dashboard:read");
   const [summary, people] = await Promise.all([getDashboardSummary(), getPeopleIntelligence()]);
@@ -191,6 +241,11 @@ export default async function DashboardPage() {
   const showAudit = can(user, "auditLogs:read");
   const audit = showAudit ? await getAuditActivitySummary() : null;
   const topAttention = people.attentionList.slice(0, 3);
+  const staffDepartmentItems = summary.staffByDepartmentBreakdown.map((item) => ({
+    label: item.label,
+    value: item.count,
+    tone: item.label === "Unassigned" ? ("muted" as const) : ("primary" as const),
+  }));
 
   return (
     <div>
@@ -205,6 +260,78 @@ export default async function DashboardPage() {
         <MetricCard label="Completion Rate" value={`${metrics.completionRate}%`} />
         <MetricCard label="Unassigned Open Tasks" value={String(metrics.unassignedOpenTasks)} />
         <MetricCard label="Performance Notes" value={String(metrics.performanceNotes)} />
+      </div>
+
+      <GroupHeading>Visual Overview</GroupHeading>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ChartCard title="Tasks by Status" description="Current task mix across active records.">
+          <StatusDistribution
+            items={summary.tasksByStatus.map((item) => ({
+              label: item.label,
+              value: item.count,
+              tone: taskStatusTone(item.label),
+            }))}
+            emptyMessage="No active task records yet. Create or assign tasks to see this breakdown."
+          />
+        </ChartCard>
+        <ChartCard title="Tasks by Priority" description="Priority spread across all non-deleted tasks.">
+          <HorizontalBarList
+            items={summary.tasksByPriority.map((item) => ({
+              label: item.label,
+              value: item.count,
+              tone: priorityTone(item.label),
+            }))}
+            emptyMessage="No active task records yet. Add task priorities to understand workload urgency."
+          />
+        </ChartCard>
+        <ChartCard title="Staff by Status" description="Staff status distribution.">
+          <StatusDistribution
+            items={summary.staffByStatus.map((item) => ({
+              label: item.label,
+              value: item.count,
+              tone: staffStatusTone(item.label),
+            }))}
+            emptyMessage="No staff records yet. Add staff to see organization status coverage."
+          />
+        </ChartCard>
+        <ChartCard title="Staff by Department" description="Where staff are currently grouped.">
+          <HorizontalBarList
+            items={staffDepartmentItems}
+            emptyMessage="No department distribution yet. Assign staff to departments to compare coverage."
+          />
+        </ChartCard>
+        <ChartCard title="Attendance by Status" description="Attendance records by status.">
+          <StatusDistribution
+            items={summary.attendanceByStatus.map((item) => ({
+              label: item.label,
+              value: item.count,
+              tone: attendanceTone(item.label),
+            }))}
+            emptyMessage="No attendance records yet. Add attendance records to see presence patterns."
+          />
+        </ChartCard>
+        <ChartCard title="Performance Notes by Category" description="Note categories across records.">
+          <StatusDistribution
+            items={summary.performanceByCategory.map((item) => ({
+              label: item.label,
+              value: item.count,
+              tone: categoryTone(item.label),
+            }))}
+            emptyMessage="No performance note categories recorded yet. Add notes to see category balance."
+          />
+        </ChartCard>
+        <ChartCard title="Top Staff by Open Tasks" description="Assigned open task load by staff.">
+          <HorizontalBarList
+            items={summary.topWorkload.map((member) => ({
+              label: member.name,
+              value: member.openTasks,
+              detail: `${member.openTasks} open`,
+              href: `/staff/${member.id}`,
+              tone: "info",
+            }))}
+            emptyMessage="No open tasks assigned. Assigned open tasks will appear here for workload review."
+          />
+        </ChartCard>
       </div>
 
       <GroupHeading>People Intelligence</GroupHeading>
@@ -249,92 +376,6 @@ export default async function DashboardPage() {
           </div>
         )}
       </section>
-
-      <GroupHeading>Tasks</GroupHeading>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Section title="Tasks by Status">
-          <Breakdown
-            items={summary.tasksByStatus.map((item) => ({
-              ...item,
-              className: taskStatusBadgeClass(item.label),
-            }))}
-          />
-        </Section>
-        <Section title="Tasks by Priority">
-          <Breakdown
-            items={summary.tasksByPriority.map((item) => ({
-              ...item,
-              className: priorityBadgeClass(item.label),
-            }))}
-          />
-        </Section>
-      </div>
-
-      <GroupHeading>People</GroupHeading>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Section title="Staff by Status">
-          <Breakdown
-            items={summary.staffByStatus.map((item) => ({
-              ...item,
-              className: staffStatusBadgeClass(item.label),
-            }))}
-          />
-        </Section>
-        <Section title="Staff by Department">
-          {summary.staffByDepartment.length === 0 && summary.unassignedStaff === 0 ? (
-            <p className="text-sm text-text-muted">No staff distribution yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {summary.staffByDepartment.map((department) => (
-                <div key={department.id} className="flex items-center justify-between gap-4">
-                  <p className="text-sm text-text-secondary">{department.name}</p>
-                  <p className="text-sm font-medium text-text-primary">{department._count.staff}</p>
-                </div>
-              ))}
-              {summary.unassignedStaff > 0 && (
-                <div className="flex items-center justify-between gap-4 border-t border-border pt-3">
-                  <p className="text-sm text-text-secondary">Unassigned</p>
-                  <p className="text-sm font-medium text-text-primary">{summary.unassignedStaff}</p>
-                </div>
-              )}
-            </div>
-          )}
-        </Section>
-        <Section title="Top Workload">
-          {summary.topWorkload.length === 0 ? (
-            <p className="text-sm text-text-muted">No open tasks assigned.</p>
-          ) : (
-            <div className="space-y-3">
-              {summary.topWorkload.map((member) => (
-                <div key={member.id} className="flex items-center justify-between gap-4">
-                  <p className="text-sm text-text-secondary">{member.name}</p>
-                  <p className="text-sm font-medium text-text-primary">{member.openTasks} open</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </Section>
-      </div>
-
-      <GroupHeading>Attendance &amp; Performance</GroupHeading>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Section title="Attendance by Status">
-          <Breakdown
-            items={summary.attendanceByStatus.map((item) => ({
-              ...item,
-              className: attendanceBadgeClass(item.label),
-            }))}
-          />
-        </Section>
-        <Section title="Performance Notes by Category">
-          <Breakdown
-            items={summary.performanceByCategory.map((item) => ({
-              ...item,
-              className: categoryBadgeClass(item.label),
-            }))}
-          />
-        </Section>
-      </div>
 
       <GroupHeading>Recent Activity</GroupHeading>
       <div className="grid gap-4 lg:grid-cols-2">
@@ -442,10 +483,11 @@ export default async function DashboardPage() {
               )}
             </Section>
             <Section title="Activity by Action">
-              <Breakdown
+              <HorizontalBarList
                 items={audit.activityByAction.map((item) => ({
-                  ...item,
-                  className: actionBadgeClass(item.label),
+                  label: item.label,
+                  value: item.count,
+                  tone: actionTone(item.label),
                 }))}
               />
             </Section>

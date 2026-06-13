@@ -290,7 +290,8 @@ Coarse RBAC uses explicit permission strings such as `staff:create`, `tasks:upda
 
 - `ADMIN` can access and mutate all primary resources.
 - `MANAGER` can view dashboard, CRUD staff, tasks, attendance, availability, and performance notes, and view departments.
-- `MEMBER` can only access settings until User-to-Staff linking and self-service ownership rules exist.
+- `MEMBER` can access only its own workspace and settings.
+- Trash permissions (`trash:read`, `trash:restore`) are ADMIN-only.
 
 All protected pages use read permissions. All mutating Server Actions use create/update/delete permissions. UI actions are hidden when permission is missing, but server-side permission checks remain the source of truth.
 
@@ -303,7 +304,9 @@ Audit log foundation mencatat aksi penting pada entity utama untuk akuntabilitas
 - Pencatatan bersifat best-effort: kegagalan audit tidak menggagalkan aksi user.
 - `summary` memakai whitelist field aman dan tidak menyimpan passwordHash, session token, raw cookie, atau dump objek. Untuk PerformanceNote hanya kategori dan nama staff.
 - Viewer `/audit-logs` read-only dan ADMIN-only lewat permission `auditLogs:read`.
-- Foundation ini belum tamper-proof, belum mencatat aksi gagal/auth, dan belum punya filter, search, export, atau pagination.
+- Viewer audit mendukung query param filtering/search/sort (`q`, `action`, `entityType`, `actorRole`, `from`, `to`, `sort=createdAt`, `dir`) dengan cap 200 row.
+- Restore dari trash dicatat sebagai `RESTORE` dengan summary aman. Filtering audit tidak dicatat.
+- Foundation ini belum tamper-proof, belum mencatat aksi gagal/auth, dan belum punya export atau pagination penuh.
 
 ## Soft Delete Strategy
 
@@ -314,7 +317,10 @@ Entity utama (Staff, Department, Task, Attendance, Availability, PerformanceNote
 - Dashboard mengabaikan record yang sudah dihapus.
 - Department hanya boleh dihapus jika tidak punya staff aktif (non-deleted).
 - Audit log tetap mencatat action DELETE.
-- Known limitation: child records milik staff yang sudah dihapus tetap tampil (tidak difilter `staff.deletedAt`), nama Department soft-deleted tetap menempati unique constraint, dan belum ada restore/trash/permanent delete.
+- `/trash` menampilkan soft-deleted Staff, Department, Task, Attendance, Availability, dan PerformanceNote untuk ADMIN.
+- Restore hanya set `deletedAt: null` pada record target, tidak cascade. Child restore ditolak bila parent terkait masih soft-deleted. Department restore mengecek conflict nama.
+- Permanent delete belum tersedia; hard delete active records tidak didukung.
+- Known limitation: child records milik staff yang sudah dihapus tetap tampil pada konteks tertentu bila record child masih aktif, nama Department soft-deleted tetap menempati unique constraint, dan belum ada permanent delete.
 
 ## List Filtering Strategy
 
@@ -331,11 +337,13 @@ List page utama (Staff, Departments, Tasks, Attendance, Availability, Performanc
 
 Dashboard adalah management overview yang dihitung dari data existing, tanpa schema atau dependency baru.
 
-- `getDashboardSummary()` menghitung metric cards, breakdown (`groupBy`), top workload (relation `_count`), dan recent activity dalam satu `Promise.all`. Semua query non-audit memakai `deletedAt: null`. Breakdown dinormalisasi terhadap daftar enum di `lib/validations/*` agar nilai 0 tetap tampil.
+- `getDashboardSummary()` menghitung metric cards, breakdown (`groupBy`), staff-by-department, top workload (relation `_count`), dan recent activity dalam satu `Promise.all`. Semua query non-audit memakai `deletedAt: null`. Breakdown dinormalisasi terhadap daftar enum di `lib/validations/*` agar nilai 0 tetap tampil.
 - **Task completion rate** = `completed / (total non-deleted − cancelled) × 100`, dibulatkan; 0% bila denominator 0.
 - **Audit summary dipisah** ke `getAuditActivitySummary()` dan hanya dipanggil/dirender bila `can(user, "auditLogs:read")` (ADMIN). MANAGER memiliki `dashboard:read` tetapi tidak menerima data audit. RBAC tidak diubah.
 - AuditLog tidak di-soft-delete, sehingga query audit tidak memakai filter `deletedAt`.
-- Visualisasi memakai badge/list/progress bar CSS sederhana, tanpa chart library. Known limitation: query agregasi belum ber-index (full scan), diterima pada skala MVP.
+- Visual analytics memakai reusable CSS-only components (`ChartCard`, `HorizontalBarList`, `StatusDistribution`), tanpa chart library. `/dashboard` mengikuti pola metric cards -> chart overview -> actionable/recent lists.
+- `/insights` memakai `visualAnalytics` dari `getPeopleIntelligence()` untuk attention levels, availability coverage, task pressure, top open task load, dan overdue distribution. Staff Attention List tetap actionable list utama.
+- Known limitation: query agregasi belum ber-index (full scan), diterima pada skala MVP.
 
 ## AI Briefing & Review System
 

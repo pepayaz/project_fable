@@ -196,9 +196,13 @@ Sudah dikerjakan (opt-in, lihat ADR-019): AI Briefing & Review System — Staff 
 
 Sudah dikerjakan (opt-in, lihat ADR-020): AI Writing Assistant & Review Workflow — draft follow-up message, performance note, dan availability reminder (per-staff + tim), draft/review/copy-only, tanpa auto-save/auto-send, memakai provider abstraction dan safety framework yang sama.
 
+Sudah dikerjakan (lihat ADR-021): Visual Analytics, Data Recovery & Audit Usability - CSS-only chart overview di `/dashboard` dan `/insights`, `/trash` ADMIN-only untuk restore soft-deleted records, audit log search/filter/sort, dan audit action `RESTORE`. Permanent delete tetap future.
+
 Possible deliverables lanjutan:
 
 - Anthropic/OpenAI sebagai provider tambahan via abstraction yang sudah ada.
+- Permanent delete policy untuk soft-deleted records.
+- Audit log export dan tamper-proofing.
 - Generate staff performance summary.
 - Generate follow-up message.
 - Recommend staff for task based on availability and workload.

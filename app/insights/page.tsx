@@ -1,6 +1,9 @@
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import MetricCard from "@/components/ui/MetricCard";
+import ChartCard from "@/components/ui/analytics/ChartCard";
+import HorizontalBarList, { type BarTone } from "@/components/ui/analytics/HorizontalBarList";
+import StatusDistribution from "@/components/ui/analytics/StatusDistribution";
 import { can } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/guards";
 import { getPeopleIntelligence } from "@/lib/services/people-intelligence";
@@ -18,6 +21,17 @@ function levelBadgeClass(level: StaffSignalLevel) {
       return "bg-info-soft text-info";
     default:
       return "bg-success-soft text-success";
+  }
+}
+
+function levelTone(level: StaffSignalLevel): BarTone {
+  switch (level) {
+    case "attention":
+      return "warning";
+    case "follow_up":
+      return "info";
+    default:
+      return "success";
   }
 }
 
@@ -90,6 +104,17 @@ export default async function InsightsPage() {
   const data = await getPeopleIntelligence();
   const { orgSummary, attentionList, workload, weeklyOps } = data;
   const canGenerateAi = can(user, "ai:generate");
+  const attentionItems = data.visualAnalytics.attentionLevels.map((item) => ({
+    label: item.label,
+    value: item.count,
+    tone: levelTone(item.level),
+  }));
+  const availabilityItems = data.visualAnalytics.availabilityCoverage.map((item) => ({
+    label: item.label,
+    value: item.count,
+    tone: item.label === "No availability" ? ("warning" as const) : ("success" as const),
+  }));
+  const hasMissingAvailability = orgSummary.staffNoAvailability > 0;
 
   return (
     <div>
@@ -135,7 +160,89 @@ export default async function InsightsPage() {
         <MetricCard label="No Open Task" value={String(orgSummary.staffNoOpenTask)} />
       </div>
 
+      <GroupHeading>Visual Signals</GroupHeading>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ChartCard title="Attention Levels" description="Rule-based staff signal distribution.">
+          <StatusDistribution items={attentionItems} />
+          <p className="mt-3 text-xs text-text-muted">
+            Use this to scan overall staff signal levels; review the Staff Attention List below for details.
+          </p>
+        </ChartCard>
+        <ChartCard
+          title="Availability Coverage"
+          description={
+            hasMissingAvailability
+              ? "Missing availability is an operational follow-up signal, not a positive coverage metric."
+              : "Active staff currently have availability records."
+          }
+        >
+          <StatusDistribution
+            items={availabilityItems}
+            emptyMessage="No active staff records yet. Add staff and availability to see coverage."
+          />
+          {hasMissingAvailability && (
+            <p className="mt-3 text-xs text-warning">
+              {orgSummary.staffNoAvailability} active staff member
+              {orgSummary.staffNoAvailability === 1 ? "" : "s"} missing availability should be reviewed for planning coverage.
+            </p>
+          )}
+        </ChartCard>
+        <ChartCard title="Open vs Overdue Tasks" description="Current task pressure across the organization.">
+          <HorizontalBarList
+            items={data.visualAnalytics.taskPressure.map((item) => ({
+              label: item.label,
+              value: item.count,
+              tone:
+                item.label === "Overdue tasks"
+                  ? "warning"
+                  : item.label === "Blocked tasks"
+                    ? "danger"
+                    : item.label === "Unassigned open"
+                      ? "muted"
+                      : "info",
+            }))}
+            emptyMessage="No current task pressure. Open, overdue, or blocked work will appear here."
+          />
+          <p className="mt-3 text-xs text-text-muted">
+            Compare open work with overdue and blocked items before assigning more tasks.
+          </p>
+        </ChartCard>
+        <ChartCard title="Top Open Task Load" description="Staff with the most assigned open tasks.">
+          <HorizontalBarList
+            items={workload.topOpen.map((member) => ({
+              label: member.name,
+              value: member.openTasks,
+              detail: `${member.openTasks} open`,
+              href: `/staff/${member.id}`,
+              tone: "info",
+            }))}
+            emptyMessage="No open tasks assigned. Assigned open tasks will appear here for workload review."
+          />
+          <p className="mt-3 text-xs text-text-muted">
+            Higher bars indicate staff who may need workload balancing.
+          </p>
+        </ChartCard>
+        <ChartCard title="Overdue by Staff" description="Where overdue work is concentrated.">
+          <HorizontalBarList
+            items={workload.overdueByStaff.map((member) => ({
+              label: member.name,
+              value: member.overdueTasks,
+              detail: `${member.overdueTasks} overdue`,
+              href: `/staff/${member.id}`,
+              tone: "warning",
+            }))}
+            emptyMessage="No overdue tasks. Overdue work will appear here when deadlines pass."
+          />
+          <p className="mt-3 text-xs text-text-muted">
+            Use this as a follow-up queue, then inspect each staff detail before taking action.
+          </p>
+        </ChartCard>
+      </div>
+
       <GroupHeading>Staff Attention List</GroupHeading>
+      <p className="mb-3 text-sm text-text-muted">
+        Start here for actionable follow-up. The charts above show patterns; this list shows who needs review.
+      </p>
       <section className="rounded-lg border border-border bg-surface p-5 shadow-card">
         {attentionList.length === 0 ? (
           <p className="text-sm text-text-muted">All active staff are stable right now.</p>
