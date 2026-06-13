@@ -11,6 +11,8 @@ const SCRYPT_N = 16384;
 const SCRYPT_R = 8;
 const SCRYPT_P = 1;
 const LOCAL_QA_PASSWORD = "project-fable-local-rbac-password";
+const MIN_PRODUCTION_PASSWORD_LENGTH = 12;
+const isProduction = process.env.NODE_ENV === "production";
 
 function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
@@ -24,7 +26,11 @@ function hashPassword(password) {
 }
 
 function resolveDatabasePath() {
-  const databaseUrl = process.env.DATABASE_URL ?? "file:./prisma/dev.db";
+  const databaseUrl = process.env.DATABASE_URL ?? (isProduction ? "" : "file:./prisma/dev.db");
+
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is required.");
+  }
 
   if (!databaseUrl.startsWith("file:")) {
     throw new Error("Seed script only supports SQLite file: DATABASE_URL values.");
@@ -32,6 +38,46 @@ function resolveDatabasePath() {
 
   const filePath = databaseUrl.slice("file:".length);
   return path.resolve(process.cwd(), filePath);
+}
+
+function isWeakProductionPassword(password) {
+  const lowered = password.toLowerCase();
+  return (
+    password.length < MIN_PRODUCTION_PASSWORD_LENGTH ||
+    lowered.includes("password") ||
+    lowered.includes("change-this") ||
+    password === LOCAL_QA_PASSWORD
+  );
+}
+
+function getSeedAdminConfig() {
+  const name = process.env.SEED_ADMIN_NAME?.trim() || "Project Fable Admin";
+  const email = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.SEED_ADMIN_PASSWORD || (!isProduction ? LOCAL_QA_PASSWORD : "");
+
+  if (isProduction) {
+    if (!email || !email.includes("@")) {
+      throw new Error("SEED_ADMIN_EMAIL must be set to a valid email in production.");
+    }
+    if (!password) {
+      throw new Error("SEED_ADMIN_PASSWORD is required in production.");
+    }
+    if (isWeakProductionPassword(password)) {
+      throw new Error("SEED_ADMIN_PASSWORD is too weak for production.");
+    }
+  }
+
+  if (!password) {
+    return null;
+  }
+
+  return {
+    id: "user-admin",
+    name,
+    email: email || "admin@fable.local",
+    role: "ADMIN",
+    password,
+  };
 }
 
 const db = new Database(resolveDatabasePath());
@@ -256,37 +302,30 @@ const upsertUser = db.prepare(`
 `);
 
 const seed = db.transaction(() => {
-  for (const department of departments) {
-    upsertDepartment.run({
-      ...department,
-      createdAt: now,
-      updatedAt: now,
-    });
+  if (!isProduction) {
+    for (const department of departments) {
+      upsertDepartment.run({
+        ...department,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    for (const member of staff) {
+      upsertStaff.run({
+        ...member,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
   }
 
-  for (const member of staff) {
-    upsertStaff.run({
-      ...member,
-      createdAt: now,
-      updatedAt: now,
-    });
-  }
+  const admin = getSeedAdminConfig();
 
-  const seedPassword =
-    process.env.SEED_ADMIN_PASSWORD ||
-    (process.env.NODE_ENV !== "production" ? LOCAL_QA_PASSWORD : "");
+  if (admin) {
+    const qaUsers = [admin];
 
-  if (seedPassword) {
-    const qaUsers = [
-      {
-        id: "user-admin",
-        name: process.env.SEED_ADMIN_NAME?.trim() || "Project Fable Admin",
-        email: "admin@fable.local",
-        role: "ADMIN",
-      },
-    ];
-
-    if (process.env.NODE_ENV !== "production") {
+    if (!isProduction) {
       qaUsers.push(
         {
           id: "user-manager",
@@ -305,12 +344,13 @@ const seed = db.transaction(() => {
     }
 
     for (const user of qaUsers) {
+      const { password, ...userData } = user;
       upsertUser.run({
-        ...user,
-        email: user.email.toLowerCase(),
-        passwordHash: hashPassword(seedPassword),
+        ...userData,
+        email: userData.email.toLowerCase(),
+        passwordHash: hashPassword(password ?? admin.password),
         isActive: 1,
-        linkedStaffId: user.linkedStaffId ?? null,
+        linkedStaffId: userData.linkedStaffId ?? null,
         createdAt: now,
         updatedAt: now,
       });
@@ -321,16 +361,16 @@ const seed = db.transaction(() => {
 seed();
 db.close();
 
-console.log(`Seeded ${departments.length} departments and ${staff.length} staff.`);
+if (!isProduction) {
+  console.log(`Seeded ${departments.length} departments and ${staff.length} staff.`);
+} else {
+  console.log("Skipped demo department and staff seed in production.");
+}
 
 if (process.env.SEED_ADMIN_PASSWORD) {
-  console.log("Seeded RBAC QA users with SEED_ADMIN_PASSWORD.");
-} else if (process.env.NODE_ENV !== "production") {
-  console.log(
-    `Seeded RBAC QA users with local-only fallback password: ${LOCAL_QA_PASSWORD}`,
-  );
+  console.log(isProduction ? "Seeded production admin user." : "Seeded RBAC QA users with SEED_ADMIN_PASSWORD.");
+} else if (!isProduction) {
+  console.log("Seeded RBAC QA users with local-only fallback password.");
 } else {
-  console.log(
-    "Skipped RBAC QA user seed. Set SEED_ADMIN_PASSWORD to create local QA users.",
-  );
+  console.log("Skipped user seed.");
 }

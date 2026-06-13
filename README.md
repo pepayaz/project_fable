@@ -167,6 +167,7 @@ npm run build
 | Visual analytics dashboard | Done |
 | Import/export data tools | Done |
 | Admin user management | Done |
+| Production readiness hardening | Done |
 | Polish and demo readiness | Done |
 | Auth foundation | Done |
 | Protected routes | Done |
@@ -222,6 +223,8 @@ Data Tools (`/data-tools`): ADMIN dan MANAGER dapat export CSV active records (`
 
 Admin User Management (`/users`, ADMIN-only): ADMIN dapat membuat user dengan temporary password (langsung di-hash), mengubah role, activate/deactivate, dan link/unlink ke Staff aktif. Password hash dan session token/hash tidak pernah ditampilkan. Deactivate user juga revoke session user tersebut. Current admin tidak bisa deactivate diri sendiri atau melepas role ADMIN sendiri.
 
+Production readiness hardening: environment validation tersedia untuk `DATABASE_URL`, AI config, dan production seed admin; production seed tidak membuat demo data/accounts dan menolak password admin lemah. Session cookie tetap `HttpOnly`, `SameSite=Lax`, `Secure` di production, token disimpan hashed, expired sessions dibersihkan opportunistically, dan login memiliki in-memory failed-attempt limiter. Security headers mencakup baseline headers plus CSP dasar yang kompatibel dengan Next. Lihat `docs/OPERATIONS.md` untuk backup/restore, seed, smoke test, dan deployment checklist.
+
 Trash & restore (`/trash`, ADMIN-only): menampilkan soft-deleted Staff, Department, Task, Attendance, Availability, dan PerformanceNote, dikelompokkan per entity type. Restore hanya set `deletedAt = null` untuk record target, tidak cascade. Child records hanya bisa direstore bila parent terkait aktif; Department restore mengecek conflict nama. Restore dicatat ke audit log (`RESTORE`). Permanent delete sengaja belum tersedia dan menunggu policy terpisah.
 
 Audit log usability (`/audit-logs`, ADMIN-only): viewer mendukung search/filter/sort via query params (`q`, `action`, `entityType`, `actorRole`, `from`, `to`, `sort=createdAt`, `dir`). Filtering audit tidak diaudit. Export dan tamper-proof hash chain masih future.
@@ -236,4 +239,6 @@ People Intelligence Center (`/insights`, permission `dashboard:read`, ADMIN+MANA
 
 Staff insights & timeline: Quick Insights bersifat rule-based, netral, dan transparan (menampilkan angka + sinyal "Needs attention"/"Follow-up suggested"/"No immediate signals" beserta alasannya), bukan penilaian final terhadap staff. Activity Timeline menggabungkan task/attendance/availability/performance note (kategori + tanggal saja, tanpa isi note) terurut terbaru→lama (cap 20); entri audit hanya muncul untuk ADMIN. Struktur snapshot/timeline ini sengaja disiapkan sebagai input untuk fitur AI staff brief di sprint berikutnya — Sprint ini belum memakai AI.
 
-Security hardening (lihat ADR-017): security headers dasar (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`), timing login disamakan agar tidak bocor keberadaan email, proxy melindungi `/audit-logs`, `update*`/`delete*` menolak record yang sudah soft-deleted, dan seed production hanya membuat admin (`manager`/`member` hanya non-production). CSRF mengandalkan proteksi bawaan Next.js Server Actions. Accepted risks: tidak ada MFA/password reset/OAuth, session belum sliding/rotation, audit log belum tamper-proof, belum ada rate limiting penuh dan CSP.
+Security hardening (lihat ADR-017 dan ADR-023): security headers dasar + CSP baseline, timing login disamakan agar tidak bocor keberadaan email, login failed-attempt limiter in-memory, proxy melindungi route utama, `update*`/`delete*` menolak record yang sudah soft-deleted, dan seed production hanya membuat admin. CSRF mengandalkan proteksi bawaan Next.js Server Actions. Accepted risks: tidak ada MFA/password reset/OAuth, session belum sliding/rotation, audit log belum tamper-proof, dan rate limiting belum production-grade untuk multi-instance/serverless.
+
+Deployment checklist: set env variables, validate production seed admin env, run Prisma migration/generate, seed production admin, run `npm run lint`, run `npm run build`, run smoke tests from `docs/OPERATIONS.md`, confirm `.env` is not committed, decide whether AI should stay disabled or set `GEMINI_API_KEY`, and verify auth/RBAC/users/data-tools/trash/audit workflows.

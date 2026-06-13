@@ -200,6 +200,8 @@ Sudah dikerjakan (lihat ADR-021): Visual Analytics, Data Recovery & Audit Usabil
 
 Sudah dikerjakan (lihat ADR-022): Import/Export System & Admin User Management - `/data-tools` untuk CSV export/template/import preview-confirm, `/users` untuk ADMIN user management, audit `EXPORT`/`IMPORT`, tanpa dependency/schema change.
 
+Sudah dikerjakan (lihat ADR-023): Production Readiness & Security Hardening - lazy env validation, production seed safety, session cleanup, in-memory login limiter, protected-route proxy review, CSP baseline, error/not-found UI, dan operations/deployment checklist.
+
 Possible deliverables lanjutan:
 
 - Anthropic/OpenAI sebagai provider tambahan via abstraction yang sudah ada.

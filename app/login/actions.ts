@@ -5,6 +5,7 @@ import { createUserSession } from "@/lib/auth/session";
 import { getDefaultRedirectForRole } from "@/lib/auth/permissions";
 import { getServiceErrorMessage } from "@/lib/services/errors";
 import { authenticateUser } from "@/lib/services/users";
+import { assertLoginAllowed, recordFailedLogin, resetLoginLimit } from "@/lib/auth/rate-limit";
 
 function loginDataFromForm(formData: FormData) {
   return {
@@ -19,12 +20,17 @@ function redirectWithError(message: string): never {
 
 export async function loginAction(formData: FormData) {
   let nextPath = "/dashboard";
+  const loginData = loginDataFromForm(formData);
+  const email = typeof loginData.email === "string" ? loginData.email : "";
 
   try {
-    const user = await authenticateUser(loginDataFromForm(formData));
+    assertLoginAllowed(email);
+    const user = await authenticateUser(loginData);
     await createUserSession(user.id);
+    resetLoginLimit(email);
     nextPath = getDefaultRedirectForRole(user.role);
   } catch (error) {
+    recordFailedLogin(email);
     redirectWithError(getServiceErrorMessage(error, "Invalid email or password."));
   }
 

@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/constants";
 
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+export const SESSION_MAX_AGE_DAYS = 7;
 
 export type AuthUser = {
   id: string;
@@ -33,6 +34,8 @@ function sessionCookieOptions(expires: Date) {
 }
 
 export async function createUserSession(userId: string) {
+  await deleteExpiredSessions();
+
   const token = randomBytes(32).toString("hex");
   const expiresAt = sessionExpiresAt();
 
@@ -75,6 +78,8 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     return null;
   }
 
+  await deleteExpiredSessions();
+
   const session = await db.session.findUnique({
     where: { tokenHash: hashSessionToken(token) },
     include: {
@@ -105,6 +110,12 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     role: session.user.role,
     linkedStaffId: session.user.linkedStaffId,
   };
+}
+
+export async function deleteExpiredSessions() {
+  await db.session.deleteMany({
+    where: { expiresAt: { lte: new Date() } },
+  });
 }
 
 export async function requireUser() {

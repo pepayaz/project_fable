@@ -295,7 +295,16 @@ Coarse RBAC uses explicit permission strings such as `staff:create`, `tasks:upda
 - Data exchange: `export:read` is ADMIN/MANAGER; `import:manage` is ADMIN-only.
 - User management: `users:read` and `users:manage` are ADMIN-only.
 
-All protected pages use read permissions. All mutating Server Actions use create/update/delete permissions. UI actions are hidden when permission is missing, but server-side permission checks remain the source of truth.
+All protected pages use read permissions. All mutating Server Actions use create/update/delete permissions. UI actions are hidden when permission is missing, but server-side permission checks remain the source of truth. `proxy.ts` performs early login redirects for protected route prefixes including dashboard, staff, data tools, users, trash, audit logs, insights, and member workspace.
+
+## Environment and Production Readiness
+
+Environment validation is lazy and server-side.
+
+- `lib/env.ts` validates `DATABASE_URL` as required and SQLite `file:` for the current deployment scope.
+- AI env remains optional: `AI_PROVIDER` defaults to `gemini`, only `gemini` is allowed, `AI_MODEL` defaults to `gemini-2.5-flash-lite`, and empty `GEMINI_API_KEY` keeps AI gracefully disabled.
+- Production seed admin env validates `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD`; weak/default/local fallback passwords are rejected in production.
+- `.env.example` documents safe placeholders only.
 
 ## Audit Log Strategy
 
@@ -310,6 +319,21 @@ Audit log foundation mencatat aksi penting pada entity utama untuk akuntabilitas
 - Restore dari trash dicatat sebagai `RESTORE` dengan summary aman. Filtering audit tidak dicatat.
 - Export/import dicatat sebagai `EXPORT` / `IMPORT` pada `DataExport` / `DataImport` tanpa CSV raw. User management dicatat pada `User` tanpa password/session data.
 - Foundation ini belum tamper-proof, belum mencatat aksi gagal/auth, dan belum punya export atau pagination penuh.
+
+## Auth and Session Hardening
+
+- Session cookie is `HttpOnly`, `SameSite=Lax`, and `Secure` in production.
+- Session tokens are random and stored as SHA-256 hashes in the database.
+- Session max age is defined as exported constants in `lib/auth/session.ts`.
+- Expired sessions are deleted opportunistically during session creation/check.
+- Inactive users invalidate their current session; user deactivation revokes all sessions for that user.
+- Login has a minimal in-memory failed-attempt limiter keyed by normalized email: 5 failed attempts per 10 minutes. This is not multi-instance/serverless-grade and should be replaced by platform/WAF/Redis-backed limiting for production.
+
+## Error and Logging Policy
+
+- `app/error.tsx` and `app/not-found.tsx` provide calm generic UI and do not expose stack traces.
+- Logs must not include passwords, temporary passwords, session tokens/hashes, API keys, AI prompts/outputs, or CSV raw import content.
+- Audit summaries remain safe summaries only for sensitive workflows.
 
 ## Data Tools Strategy
 
@@ -435,13 +459,13 @@ Halaman `/staff/[id]` diperkaya dengan Quick Insights dan Activity Timeline, dih
 Hardening dasar setelah review keamanan berbasis kode (lihat ADR-017):
 
 - **Auth:** password scrypt (salt random, `timingSafeEqual`); session token random 256-bit disimpan sebagai SHA-256 hash, plaintext hanya di cookie `httpOnly`/`sameSite=lax`/`secure` (production); expiry ditegakkan dan session invalid/inactive dihapus saat akses. Login menyamakan timing dengan dummy `verifyPassword` agar tidak bocor apakah email ada; error generik "Invalid email or password".
-- **RBAC:** semua Server Action mutasi memakai `requirePermission` spesifik; semua protected page memakai guard read/create/update; `proxy.ts` melakukan redirect dini (termasuk `/audit-logs`) sedangkan guard server-side tetap sumber kebenaran. MEMBER terbatas pada settings.
+- **RBAC:** semua Server Action mutasi memakai `requirePermission` spesifik; semua protected page memakai guard read/create/update; `proxy.ts` melakukan redirect dini untuk route protected sedangkan guard server-side tetap sumber kebenaran. MEMBER terbatas pada self-service workspace/settings.
 - **Soft delete:** read/list/relation-validation memfilter `deletedAt: null`; `update*`/`delete*` melakukan pre-check sehingga record terhapus tidak bisa diubah/dihapus ulang lewat request manual.
-- **HTTP headers:** `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` minimal (`next.config.ts`). CSP ditunda.
+- **HTTP headers:** `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, dan CSP baseline (`next.config.ts`). CSP masih mengizinkan inline script/style untuk kompatibilitas Next; nonce-based CSP ditunda.
 - **Seed/production:** user QA `manager`/`member` hanya dibuat saat `NODE_ENV !== "production"`; di production hanya admin (bila `SEED_ADMIN_PASSWORD` diset). `.env*` diabaikan git kecuali `.env.example`.
 - **CSRF:** mengandalkan proteksi origin bawaan Next.js Server Actions; tidak memakai library CSRF.
 
-Accepted risks (di luar scope MVP): tidak ada MFA/password reset/email verification/OAuth, session belum sliding/rotation, audit log belum tamper-proof, belum ada rate limiting penuh dan CSP.
+Accepted risks (di luar scope MVP): tidak ada MFA/password reset/email verification/OAuth, session belum sliding/rotation, audit log belum tamper-proof, rate limiting belum production-grade untuk multi-instance/serverless.
 
 ## Error Handling Strategy
 

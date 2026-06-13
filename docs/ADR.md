@@ -614,3 +614,37 @@ Negative / accepted:
 - Import memakai textarea, bukan file upload.
 - CSV parser internal cukup untuk CSV dasar, bukan spreadsheet parser penuh.
 - Tidak ada user deletion, invitation email, password reset email, MFA/OAuth/SSO.
+
+## ADR-023 Production Readiness and Security Hardening
+
+Status: Accepted
+
+### Context
+
+Project Fable sudah feature-rich untuk portfolio/internal MVP. Sebelum staging/production, sistem membutuhkan hardening defensible: env validation, seed safety, session cleanup, route protection review, error UI, logging policy, and operations docs. Scope tetap tanpa deployment, PostgreSQL migration, external monitoring, Redis, MFA/OAuth/SSO, atau dependency baru.
+
+### Decision
+
+- **Environment validation:** tambah `lib/env.ts` dengan lazy validation untuk `DATABASE_URL` SQLite `file:`, AI provider/model defaults, optional Gemini API key, dan seed admin env.
+- **Production seed safety:** production seed tidak membuat demo departments/staff/users, memakai `SEED_ADMIN_EMAIL`, dan menolak password kosong/lemah/default. Development seed tetap memakai demo data dan local fallback.
+- **Session hardening:** expose session duration constants, add `deleteExpiredSessions()`, and run cleanup opportunistically during session creation/check.
+- **Login abuse protection:** add in-memory failed-login limiter keyed by normalized email (5 failed attempts per 10 minutes). Successful login resets the limiter.
+- **Security headers:** keep existing baseline headers and add CSP baseline compatible with Next. Strict nonce-based CSP remains future.
+- **Route protection:** update `proxy.ts` protected prefixes to include newer protected routes (`/data-tools`, `/users`, `/trash`) in addition to existing page guards.
+- **Error UI:** add global error boundary and not-found page with generic, calm UI and no stack trace.
+- **Operations docs:** add `docs/OPERATIONS.md` for seed, SQLite backup/restore, smoke tests, and deployment checklist.
+
+### Consequences
+
+Positive:
+
+- Production/staging configuration is safer and easier to review.
+- Seed behavior no longer risks demo data/accounts in production.
+- Basic abuse protection and session cleanup improve custom auth posture without infrastructure dependencies.
+- Error pages and docs make operations more defensible.
+
+Negative / accepted:
+
+- In-memory rate limiting is not suitable for serverless/multi-instance production.
+- CSP still allows inline script/style for Next compatibility; full nonce-based CSP is future.
+- SQLite backup plan is documented, not automated.

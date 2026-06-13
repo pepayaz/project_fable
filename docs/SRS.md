@@ -353,6 +353,22 @@ Acceptance criteria:
 - Current admin tidak boleh deactivate diri sendiri atau melepas role ADMIN sendiri.
 - Tidak ada delete user, password reset email, invitation email, MFA, OAuth, atau email notification.
 
+### FR-017 Production Readiness and Security Hardening
+
+Sistem menyediakan hardening dasar untuk staging/production preparation.
+
+Acceptance criteria:
+
+- Environment validation memvalidasi `DATABASE_URL`, AI provider/model defaults, dan seed admin env secara lazy.
+- Empty `GEMINI_API_KEY` tetap membuat AI graceful disabled.
+- Production seed tidak membuat demo data/accounts dan menolak admin password kosong/lemah/default.
+- Session cookie memakai `HttpOnly`, `SameSite=Lax`, dan `Secure` di production.
+- Expired sessions dapat dibersihkan opportunistically.
+- Login memakai in-memory failed-attempt limiter dengan pesan generic.
+- Protected route prefixes mencakup dashboard, data tools, users, trash, audit logs, insights, member workspace, dan CRUD pages.
+- Global error boundary dan not-found page tidak menampilkan stack trace.
+- Dokumentasi operasi mencakup seed, backup/restore SQLite, smoke tests, dan deployment checklist.
+
 ## Non-Functional Requirements
 
 ### Usability
@@ -390,7 +406,7 @@ Audit log foundation mencatat create/update/delete/restore/generate/export/impor
 
 Hardening dasar sudah diterapkan (lihat ADR-017): security headers HTTP dasar (`X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`), timing login disamakan agar tidak bocor keberadaan email, proxy melindungi `/audit-logs`, service `update*`/`delete*` menolak record yang sudah soft-deleted, dan seed production hanya membuat admin. CSRF mengandalkan proteksi bawaan Next.js Server Actions.
 
-Accepted risks / future sprint: MFA, password reset, email verification, OAuth/SSO, audit log tamper-proofing/export, permanent delete policy, pencatatan aksi gagal, session sliding/rotation, rate limiting penuh, dan CSP.
+Accepted risks / future sprint: MFA, password reset, email verification, OAuth/SSO, audit log tamper-proofing/export, permanent delete policy, pencatatan aksi gagal, session sliding/rotation, dan production-grade distributed rate limiting.
 
 ### AI-Agent Compatibility
 

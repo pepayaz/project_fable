@@ -1,3 +1,5 @@
+import { getServerEnv } from "@/lib/env";
+
 const DEFAULT_PROVIDER = "gemini";
 const DEFAULT_MODEL = "gemini-2.5-flash-lite";
 
@@ -8,10 +10,12 @@ export type AiConfig = {
 };
 
 export function getAiConfig(): AiConfig {
+  const env = getServerEnv();
+
   return {
-    provider: (process.env.AI_PROVIDER || DEFAULT_PROVIDER).trim().toLowerCase(),
-    apiKey: (process.env.GEMINI_API_KEY ?? "").trim(),
-    model: (process.env.AI_MODEL || DEFAULT_MODEL).trim(),
+    provider: env.aiProvider || DEFAULT_PROVIDER,
+    apiKey: env.geminiApiKey,
+    model: env.aiModel || DEFAULT_MODEL,
   };
 }
 
