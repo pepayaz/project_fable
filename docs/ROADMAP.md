@@ -184,6 +184,8 @@ Deliverables:
 - Human Capital role
 - Optional division lead role
 
+Lanjutan (sudah dikerjakan): coarse RBAC, security hardening baseline, dan Member Self-Service Portal (`/my`) melalui relasi optional `User.linkedStaffId` ke `Staff` (lihat ADR-018).
+
 ## Milestone 8 — AI-Assisted Features
 
 Goal: menambahkan fitur AI yang relevan dan tidak gimmick.

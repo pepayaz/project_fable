@@ -11,6 +11,7 @@ const protectedPrefixes = [
   "/availability",
   "/performance-notes",
   "/audit-logs",
+  "/my",
   "/settings",
 ];
 
@@ -38,6 +39,7 @@ export const config = {
     "/availability/:path*",
     "/performance-notes/:path*",
     "/audit-logs/:path*",
+    "/my/:path*",
     "/settings/:path*",
   ],
 };

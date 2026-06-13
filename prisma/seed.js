@@ -231,6 +231,7 @@ const upsertUser = db.prepare(`
     passwordHash,
     role,
     isActive,
+    linkedStaffId,
     createdAt,
     updatedAt
   )
@@ -241,6 +242,7 @@ const upsertUser = db.prepare(`
     @passwordHash,
     @role,
     @isActive,
+    @linkedStaffId,
     @createdAt,
     @updatedAt
   )
@@ -249,6 +251,7 @@ const upsertUser = db.prepare(`
     passwordHash = excluded.passwordHash,
     role = excluded.role,
     isActive = excluded.isActive,
+    linkedStaffId = excluded.linkedStaffId,
     updatedAt = excluded.updatedAt
 `);
 
@@ -296,6 +299,7 @@ const seed = db.transaction(() => {
           name: "Project Fable Member",
           email: "member@fable.local",
           role: "MEMBER",
+          linkedStaffId: "staff-maya-putri",
         },
       );
     }
@@ -306,6 +310,7 @@ const seed = db.transaction(() => {
         email: user.email.toLowerCase(),
         passwordHash: hashPassword(seedPassword),
         isActive: 1,
+        linkedStaffId: user.linkedStaffId ?? null,
         createdAt: now,
         updatedAt: now,
       });

@@ -440,3 +440,37 @@ Accepted risks (di luar scope MVP):
 - CSRF mengandalkan proteksi origin bawaan Next.js Server Actions (tanpa library CSRF).
 - Audit log belum tamper-proof.
 - Belum ada rate limiting penuh dan CSP.
+
+## ADR-018 Member Self-Service Portal via Optional User–Staff Link
+
+Status: Accepted
+
+### Context
+
+Role MEMBER sebelumnya hanya bisa login dan membuka Settings karena `User` belum terhubung ke `Staff`. Dibutuhkan self-service portal agar MEMBER berguna, tanpa memberi akses global ke data staff lain.
+
+### Decision
+
+Tambahkan relasi optional `User.linkedStaffId String? @unique` ke `Staff`, dan bangun portal `/my`.
+
+- `linkedStaffId` opsional: ADMIN/MANAGER tidak wajib linked; `@unique` menjamin satu Staff ↔ satu User.
+- Permission baru: `my:read`, `my:availability:manage`, `my:tasks:update` (ADMIN via spread; MANAGER & MEMBER mendapat ketiganya; MEMBER tidak mendapat permission global staff/tasks).
+- **Boundary keamanan utama = scoping `linkedStaffId` di server**, bukan UI hiding. Semua My-service memakai `staffId` hasil resolve dari sesi (`getMyStaff`), tidak pernah dari client; mutasi memverifikasi kepemilikan record.
+- MEMBER hanya melihat data miliknya: profil (view-only), tasks (boleh update status terbatas TODO/IN_PROGRESS/DONE), attendance (view-only), availability (self-service CRUD), performance notes (hanya hitungan kategori, tanpa isi).
+- Availability dan task-status oleh MEMBER dicatat di audit log dengan summary aman.
+- `getDefaultRedirectForRole(MEMBER)` → `/my`. `/my` dilindungi proxy.
+- User belum linked → empty state; linked staff yang soft-deleted → unavailable state. Semua query `deletedAt: null`.
+
+### Consequences
+
+Positive:
+
+- MEMBER memiliki workspace berguna tanpa kebocoran data staff lain.
+- Boundary kepemilikan ditegakkan server-side dan dapat ditinjau.
+- Tidak menambah dependency; satu schema change minimal.
+
+Negative / accepted:
+
+- MEMBER tidak bisa mengedit profil sendiri (dikelola manager).
+- Isi performance note tidak terlihat MEMBER (hanya hitungan kategori).
+- Linking dilakukan manual/seed; belum ada UI admin untuk mengelola link User↔Staff.

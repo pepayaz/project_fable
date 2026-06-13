@@ -27,6 +27,9 @@ export const permissions = [
   "performanceNotes:update",
   "performanceNotes:delete",
   "auditLogs:read",
+  "my:read",
+  "my:availability:manage",
+  "my:tasks:update",
   "settings:read",
 ] as const;
 
@@ -58,9 +61,12 @@ const rolePermissions: Record<Role, Permission[]> = {
     "performanceNotes:create",
     "performanceNotes:update",
     "performanceNotes:delete",
+    "my:read",
+    "my:availability:manage",
+    "my:tasks:update",
     "settings:read",
   ],
-  MEMBER: ["settings:read"],
+  MEMBER: ["my:read", "my:availability:manage", "my:tasks:update", "settings:read"],
 };
 
 function isRole(role: string): role is Role {
@@ -77,7 +83,7 @@ export function can(user: Pick<AuthUser, "role"> | null, permission: Permission)
 
 export function getDefaultRedirectForRole(role: string) {
   if (role === "MEMBER") {
-    return "/settings";
+    return "/my";
   }
 
   return "/dashboard";

@@ -11,6 +11,7 @@ export type AuthUser = {
   name: string;
   email: string;
   role: string;
+  linkedStaffId: string | null;
 };
 
 function hashSessionToken(token: string) {
@@ -84,6 +85,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
           email: true,
           role: true,
           isActive: true,
+          linkedStaffId: true,
         },
       },
     },
@@ -101,6 +103,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     name: session.user.name,
     email: session.user.email,
     role: session.user.role,
+    linkedStaffId: session.user.linkedStaffId,
   };
 }
 

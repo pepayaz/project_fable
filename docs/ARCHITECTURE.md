@@ -337,6 +337,17 @@ Dashboard adalah management overview yang dihitung dari data existing, tanpa sch
 - AuditLog tidak di-soft-delete, sehingga query audit tidak memakai filter `deletedAt`.
 - Visualisasi memakai badge/list/progress bar CSS sederhana, tanpa chart library. Known limitation: query agregasi belum ber-index (full scan), diterima pada skala MVP.
 
+## Member Self-Service Portal
+
+MEMBER memiliki portal `/my` (My Workspace) berbasis relasi optional `User.linkedStaffId @unique` ke `Staff` (lihat ADR-018).
+
+- **Boundary kepemilikan server-side:** `getMyStaff(user)` me-resolve linked staff (`deletedAt: null`) dari sesi; semua My-service di `lib/services/my-workspace.ts` memakai `staffId` hasil resolve, tidak pernah `staffId` dari client. Mutasi (availability CRUD, task status) memverifikasi `record.*Id === myStaffId`.
+- **Permission:** `my:read`, `my:availability:manage`, `my:tasks:update`. MEMBER tidak mendapat permission global staff/tasks. ADMIN/MANAGER yang ter-link juga bisa memakai `/my`.
+- **Yang dilihat MEMBER:** profil sendiri (view-only), tasks miliknya (status dapat diubah terbatas TODO/IN_PROGRESS/DONE), attendance (view-only), availability (self-service), performance notes (hanya hitungan kategori, tanpa isi).
+- **Audit:** availability dan task-status oleh MEMBER dicatat (`recordAuditLog`, actor MEMBER, summary aman).
+- **Soft delete & state:** semua query `deletedAt: null`; user belum linked → empty state; linked staff soft-deleted → unavailable state. Login MEMBER redirect ke `/my`; `/my` dilindungi proxy.
+- ADMIN/MANAGER workflow global (Staff/Tasks/Availability) tidak berubah.
+
 ## People Intelligence Center
 
 `/insights` (permission `dashboard:read`, ditambahkan ke `proxy.ts`) adalah modul rule-based untuk membantu manager memahami kondisi tim, dihitung dari data existing tanpa schema atau dependency baru.

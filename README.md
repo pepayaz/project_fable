@@ -13,6 +13,7 @@ Fitur MVP yang tersedia saat ini:
 - Staff detail 360 read-only (profil + task, attendance, availability, performance notes)
 - Staff Quick Insights (snapshot rule-based netral) dan Activity Timeline gabungan di halaman detail
 - People Intelligence Center (/insights): organization summary, staff attention list, workload balance, weekly operations — rule-based & netral, dengan teaser di dashboard
+- Member Self-Service Portal (/my): MEMBER yang ter-link ke Staff melihat profil/tasks/attendance/availability sendiri, mengelola availability, dan update status task miliknya (TODO/IN_PROGRESS/DONE)
 - Search, filter, dan sort server-side di semua list page utama (via query params)
 - Department CRUD
 - Staff assignment ke department
@@ -162,6 +163,7 @@ npm run build
 | Auth foundation | Done |
 | Protected routes | Done |
 | Coarse RBAC | Done |
+| Member self-service portal | Done |
 | Audit log foundation | Done |
 | Soft delete & data safety | Done |
 | Security hardening review | Done |
@@ -201,6 +203,8 @@ Project Fable intentionally avoids enterprise HRIS features in the MVP. Payroll,
 List search/filter/sort known limitations: belum ada pagination (semua hasil dirender), pencarian `contains` di SQLite case-insensitive terutama untuk ASCII, term pencarian muncul di URL (shareable), dan sort task priority masih urutan alfabet kolom (bukan severity).
 
 Dashboard reporting: task completion rate = `completed / (total non-deleted − cancelled) × 100`, 0% bila denominator 0. Semua metrik non-audit menghormati soft delete (`deletedAt: null`). Section Audit hanya tampil untuk ADMIN (`auditLogs:read`); AuditLog tidak di-soft-delete sehingga query audit tidak memakai filter `deletedAt`.
+
+Member Self-Service Portal (`/my`): pengguna yang ter-link ke Staff via `User.linkedStaffId` melihat data miliknya sendiri (boundary kepemilikan ditegakkan server-side, `staffId` tidak pernah dari client). MEMBER: profil & attendance view-only; availability self-service; status task miliknya terbatas TODO/IN_PROGRESS/DONE; performance notes hanya hitungan kategori (tanpa isi). Availability & task-status oleh MEMBER di-audit. ADMIN/MANAGER tidak wajib linked; jika tidak linked, `/my` menampilkan empty state. Seed non-production me-link `member@fable.local` ke staff demo.
 
 People Intelligence Center (`/insights`, permission `dashboard:read`, ADMIN+MANAGER): organization summary, staff attention list (Needs attention / Follow-up suggested / Stable dengan reasons objektif), workload balance, dan weekly operations (last 7 days). Semua rule-based, netral, dan menghormati soft delete; populasi utama staff ACTIVE; tidak ada skor performa final maupun isi performance note (hanya hitungan kategori/sinyal). Catatan: "tasks completed recently" memakai proxy `status=DONE` & `updatedAt >= window` karena tidak ada kolom `completedAt`. Sinyal staff dievaluasi oleh `evaluateStaffSignals` yang sama dengan Staff Detail. Struktur ini disiapkan sebagai fondasi AI Weekly Brief — Sprint ini belum memakai AI.
 

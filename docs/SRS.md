@@ -176,6 +176,22 @@ Acceptance criteria:
 - Semua query menghormati soft delete (`deletedAt: null`) dan RBAC read permission.
 - Known limitations: belum ada pagination, `contains` SQLite case-insensitive terutama ASCII, term pencarian tampil di URL, sort task priority masih alfabet (bukan severity); belum ada export, saved filter, atau advanced query builder.
 
+### FR-004e Member Self-Service Portal
+
+Sistem menyediakan portal `/my` (My Workspace) untuk pengguna yang ter-link ke Staff melalui `User.linkedStaffId`.
+
+Acceptance criteria:
+
+- Memerlukan permission `my:read`; login MEMBER redirect ke `/my`; `/my` dilindungi proxy.
+- MEMBER hanya melihat data miliknya berdasarkan `linkedStaffId` (profil, tasks, attendance, availability, performance summary), tidak pernah data staff lain.
+- Profil dan attendance view-only; MEMBER tidak bisa mengedit keduanya.
+- MEMBER boleh mengubah status task miliknya, terbatas TODO/IN_PROGRESS/DONE (ownership-scoped, audited).
+- MEMBER boleh create/update/delete availability miliknya (ownership-scoped, audited).
+- Performance notes hanya ditampilkan sebagai hitungan per kategori, tanpa isi note.
+- `staffId` tidak pernah diambil dari client; boundary kepemilikan ditegakkan di service/action.
+- User belum linked → empty state jelas; linked staff yang soft-deleted → unavailable state; semua query `deletedAt: null`.
+- ADMIN/MANAGER tidak wajib linked; jika tidak linked dan membuka `/my`, tampil empty state.
+
 ### FR-005 Department List
 
 Sistem harus menyediakan halaman daftar department.
