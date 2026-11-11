@@ -8,7 +8,7 @@ The project is portfolio-ready with a demo/staging deployment on Vercel + Neon P
 
 - Demo deployment: Vercel staging, available on request.
 - Database: Neon PostgreSQL on the `deployment/postgres` branch.
-- Repository: private unless explicitly approved for public release.
+- Repository: public portfolio repository.
 - Stable baseline: `main`/`master` remains SQLite-first.
 
 ## Tech Stack
@@ -93,7 +93,7 @@ Copy-Item .env.example .env
 Local PostgreSQL URL for this branch:
 
 ```env
-DATABASE_URL="postgresql://fable:fable_dev_password@localhost:5432/project_fable?schema=public"
+DATABASE_URL="postgresql://fable:your_password@localhost:5432/project_fable?schema=public"
 ```
 
 Run checks:
@@ -129,17 +129,3 @@ Do not commit `.env`, local database files, or generated Prisma client output.
 - AI depends on provider availability and remains optional.
 - Staging data may be empty unless seeded intentionally.
 - Free/staging infrastructure may show cold starts.
-
-## Agent Workflow
-
-Use PowerShell-compatible commands and RTK where possible:
-
-```powershell
-rtk git status
-rtk find .
-rtk git diff
-rtk test npm run lint
-rtk test npm run build
-```
-
-Current deployment work belongs on `deployment/postgres`. Do not merge to `main`/`master`, expose secrets, or deploy without explicit approval.
